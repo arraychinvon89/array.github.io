@@ -2292,10 +2292,11 @@ function botState(state, say) {
 }
 /* ================= text-to-speech: the robot reads its answers aloud (Web Speech API, voices from the OS/browser) ================= */
 const TTS_LS = 'array_sim_tts';
+const NO_THAI = 'ผมอยากพูดให้ฟัง แต่เบราว์เซอร์นี้ไม่มีเสียงภาษาไทยครับ ลองเปิดด้วย Microsoft Edge ดูนะครับ';
 const hasTTS = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
-const TTS = { on: true, voiceURI: '', rate: 1, queue: 0 };
+const TTS = { on: true, voiceURI: '', picked: false, rate: 1, queue: 0 };
 try { Object.assign(TTS, JSON.parse(localStorage.getItem(TTS_LS) || '{}')); } catch (e) {}
-const ttsSave = () => { try { localStorage.setItem(TTS_LS, JSON.stringify({ on: TTS.on, voiceURI: TTS.voiceURI, rate: TTS.rate })); } catch (e) {} };
+const ttsSave = () => { try { localStorage.setItem(TTS_LS, JSON.stringify({ on: TTS.on, voiceURI: TTS.voiceURI, picked: TTS.picked, rate: TTS.rate })); } catch (e) {} };
 function ttsVoices() {
   if (!hasTTS) return [];
   const vs = speechSynthesis.getVoices();
@@ -2305,12 +2306,19 @@ function ttsFillVoices() {
   const sel = $('ttsVoice'), vs = ttsVoices();
   sel.textContent = '';
   vs.forEach(v => { const o = document.createElement('option'); o.value = v.voiceURI; o.textContent = (/^th/i.test(v.lang) ? '🇹🇭 ' : '') + v.name + ' (' + v.lang + ')'; sel.appendChild(o); });
-  if (!vs.some(v => v.voiceURI === TTS.voiceURI)) TTS.voiceURI = vs[0] ? vs[0].voiceURI : '';
+  const thaiV = vs.filter(v => /^th/i.test(v.lang));
+  // use a Thai voice unless the person picked another one themselves (prefer the natural/online ones)
+  const cur = vs.find(v => v.voiceURI === TTS.voiceURI);
+  if (!cur || (!TTS.picked && !/^th/i.test(cur.lang) && thaiV.length)) {
+    const best = thaiV.find(v => /natural|online|premwadee|niwat/i.test(v.name)) || thaiV[0] || vs[0];
+    TTS.voiceURI = best ? best.voiceURI : '';
+  }
   sel.value = TTS.voiceURI;
-  const thai = vs.some(v => /^th/i.test(v.lang));
   sel.closest('.vsel').hidden = !vs.length;
-  $('ttsNote').hidden = thai;
-  $('ttsNote').textContent = vs.length ? 'เครื่องนี้ยังไม่มีเสียงภาษาไทย เสียงอาจอ่านไทยไม่ได้ ลองเปิดใน Chrome หรือเพิ่มภาษาไทย (Speech) ใน Windows' : 'กำลังโหลดเสียงของเครื่อง… ถ้าไม่ขึ้น ลองเปิดใน Chrome หรือ Edge';
+  $('ttsNote').hidden = thaiV.length > 0;
+  $('ttsNote').innerHTML = vs.length
+    ? '<b>เบราว์เซอร์นี้ไม่มีเสียงภาษาไทย</b> (พบ ' + vs.length + ' เสียง แต่ไม่มีภาษาไทย) หุ่นจึงยังพูดไทยไม่ได้ · วิธีแก้ที่ง่ายสุด: เปิดเว็บนี้ด้วย <b>Microsoft Edge</b> ซึ่งมีเสียงไทย Premwadee และ Niwat ให้ทันที · หรือใน Windows ไปที่ Settings → Time &amp; language → Language &amp; region → เพิ่มภาษาไทย แล้วติ๊ก Text-to-speech จากนั้นปิดแล้วเปิดเบราว์เซอร์ใหม่'
+    : 'กำลังโหลดเสียงของเครื่อง… ถ้าไม่ขึ้น ลองเปิดด้วย Microsoft Edge';
 }
 function ttsUi() {
   $('ttsBtn').setAttribute('aria-pressed', String(TTS.on));
@@ -2341,6 +2349,12 @@ function speakNow(text) {
   const parts = ttsChunks(speechText(text));
   if (!parts.length) return false;
   const voice = speechSynthesis.getVoices().find(v => v.voiceURI === TTS.voiceURI);
+  if (/[\u0E00-\u0E7F]/.test(text) && !(voice && /^th/i.test(voice.lang)) && !speechSynthesis.getVoices().some(v => /^th/i.test(v.lang))) {
+    // no Thai voice at all: an English voice would read Thai as noise, so say why instead
+    TTS.noThai = true; botState('idle', NO_THAI);
+    $('ttsNote').hidden = false;
+    return false;
+  }
   TTS.queue = parts.length; aiStop.hidden = false;
   parts.forEach((part, i) => {
     const u = new SpeechSynthesisUtterance(part);
@@ -2363,14 +2377,14 @@ if (hasTTS) {
   ttsFillVoices(); ttsUi();
   speechSynthesis.addEventListener ? speechSynthesis.addEventListener('voiceschanged', ttsFillVoices) : (speechSynthesis.onvoiceschanged = ttsFillVoices);
   $('ttsBtn').onclick = () => { TTS.on = !TTS.on; if (!TTS.on) ttsStop(); ttsUi(); ttsSave(); };
-  $('ttsVoice').onchange = e => { TTS.voiceURI = e.target.value; ttsSave(); speak('สวัสดีครับ ผมคือผู้ช่วยของ array simulator'); };
+  $('ttsVoice').onchange = e => { TTS.voiceURI = e.target.value; TTS.picked = true; ttsSave(); speak('สวัสดีครับ ผมคือผู้ช่วยของ array simulator'); };
   $('ttsRate').oninput = e => { TTS.rate = +e.target.value; ttsSave(); };
 } else {
   $('voiceBar').innerHTML = '<span class="hint">เบราว์เซอร์นี้อ่านออกเสียงไม่ได้</span>';
 }
 function talkFor(ms, after) {                   // keep talking a little while after text lands, then smile
   talkUntil = performance.now() + ms;
-  setTimeout(() => { if (performance.now() >= talkUntil - 5 && !aiBusy && !TTS.queue) botState('idle', after); }, ms);
+  setTimeout(() => { if (performance.now() >= talkUntil - 5 && !aiBusy && !TTS.queue) botState('idle', TTS.noThai && TTS.on ? NO_THAI : after); }, ms);
 }
 function stateSnapshot() {
   const r1 = x => Math.round(x * 1000) / 1000, deg = x => Math.round(x * 1800 / Math.PI) / 10;
