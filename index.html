@@ -1,0 +1,932 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ขาหุ่นยนต์ B-02 · จำลองหุ่นยนต์สองขาเดินด้วยฟิสิกส์ 3D และ 2D</title>
+<meta name="description" content="จำลองขาหุ่นยนต์สองขาเดินได้แบบ 3D และ 2D ด้วยฟิสิกส์จริง ทรงตัวด้วยแบบจำลองลูกตุ้มกลับหัว (LIPM) และ capture point ผลักได้ กระโดดได้ ล้มได้ เล่นบนเบราว์เซอร์ได้ทันที">
+<meta name="keywords" content="หุ่นยนต์สองขา, ขาหุ่นยนต์, biped robot, จำลองหุ่นยนต์, ฟิสิกส์, LIPM, capture point, 3D">
+<meta name="robots" content="index, follow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="ขาหุ่นยนต์ B-02 · จำลองหุ่นยนต์สองขาเดินด้วยฟิสิกส์">
+<meta property="og:description" content="ขาหุ่นยนต์สองขาเดินได้แบบ 3D และ 2D ทรงตัวด้วยฟิสิกส์ ผลักได้ กระโดดได้ ล้มได้">
+<meta property="og:locale" content="th_TH">
+<meta name="theme-color" content="#f08a24">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='7' y='3' width='18' height='7' rx='2' fill='%23f08a24'/%3E%3Cpath d='M11 10 L9 19 L12 29 M21 10 L23 19 L20 29' stroke='%231b2a3a' stroke-width='4' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=IBM+Plex+Sans+Thai:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: engineering test bench — title block, 3D + 2D viewports side by side, control strip and telemetry beneath */
+:root {
+  --paper: #eef2f6; --sheet: #f8fafc; --grid: #d3dce6; --grid-strong: #a9b8c8;
+  --ink: #1b2a3a; --muted: #5a6b7d; --robot: #f08a24; --robot-dark: #c4651a;
+  --joint: #43566b; --glow: #12a9c4; --line: #c8d3de;
+  --com: #d6336c; --cp: #12a9c4; --cop: #2f9e44;
+  --btn: #ffffff; --btn-active: #1b2a3a; --btn-active-fg: #ffffff;
+  --ground3d: #dde5ec; --grid3d: #b9c6d3; --sky3d: #eef2f6;
+  --f-display: "Chakra Petch", "IBM Plex Sans Thai", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans Thai", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0f1923; --sheet: #142230; --grid: #1e3142; --grid-strong: #34506a;
+    --ink: #e3ebf3; --muted: #8fa3b6; --robot: #f39a3d; --robot-dark: #c46d22;
+    --joint: #7d93a9; --glow: #5fe0f2; --line: #253a4d;
+    --com: #ff6b9a; --cp: #5fe0f2; --cop: #69db7c;
+    --btn: #182a3a; --btn-active: #e3ebf3; --btn-active-fg: #0f1923;
+    --ground3d: #16232f; --grid3d: #2a4256; --sky3d: #0f1923;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0f1923; --sheet: #142230; --grid: #1e3142; --grid-strong: #34506a;
+  --ink: #e3ebf3; --muted: #8fa3b6; --robot: #f39a3d; --robot-dark: #c46d22;
+  --joint: #7d93a9; --glow: #5fe0f2; --line: #253a4d;
+  --com: #ff6b9a; --cp: #5fe0f2; --cop: #69db7c;
+  --btn: #182a3a; --btn-active: #e3ebf3; --btn-active-fg: #0f1923;
+  --ground3d: #16232f; --grid3d: #2a4256; --sky3d: #0f1923;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+img { max-width: 100%; }
+body { background: var(--paper); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.6; }
+.wrap {
+  max-width: 1280px; margin: 0 auto; display: grid; gap: 16px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 24px 40px;
+}
+header { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 8px 24px; }
+.eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+h1 { font-family: var(--f-display); font-weight: 700; font-size: clamp(28px, 5vw, 42px); line-height: 1.1; margin: 4px 0 0; text-wrap: balance; }
+h1 span { color: var(--robot); }
+.lede { margin: 0; color: var(--muted); max-width: 54ch; }
+.viewbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+.seg { display: inline-flex; border: 1px solid var(--grid-strong); border-radius: 5px; overflow: hidden; }
+.seg button { border: 0; border-radius: 0; min-height: 40px; }
+.seg button + button { border-left: 1px solid var(--grid-strong); }
+.check { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; color: var(--muted); cursor: pointer; }
+.check input { width: 18px; height: 18px; accent-color: var(--robot); }
+.views { display: grid; gap: 12px; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); }
+.views[data-view="3d"] { grid-template-columns: minmax(0, 1fr); }
+.views[data-view="2d"] { grid-template-columns: minmax(0, 1fr); }
+.views[data-view="3d"] #v2d, .views[data-view="2d"] #v3d { display: none; }
+@media (max-width: 860px) { .views { grid-template-columns: minmax(0, 1fr); } }
+.vp { position: relative; border: 1px solid var(--line); border-radius: 6px; background: var(--sheet); overflow: hidden; height: clamp(320px, 46vw, 500px); }
+.views[data-view="both"] .vp { height: clamp(300px, 40vw, 480px); }
+.vp canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+.chip {
+  position: absolute; top: 10px; left: 10px; pointer-events: none;
+  font-family: var(--f-mono); font-size: 11px; letter-spacing: .05em; color: var(--muted);
+  background: var(--sheet); border: 1px solid var(--line); border-radius: 3px; padding: 2px 7px;
+}
+.legend { position: absolute; bottom: 10px; left: 10px; right: 10px; display: flex; flex-wrap: wrap; gap: 4px 14px; font-family: var(--f-mono); font-size: 11px; color: var(--muted); pointer-events: none; }
+.legend i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; vertical-align: -1px; }
+.legend[hidden] { display: none; }
+#leg2 { top: 40px; bottom: auto; }
+.nogl { position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; text-align: center; color: var(--muted); }
+.bench { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 16px; }
+@media (max-width: 860px) { .bench { grid-template-columns: minmax(0, 1fr); } }
+.panel { border: 1px solid var(--line); border-radius: 6px; background: var(--sheet); padding: 16px; display: grid; gap: 14px; align-content: start; }
+.panel h2 { font-family: var(--f-display); font-size: 16px; font-weight: 700; margin: 0; letter-spacing: .02em; }
+.group { display: grid; gap: 6px; }
+.group > span { font-size: 12px; font-family: var(--f-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.row { display: flex; flex-wrap: wrap; gap: 8px; }
+button {
+  font: 600 15px var(--f-body); color: var(--ink); background: var(--btn);
+  border: 1px solid var(--grid-strong); border-radius: 4px; padding: 8px 14px; min-height: 44px;
+  cursor: pointer; display: inline-flex; align-items: center; gap: 8px; user-select: none; -webkit-user-select: none; touch-action: manipulation;
+}
+button:hover { border-color: var(--ink); }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--glow); outline-offset: 2px; }
+button[aria-pressed="true"] { background: var(--btn-active); color: var(--btn-active-fg); }
+button.primary { background: var(--robot); border-color: var(--robot-dark); color: #1b1206; }
+kbd { font-family: var(--f-mono); font-size: 11px; border: 1px solid currentColor; border-radius: 3px; padding: 0 4px; opacity: .7; }
+.sliders { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px 20px; }
+.slider { display: grid; gap: 2px; }
+.slider label { display: flex; justify-content: space-between; font-size: 14px; color: var(--muted); }
+.slider output { font-family: var(--f-mono); color: var(--ink); }
+input[type=range] { width: 100%; accent-color: var(--robot); }
+.status { display: flex; align-items: center; gap: 10px; font-family: var(--f-display); font-weight: 700; font-size: 18px; }
+.dot { width: 10px; height: 10px; border-radius: 50%; background: var(--cop); flex: none; }
+.status[data-tone="warn"] .dot { background: var(--robot); }
+.status[data-tone="bad"] .dot { background: var(--com); }
+.telemetry { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 0; border-top: 1px solid var(--line); }
+.telemetry div { display: flex; justify-content: space-between; gap: 8px; padding: 7px 0; border-bottom: 1px solid var(--line); }
+.telemetry div:nth-child(odd) { padding-right: 14px; }
+.telemetry div:nth-child(even) { padding-left: 14px; border-left: 1px solid var(--line); }
+.telemetry dt { color: var(--muted); font-size: 14px; }
+.telemetry dd { margin: 0; font-family: var(--f-mono); font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; }
+.hint { font-size: 13px; color: var(--muted); margin: 0; }
+.notes { font-size: 14px; color: var(--muted); margin: 0; max-width: 90ch; }
+.notes b { color: var(--ink); font-weight: 600; }
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <div class="eyebrow">Test bench · Biped legs · LIPM gait</div>
+      <h1>ขาหุ่นยนต์ <span>B-02</span></h1>
+    </div>
+    <p class="lede">ชุดขาสองข้างทรงตัวด้วยแบบจำลองลูกตุ้มกลับหัว (LIPM) เลือกจุดวางเท้าจาก capture point ทุกเฟรม ถ้าโดนผลักจะก้าวกู้สมดุลเอง ถ้าผลักแรงเกินไปก็ล้มได้</p>
+  </header>
+
+  <div class="viewbar">
+    <div class="seg" role="group" aria-label="มุมมอง">
+      <button id="vBoth" aria-pressed="true">ทั้งสองแบบ</button>
+      <button id="v3" aria-pressed="false">3D</button>
+      <button id="v2" aria-pressed="false">2D</button>
+    </div>
+    <label class="check"><input id="showPhys" type="checkbox" checked> แสดงเวกเตอร์ฟิสิกส์</label>
+  </div>
+
+  <div class="views" id="views" data-view="both">
+    <div class="vp" id="v3d">
+      <div class="chip">3D · ลากเพื่อหมุนกล้อง · ล้อเมาส์ซูม</div>
+      <div class="legend" id="leg3"><span><i style="background:var(--com)"></i>CoM</span><span><i style="background:var(--cp)"></i>Capture point ξ</span><span><i style="background:var(--cop)"></i>CoP</span></div>
+    </div>
+    <div class="vp" id="v2d">
+      <canvas id="cv2" aria-label="มุมมองด้านข้างของหุ่นยนต์"></canvas>
+      <div class="chip">2D · มุมมองด้านข้าง (sagittal)</div>
+      <div class="legend" id="leg2"><span><i style="background:var(--com)"></i>CoM</span><span><i style="background:var(--cp)"></i>ξ</span><span><i style="background:var(--cop)"></i>CoP / ขาลูกตุ้ม</span></div>
+    </div>
+  </div>
+
+  <div class="bench">
+    <section class="panel" aria-labelledby="ctl-h">
+      <h2 id="ctl-h">ควบคุม</h2>
+      <div class="group"><span>การเดิน</span>
+        <div class="row">
+          <button id="walk" class="primary" aria-pressed="true">หยุด <kbd>W</kbd></button>
+          <button id="tl">↺ เลี้ยวซ้าย <kbd>A</kbd></button>
+          <button id="tr">เลี้ยวขวา ↻ <kbd>D</kbd></button>
+          <button id="jump">กระโดด <kbd>Space</kbd></button>
+        </div>
+      </div>
+      <div class="group"><span>ทดสอบการทรงตัว</span>
+        <div class="row">
+          <button id="pushB">ผลักจากด้านหลัง <kbd>P</kbd></button>
+          <button id="pushS">ผลักจากด้านข้าง <kbd>O</kbd></button>
+          <button id="pushF">ผลักจากด้านหน้า</button>
+          <button id="reset">ตั้งหุ่นใหม่ <kbd>R</kbd></button>
+        </div>
+      </div>
+      <div class="sliders">
+        <div class="slider">
+          <label for="speed">ความเร็วเป้าหมาย <output id="speedOut">0.9 m/s</output></label>
+          <input id="speed" type="range" min="0.2" max="1.6" step="0.1" value="0.9">
+        </div>
+        <div class="slider">
+          <label for="force">แรงผลัก (Δv) <output id="forceOut">0.8 m/s</output></label>
+          <input id="force" type="range" min="0.2" max="2.4" step="0.1" value="0.8">
+        </div>
+      </div>
+      <p class="hint">กดค้างปุ่มเลี้ยว หรือกด A / D (ลูกศรซ้าย/ขวา) ค้างไว้ · ลองผลักแรงน้อยๆ แล้วค่อยๆ เพิ่ม ตอนเดินอยู่ ผลักด้านข้างเกินราว 1.3 m/s หรือผลักด้านหลังเกินราว 1.9 m/s หุ่นจะก้าวรับไม่ทันแล้วล้ม</p>
+    </section>
+
+    <section class="panel" aria-labelledby="tel-h">
+      <h2 id="tel-h">ค่าจากเซนเซอร์</h2>
+      <div class="status" id="status" data-tone="ok"><span class="dot"></span><span id="mode">ยืนทรงตัว</span></div>
+      <dl class="telemetry">
+        <div><dt>ความเร็ว</dt><dd id="tVel">0.00 m/s</dd></div>
+        <div><dt>ความสูง CoM</dt><dd id="tH">0.86 m</dd></div>
+        <div><dt>ความยาวก้าว</dt><dd id="tStep">0.00 m</dd></div>
+        <div><dt>จังหวะก้าว</dt><dd id="tCad">0 ก้าว/นาที</dd></div>
+        <div><dt>สะโพกซ้าย</dt><dd id="hL">0°</dd></div>
+        <div><dt>สะโพกขวา</dt><dd id="hR">0°</dd></div>
+        <div><dt>เข่าซ้าย</dt><dd id="kL">0°</dd></div>
+        <div><dt>เข่าขวา</dt><dd id="kR">0°</dd></div>
+        <div><dt>ξ ห่างเท้ายืน</dt><dd id="tXi">0.00 m</dd></div>
+        <div><dt>เส้นทาง</dt><dd id="tDist">0.0 m</dd></div>
+        <div><dt>ก้าวทั้งหมด</dt><dd id="tSteps">0</dd></div>
+        <div><dt>ล้มไปแล้ว</dt><dd id="tFalls">0 ครั้ง</dd></div>
+      </dl>
+    </section>
+  </div>
+
+  <p class="notes"><b>ฟิสิกส์ที่ใช้:</b> แรงโน้มถ่วง 9.81 m/s² · CoM เคลื่อนตามสมการ ẍ = (g/h)(x − p) โดย p คือจุดศูนย์กลางแรงกด (CoP) ใต้ฝ่าเท้า · เท้าถัดไปวางที่ ξ = x + ẋ/ω ที่คาดว่าจะเป็นตอนจบก้าว · ความสูงสะโพกถูกจำกัดด้วยความยาวขาจริง (ต้นขา 0.44 m, หน้าแข้ง 0.44 m) จึงยุบขึ้นลงเองตามธรรมชาติ · เท้าลงด้วยส้นและถีบออกด้วยปลายเท้า · กระโดดเป็นวิถีโพรเจกไทล์ แล้วลงพื้นด้วยสปริง-แดมเปอร์ · ถ้าก้าวที่ต้องใช้ยาวเกิน 1 m หุ่นจะล้มแบบลูกตุ้มหมุนรอบเท้า</p>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+(() => {
+'use strict';
+const $ = id => document.getElementById(id);
+
+/* ================= physics constants ================= */
+const G = 9.81, H0 = 0.94, OM = Math.sqrt(G / H0);
+const L1 = 0.44, L2 = 0.44, AH = 0.075, HW = 0.095, STEPW = 0.2, TOE = 0.17, HEEL = 0.07;
+const REACH = 0.985 * (L1 + L2), MAXSTEP = 0.85, FALLSTEP = 1.15;
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const lerp = (a, b, t) => a + (b - a) * t;
+const mj = s => { s = clamp(s, 0, 1); return s * s * s * (10 - 15 * s + 6 * s * s); };
+const fwdOf = th => [Math.cos(th), Math.sin(th)];
+const leftOf = th => [Math.sin(th), -Math.cos(th)];
+const lerpAng = (a, b, t) => { const d = ((b - a + Math.PI) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI) - Math.PI; return a + d * t; };
+const ankleRise = ft => ft.pitch > 0 ? Math.sin(ft.pitch) * TOE : Math.sin(-ft.pitch) * HEEL;
+
+const S = { walking: true, vdes: 0.9, turn: 0, steps: 0, stepLen: 0, odo: 0, path: 0, falls: 0,
+  jumpReq: false, lastSwing: 1, arm: [0, 0], footprints: [], fpSeq: 0, recover: 0 };
+
+function newFoot(x, z, yaw) { return { x, z, yaw, lift: 0, pitch: 0, sx: x, sz: z, syaw: yaw, spitch: 0, tx: x, tz: z }; }
+function reset(x = 0, z = 0, th = 0, y = H0 - 0.01) {
+  const n = leftOf(th);
+  Object.assign(S, { x, z, vx: 0, vz: 0, ax: 0, az: 0, y, ys: y, vy: 0, th, mode: 'stand', t: 0, T: 0.55, si: 1, tm: 0, fall: null,
+    copx: x, copz: z, jumpReq: false });
+  S.feet = [newFoot(x + n[0] * STEPW / 2, z + n[1] * STEPW / 2, th), newFoot(x - n[0] * STEPW / 2, z - n[1] * STEPW / 2, th)];
+}
+reset();
+
+function mid() { return { x: (S.feet[0].x + S.feet[1].x) / 2, z: (S.feet[0].z + S.feet[1].z) / 2 }; }
+function wantsMove() { return (S.walking && S.vdes > 0.05) || S.turn !== 0; }
+
+function beginStep() {
+  const vd = S.walking ? S.vdes : 0;
+  S.T = S.recover > 0 ? 0.32 : clamp(0.6 - 0.12 * vd, 0.42, 0.6);
+  S.t = 0; S.ts = 0; S.quick = false; S.mode = 'walk';
+  const sw = S.feet[1 - S.si], st = S.feet[S.si];
+  Object.assign(sw, { sx: sw.x, sz: sw.z, syaw: sw.yaw, spitch: sw.pitch, tx: sw.x, tz: sw.z });
+  st.spitch = st.pitch;
+}
+function quickTouchdown(left) {
+  const sw = S.feet[1 - S.si];
+  Object.assign(sw, { sx: sw.x, sz: sw.z, syaw: sw.yaw, spitch: sw.pitch, slift: sw.lift });
+  S.ts = S.t; S.T = S.t + left; S.quick = true;
+}
+function chooseSwing(dl) { return dl > 0.02 ? 0 : dl < -0.02 ? 1 : (S.lastSwing === 0 ? 1 : 0); }
+
+function startFall() {
+  const piv = S.mode === 'walk' ? { x: S.feet[S.si].x, z: S.feet[S.si].z } : mid();
+  let ux = S.x + S.vx / OM - piv.x, uz = S.z + S.vz / OM - piv.z;
+  let ul = Math.hypot(ux, uz); if (ul < 1e-3) { ux = Math.cos(S.th); uz = Math.sin(S.th); ul = 1; }
+  ux /= ul; uz /= ul;
+  const l = Math.max(0.5, S.y);
+  const h = (S.x - piv.x) * ux + (S.z - piv.z) * uz;
+  const phi0 = Math.asin(clamp(h / l, -0.8, 0.8));
+  S.fall = { px: piv.x, pz: piv.z, ux, uz, l, phi0, phi: phi0, dphi: Math.max(0.4, (S.vx * ux + S.vz * uz) / l), pose: computePose(), th: S.th };
+  S.mode = 'fall'; S.tm = 0; S.falls++; S.jumpReq = false;
+}
+function getUp() {
+  const F = S.fall;
+  reset(F.px + F.ux * 0.45, F.pz + F.uz * 0.45, F.th, 0.32);
+}
+
+function limitHeight() {
+  const n = leftOf(S.th);
+  let lim = 2;
+  S.feet.forEach((ft, i) => {
+    if (S.mode === 'walk' && i !== S.si && S.t / S.T < 0.7) return;
+    const sd = i === 0 ? 1 : -1;
+    const hx = S.x + n[0] * sd * HW, hz = S.z + n[1] * sd * HW;
+    const dh = Math.hypot(ft.x - hx, ft.z - hz);
+    const ay = AH + ft.lift + ankleRise(ft);
+    lim = Math.min(lim, ay + Math.sqrt(Math.max(0, REACH * REACH - dh * dh)));
+  });
+  S.y = Math.min(S.ys, lim);
+}
+
+function step(dt) {
+  const f = fwdOf(S.th), n = leftOf(S.th);
+  const vd = S.walking ? S.vdes : 0;
+  const wants = wantsMove();
+  S.tm += dt; S.recover = Math.max(0, S.recover - dt);
+
+  if (S.mode === 'stand' || S.mode === 'shift' || S.mode === 'land' || S.mode === 'crouch') {
+    const m = mid();
+    let tx = m.x, tz = m.z;
+    if (S.mode === 'shift') { const st = S.feet[S.si]; tx = lerp(m.x, st.x, 0.55); tz = lerp(m.z, st.z, 0.55); }
+    const ax = 34 * (tx - S.x) - 11.6 * S.vx, az = 34 * (tz - S.z) - 11.6 * S.vz;
+    S.vx += ax * dt; S.vz += az * dt; S.x += S.vx * dt; S.z += S.vz * dt; S.ax = ax; S.az = az;
+    S.copx = S.x - ax / (OM * OM); S.copz = S.z - az / (OM * OM);
+    S.feet.forEach(ft => { ft.pitch *= Math.max(0, 1 - dt * 10); ft.lift = 0; });
+    if (S.mode === 'land') {
+      const ay = 170 * (H0 - 0.02 - S.y) - 15 * S.vy;
+      S.vy += ay * dt; S.y = Math.max(0.42, S.y + S.vy * dt); S.ys = S.y;
+    } else {
+      const yt = S.mode === 'crouch' ? 0.7 : H0 - 0.01;
+      S.ys += (yt - S.ys) * Math.min(1, dt * (S.mode === 'crouch' ? 16 : 5));
+    }
+    const xx = S.x + S.vx / OM - m.x, xz = S.z + S.vz / OM - m.z;
+    const df = xx * f[0] + xz * f[1], dl = xx * n[0] + xz * n[1];
+    const out = (df / 0.16) ** 2 + (dl / 0.17) ** 2 > 1;
+    if (S.mode === 'crouch') {
+      if (S.tm > 0.2) { S.mode = 'air'; S.vy = 3.1; S.y = S.ys; S.tm = 0; return; }
+    } else if (out) {
+      const sw = chooseSwing(dl); S.si = 1 - sw; S.lastSwing = sw; S.recover = 1.2; beginStep();
+    } else if (S.jumpReq && (S.mode === 'stand' || S.mode === 'shift')) {
+      S.jumpReq = false; S.mode = 'crouch'; S.tm = 0;
+    } else if (S.mode === 'stand' && wants) {
+      const sw = S.lastSwing === 0 ? 1 : 0; S.si = 1 - sw; S.lastSwing = sw; S.mode = 'shift'; S.tm = 0;
+    } else if (S.mode === 'shift' && S.tm > 0.28) {
+      beginStep();
+    } else if (S.mode === 'land' && S.tm > 0.45) {
+      S.mode = 'stand'; S.tm = 0;
+    }
+  } else if (S.mode === 'walk') {
+    S.th += S.turn * 1.3 * dt;
+    const st = S.feet[S.si], sw = S.feet[1 - S.si];
+    const sf = fwdOf(st.yaw);
+    const vf = S.vx * f[0] + S.vz * f[1];
+    const cop = clamp(0.03 - 0.14 * (vd - vf), -HEEL + 0.015, TOE - 0.03);
+    const px = st.x + sf[0] * cop, pz = st.z + sf[1] * cop;
+    S.copx = px; S.copz = pz;
+    const ax = OM * OM * (S.x - px), az = OM * OM * (S.z - pz);
+    S.vx += ax * dt; S.vz += az * dt; S.x += S.vx * dt; S.z += S.vz * dt; S.ax = ax; S.az = az;
+    S.t += dt;
+    const s = Math.min(1, S.t / S.T);
+    const xix = S.x + S.vx / OM, xiz = S.z + S.vz / OM;
+    const e = Math.exp(OM * Math.max(0, S.T - S.t));
+    const ex = px + (xix - px) * e, ez = pz + (xiz - pz) * e;
+    const eT = Math.exp(OM * S.T);
+    const b = vd * S.T / (eT - 1), c = STEPW / (1 + eT);
+    const side = S.si === 1 ? 1 : -1;
+    let rx = ex - f[0] * b + n[0] * side * c - st.x, rz = ez - f[1] * b + n[1] * side * c - st.z;
+    const lat = (rx * n[0] + rz * n[1]) * side;
+    if (lat < 0.02 && s > 0.25 && !S.quick && S.T - S.t > 0.08) quickTouchdown(0.08);   // ξ is on the wrong side: put this foot down now and switch legs
+    if (lat < 0.1) { rx += n[0] * side * (0.1 - lat); rz += n[1] * side * (0.1 - lat); }
+    const d = Math.hypot(rx, rz);
+    if (d > FALLSTEP && s > 0.3) { startFall(); return; }
+    if (d > MAXSTEP) { rx *= MAXSTEP / d; rz *= MAXSTEP / d; }
+    const u = clamp((S.t - S.ts) / (S.T - S.ts), 0, 1);
+    if (u < 0.8) { sw.tx = st.x + rx; sw.tz = st.z + rz; }
+
+    const mv = clamp(Math.hypot(S.vx, S.vz) / 0.5, 0, 1);
+    const normal = !S.quick;
+    const sh = normal ? clamp((u - 0.08) / 0.92, 0, 1) : u, e5 = mj(sh);
+    sw.x = lerp(sw.sx, sw.tx, e5); sw.z = lerp(sw.sz, sw.tz, e5);
+    sw.yaw = lerpAng(sw.syaw, S.th, e5);
+    const hs = 0.045 + 0.05 * mv;
+    if (normal) {
+      sw.lift = u < 0.08 ? 0 : hs * Math.sin(Math.PI * sh);
+      if (u < 0.12) sw.pitch = lerp(sw.spitch, 0.55 * mv, u / 0.12);
+      else if (u < 0.88) sw.pitch = lerp(0.55, -0.22, mj((u - 0.12) / 0.76)) * mv;
+      else sw.pitch = -0.22 * mv;
+    } else {
+      sw.lift = sw.slift * (1 - e5) + 0.4 * hs * Math.sin(Math.PI * sh);
+      sw.pitch = lerp(sw.spitch, -0.12 * mv, e5);
+    }
+    if (s < 0.12) st.pitch = lerp(st.spitch, 0, s / 0.12);
+    else if (s > 0.62) st.pitch = 0.32 * mv * (s - 0.62) / 0.38;
+    else st.pitch = 0;
+    st.lift = 0;
+    S.ys += (H0 - 0.025 * mv - S.ys) * Math.min(1, dt * 6);
+
+    if (S.t >= S.T) {
+      sw.x = sw.tx; sw.z = sw.tz; sw.lift = 0; sw.yaw = S.th;
+      const fl = (sw.x - st.x) * f[0] + (sw.z - st.z) * f[1];
+      S.stepLen = Math.abs(fl); S.steps++;
+      addFootprint(sw);
+      S.si = 1 - S.si;
+      const sp = Math.hypot(S.vx, S.vz);
+      if (S.jumpReq) { S.jumpReq = false; S.mode = 'crouch'; S.tm = 0; }
+      else if (!wants && sp < 0.22 && Math.abs(fl) < 0.2 && S.recover <= 0) { S.mode = 'stand'; S.tm = 0; }
+      else beginStep();
+    }
+  } else if (S.mode === 'air') {
+    S.vy -= G * dt; S.y += S.vy * dt; S.x += S.vx * dt; S.z += S.vz * dt; S.ys = S.y; S.ax = 0; S.az = 0;
+    S.copx = S.x; S.copz = S.z;
+    const k = clamp(S.tm / 0.63, 0, 1);
+    const ext = 0.86 - 0.3 * Math.sin(Math.PI * k);
+    S.feet.forEach((ft, i) => {
+      const sd = i === 0 ? 1 : -1;
+      const txx = S.x + S.vx * 0.12 + n[0] * sd * 0.1, tzz = S.z + S.vz * 0.12 + n[1] * sd * 0.1;
+      ft.x += (txx - ft.x) * Math.min(1, dt * 12); ft.z += (tzz - ft.z) * Math.min(1, dt * 12);
+      ft.yaw = lerpAng(ft.yaw, S.th, Math.min(1, dt * 6));
+      ft.lift = Math.max(0, S.y - ext - AH); ft.pitch *= Math.max(0, 1 - dt * 6);
+    });
+    if (S.vy < 0 && S.y - ext - AH <= 0) {
+      S.feet.forEach(ft => { ft.lift = 0; addFootprint(ft); });
+      S.mode = 'land'; S.tm = 0;
+    }
+    return;
+  } else if (S.mode === 'fall') {
+    const F = S.fall;
+    F.dphi += (G / F.l) * Math.sin(F.phi) * dt;
+    F.phi += F.dphi * dt;
+    if (F.phi >= 1.42) {
+      F.phi = 1.42;
+      if (Math.abs(F.dphi) < 0.7) { S.mode = 'fallen'; S.tm = 0; } else F.dphi = -F.dphi * 0.28;
+    }
+    return;
+  } else if (S.mode === 'fallen') {
+    if (S.tm > 2.4) getUp();
+    return;
+  }
+  limitHeight();
+  const vfw = S.vx * f[0] + S.vz * f[1];
+  S.odo += vfw * dt; S.path += Math.hypot(S.vx, S.vz) * dt;
+}
+
+function addFootprint(ft) {
+  S.footprints.push({ x: ft.x, z: ft.z, yaw: ft.yaw, id: S.fpSeq++ });
+  if (S.footprints.length > 36) S.footprints.shift();
+}
+
+/* ================= kinematics / pose ================= */
+const v3 = (x, y, z) => [x, y, z];
+const add = (a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
+const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+const mul = (a, s) => [a[0] * s, a[1] * s, a[2] * s];
+const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+const len = a => Math.hypot(a[0], a[1], a[2]);
+const norm = a => { const l = len(a) || 1; return [a[0] / l, a[1] / l, a[2] / l]; };
+const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+
+function solveKnee(H, A, kf) {
+  let d = sub(A, H), L = len(d);
+  const max = L1 + L2 - 1e-4;
+  if (L > max) { A = add(H, mul(d, max / L)); d = sub(A, H); L = max; }
+  const u = mul(d, 1 / L);
+  let p = sub(kf, mul(u, dot(kf, u)));
+  p = norm(p);
+  const a = (L1 * L1 - L2 * L2 + L * L) / (2 * L);
+  const h = Math.sqrt(Math.max(0, L1 * L1 - a * a));
+  return { K: add(add(H, mul(u, a)), mul(p, h)), A };
+}
+
+let frameDt = 1 / 60;
+function computePose() {
+  const f2 = fwdOf(S.th), n2 = leftOf(S.th);
+  const F = [f2[0], 0, f2[1]], N = [n2[0], 0, n2[1]], Y = [0, 1, 0];
+  const P = [S.x, S.y, S.z];
+  const sw = S.mode === 'walk' ? clamp(S.t / S.T, 0, 1) : 0;
+  const dOff = ft => (ft.x - S.x) * f2[0] + (ft.z - S.z) * f2[1];
+  const hips = [0, 1].map(i => {
+    const sd = i === 0 ? 1 : -1, o = clamp(dOff(S.feet[i]) / 0.35, -1, 1) * 0.035;
+    const drop = (S.mode === 'walk' && i !== S.si) ? 0.018 * Math.sin(Math.PI * sw) : 0;
+    return [S.x + N[0] * sd * HW + F[0] * o, S.y - drop, S.z + N[2] * sd * HW + F[2] * o];
+  });
+  const feetF = [], feetU = [];
+  const ankles = S.feet.map((ft, i) => {
+    const c = Math.cos(ft.yaw), s = Math.sin(ft.yaw), cp = Math.cos(ft.pitch), sp = Math.sin(ft.pitch);
+    feetF[i] = [c * cp, -sp, s * cp]; feetU[i] = [c * sp, cp, s * sp];
+    return [ft.x, AH + ft.lift + ankleRise(ft), ft.z];
+  });
+  const kn = [0, 1].map(i => {
+    const ff = norm([Math.cos(S.feet[i].yaw) + F[0], 0.05, Math.sin(S.feet[i].yaw) + F[2]]);
+    return solveKnee(hips[i], ankles[i], ff);
+  });
+  const sp = Math.hypot(S.vx, S.vz);
+  const accF = (S.ax || 0) * F[0] + (S.az || 0) * F[2];
+  let lean = clamp(0.04 + 0.06 * sp + 0.01 * accF, -0.12, 0.32);
+  if (S.mode === 'crouch') lean += 0.28;
+  if (S.mode === 'land') lean += clamp((H0 - S.y) * 1.4, 0, 0.4);
+  if (S.mode === 'air') lean -= 0.05;
+  const up = norm([F[0] * Math.sin(lean), Math.cos(lean), F[2] * Math.sin(lean)]);
+  const tF = norm(cross(up, cross(F, up)));
+  const chest = add(P, mul(up, 0.48));
+  const tw = clamp((dOff(S.feet[0]) - dOff(S.feet[1])) / 0.6, -1, 1);
+  const sh = [add(add(chest, mul(N, 0.2)), mul(F, -0.035 * tw)), add(add(chest, mul(N, -0.2)), mul(F, 0.035 * tw))];
+  sh.forEach(s => { s[1] -= 0.03; });
+  const el = [], hd = [];
+  const bend = 0.3 + 0.45 * Math.min(1, sp);
+  [0, 1].forEach(i => {
+    const sd = i === 0 ? 1 : -1;
+    let a = -clamp(dOff(S.feet[i]), -0.4, 0.4) * 1.25;
+    if (S.mode === 'air') a = 2.4; else if (S.mode === 'crouch') a = -0.8; else if (S.mode === 'land') a = 0.7 + (H0 - S.y);
+    if (S.recover > 0) a += 0.5 * Math.min(1, S.recover);
+    S.arm[i] += (a - S.arm[i]) * Math.min(1, frameDt * 12);
+    const A = S.arm[i];
+    const d1 = norm(add(add(mul(tF, Math.sin(A)), mul(up, -Math.cos(A))), mul(N, sd * (0.12 + 0.25 * Math.max(0, S.recover)))));
+    const d2 = norm(add(add(mul(tF, Math.sin(A + bend)), mul(up, -Math.cos(A + bend))), mul(N, sd * 0.04)));
+    el[i] = add(sh[i], mul(d1, 0.28)); hd[i] = add(el[i], mul(d2, 0.26));
+  });
+  return {
+    pts: { P, hipL: hips[0], hipR: hips[1], kneeL: kn[0].K, kneeR: kn[1].K, ankL: kn[0].A, ankR: kn[1].A,
+      chest, shL: sh[0], shR: sh[1], elL: el[0], elR: el[1], hdL: hd[0], hdR: hd[1], head: add(chest, mul(up, 0.13)) },
+    vec: { tUp: up, tF, fFL: feetF[0], fUL: feetU[0], fFR: feetF[1], fUR: feetU[1] }
+  };
+}
+function rotateAbout(p, k, ang, piv) {
+  const c = Math.cos(ang), s = Math.sin(ang);
+  const v = piv ? sub(p, piv) : p;
+  const r = add(add(mul(v, c), mul(cross(k, v), s)), mul(k, dot(k, v) * (1 - c)));
+  return piv ? add(r, piv) : r;
+}
+function pose() {
+  if (S.mode !== 'fall' && S.mode !== 'fallen') return computePose();
+  const F = S.fall, k = [F.uz, 0, -F.ux], piv = [F.px, 0, F.pz], ang = F.phi - F.phi0;
+  const out = { pts: {}, vec: {} };
+  for (const key in F.pose.pts) out.pts[key] = rotateAbout(F.pose.pts[key], k, ang, piv);
+  for (const key in F.pose.vec) out.vec[key] = rotateAbout(F.pose.vec[key], k, ang, null);
+  return out;
+}
+
+/* ================= UI ================= */
+const walkBtn = $('walk');
+function setWalking(v) {
+  S.walking = v; walkBtn.setAttribute('aria-pressed', String(v));
+  walkBtn.innerHTML = (v ? 'หยุด' : 'เดิน') + ' <kbd>W</kbd>';
+}
+function setSpeed(v) { S.vdes = clamp(Math.round(v * 10) / 10, 0.2, 1.6); $('speed').value = S.vdes; $('speedOut').textContent = S.vdes.toFixed(1) + ' m/s'; }
+function jump() { if (S.mode === 'stand' || S.mode === 'shift' || S.mode === 'walk') S.jumpReq = true; }
+function push(kind) {
+  if (S.mode === 'fall' || S.mode === 'fallen') return;
+  const str = +$('force').value, f = fwdOf(S.th), n = leftOf(S.th);
+  let d = kind === 'back' ? f : kind === 'front' ? [-f[0], -f[1]] : [-n[0], -n[1]];
+  S.vx += d[0] * str; S.vz += d[1] * str; S.recover = 1.2;
+  if (S.mode === 'walk' && S.T - S.t > 0.12) quickTouchdown(0.12);
+}
+const keyTurn = { l: 0, r: 0 }, btnTurn = { l: 0, r: 0 };
+const updTurn = () => { S.turn = (keyTurn.l || btnTurn.l ? 1 : 0) - (keyTurn.r || btnTurn.r ? 1 : 0); };
+function hold(btn, side) {
+  const on = e => { e.preventDefault(); btnTurn[side] = 1; updTurn(); btn.setAttribute('aria-pressed', 'true'); };
+  const off = () => { btnTurn[side] = 0; updTurn(); btn.setAttribute('aria-pressed', 'false'); };
+  btn.addEventListener('pointerdown', on);
+  ['pointerup', 'pointerleave', 'pointercancel', 'blur'].forEach(ev => btn.addEventListener(ev, off));
+}
+hold($('tl'), 'l'); hold($('tr'), 'r');
+walkBtn.onclick = () => setWalking(!S.walking);
+$('jump').onclick = jump;
+$('pushB').onclick = () => push('back');
+$('pushS').onclick = () => push('side');
+$('pushF').onclick = () => push('front');
+$('reset').onclick = () => { reset(S.x, S.z, S.th); };
+$('speed').oninput = e => setSpeed(+e.target.value);
+$('force').oninput = e => { $('forceOut').textContent = (+e.target.value).toFixed(1) + ' m/s'; };
+window.addEventListener('keydown', e => {
+  const tag = e.target.tagName;
+  if (tag === 'INPUT' && e.key.startsWith('Arrow')) return;
+  const k = e.key.toLowerCase();
+  if (k === 'a' || e.key === 'ArrowLeft') { keyTurn.l = 1; updTurn(); e.preventDefault(); }
+  else if (k === 'd' || e.key === 'ArrowRight') { keyTurn.r = 1; updTurn(); e.preventDefault(); }
+  else if (e.repeat) return;
+  else if (e.key === ' ' && tag !== 'BUTTON') { jump(); e.preventDefault(); }
+  else if (k === 'w' || e.key === 'ArrowUp') { setWalking(!S.walking); e.preventDefault(); }
+  else if (k === 'p') push('back');
+  else if (k === 'o') push('side');
+  else if (k === 'r') reset(S.x, S.z, S.th);
+});
+window.addEventListener('keyup', e => {
+  const k = e.key.toLowerCase();
+  if (k === 'a' || e.key === 'ArrowLeft') keyTurn.l = 0;
+  if (k === 'd' || e.key === 'ArrowRight') keyTurn.r = 0;
+  updTurn();
+});
+window.addEventListener('blur', () => { keyTurn.l = keyTurn.r = 0; updTurn(); });
+
+const views = $('views');
+const vbtn = { both: $('vBoth'), '3d': $('v3'), '2d': $('v2') };
+function setView(v) {
+  views.dataset.view = v;
+  for (const k in vbtn) vbtn[k].setAttribute('aria-pressed', String(k === v));
+  requestAnimationFrame(resizeAll);
+}
+vbtn.both.onclick = () => setView('both'); vbtn['3d'].onclick = () => setView('3d'); vbtn['2d'].onclick = () => setView('2d');
+const physChk = $('showPhys');
+physChk.onchange = () => { $('leg2').hidden = $('leg3').hidden = !physChk.checked; };
+
+let tokCache = null, tokKey = '';
+function tokens() {
+  const cs = getComputedStyle(document.documentElement);
+  const names = ['--grid', '--grid-strong', '--ink', '--muted', '--robot', '--robot-dark', '--joint', '--glow', '--com', '--cp', '--cop', '--sheet', '--ground3d', '--grid3d', '--sky3d'];
+  const o = {}; names.forEach(n => o[n.slice(2)] = cs.getPropertyValue(n).trim());
+  const key = names.map(n => o[n.slice(2)]).join('|');
+  o.changed = key !== tokKey; tokKey = key;
+  return o;
+}
+
+/* ================= 3D view ================= */
+const v3d = $('v3d');
+let R3 = null;
+function init3D() {
+  if (!window.THREE) throw new Error('no three');
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
+  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.outputEncoding = THREE.sRGBEncoding;
+  v3d.prepend(renderer.domElement);
+  renderer.domElement.setAttribute('aria-label', 'มุมมองสามมิติของหุ่นยนต์');
+  const scene = new THREE.Scene();
+  scene.fog = new THREE.Fog(0xeef2f6, 9, 26);
+  const cam = new THREE.PerspectiveCamera(42, 1, 0.05, 80);
+  cam.position.set(1.7, 1.0, 2.1);
+  const controls = new THREE.OrbitControls(cam, renderer.domElement);
+  controls.target.set(0, 0.55, 0); controls.enableDamping = true; controls.dampingFactor = 0.08;
+  controls.minDistance = 1.2; controls.maxDistance = 12; controls.maxPolarAngle = 1.52; controls.enablePan = false;
+
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x8a96a3, 0.75));
+  const sun = new THREE.DirectionalLight(0xffffff, 0.95);
+  sun.castShadow = true; sun.shadow.mapSize.set(1024, 1024);
+  Object.assign(sun.shadow.camera, { left: -3, right: 3, top: 3, bottom: -3, near: 0.5, far: 20 });
+  sun.shadow.bias = -0.0006;
+  scene.add(sun, sun.target);
+
+  const groundMat = new THREE.MeshStandardMaterial({ color: 0xdde5ec, roughness: 0.95 });
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(80, 80), groundMat);
+  ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
+  let grid = new THREE.GridHelper(40, 40, 0xb9c6d3, 0xb9c6d3); grid.position.y = 0.001; scene.add(grid);
+  let gridFine = new THREE.GridHelper(10, 40, 0xb9c6d3, 0xb9c6d3); gridFine.position.y = 0.0008;
+  gridFine.material.transparent = true; gridFine.material.opacity = 0.35; scene.add(gridFine);
+
+  const lin = c => new THREE.Color(c).convertSRGBToLinear();
+  const M = c => new THREE.MeshStandardMaterial({ color: lin(c), roughness: 0.45, metalness: 0.25 });
+  const orange = M(0xf08a24), orangeD = M(0xc4651a), steel = M(0x8794a3), dark = M(0x2a3644);
+  const visorMat = new THREE.MeshStandardMaterial({ color: lin(0x0c141c), roughness: 0.15, metalness: 0.6 });
+  const glowMat = new THREE.MeshStandardMaterial({ color: 0x5fe0f2, emissive: 0x5fe0f2, emissiveIntensity: 1.4 });
+  const cylG = new THREE.CylinderGeometry(1, 1, 1, 18);
+  const sphG = new THREE.SphereGeometry(1, 20, 14);
+  const shadowy = m => { m.castShadow = true; m.receiveShadow = true; return m; };
+  const robot = new THREE.Group(); scene.add(robot);
+  const seg = (r, mat) => { const m = shadowy(new THREE.Mesh(cylG, mat)); m.userData.r = r; robot.add(m); return m; };
+  const ball = (r, mat) => { const m = shadowy(new THREE.Mesh(sphG, mat)); m.scale.setScalar(r); robot.add(m); return m; };
+  const boxIn = (g, w, h, d, mat, x = 0, y = 0, z = 0) => { const m = shadowy(new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat)); m.position.set(x, y, z); g.add(m); return m; };
+
+  const parts = {
+    thighL: seg(0.055, steel), thighR: seg(0.055, steel), shinL: seg(0.045, orange), shinR: seg(0.045, orangeD),
+    uaL: seg(0.04, steel), uaR: seg(0.04, steel), faL: seg(0.034, orange), faR: seg(0.034, orangeD),
+    jHipL: ball(0.065, dark), jHipR: ball(0.065, dark), jKneeL: ball(0.06, dark), jKneeR: ball(0.06, dark),
+    jAnkL: ball(0.045, dark), jAnkR: ball(0.045, dark), jShL: ball(0.055, dark), jShR: ball(0.055, dark),
+    jElL: ball(0.042, dark), jElR: ball(0.042, dark), hdL: ball(0.045, dark), hdR: ball(0.045, dark)
+  };
+  const pelvis = new THREE.Group(); robot.add(pelvis); boxIn(pelvis, 0.18, 0.11, 0.3, dark);
+  boxIn(pelvis, 0.2, 0.05, 0.32, orange, 0, 0.075, 0); boxIn(pelvis, 0.02, 0.03, 0.08, glowMat, 0.1, 0.075, 0);
+  const torso = new THREE.Group(); robot.add(torso);
+  boxIn(torso, 0.22, 0.34, 0.36, orange, 0.0, 0.27, 0);
+  boxIn(torso, 0.225, 0.04, 0.365, orangeD, 0.0, 0.2, 0);
+  boxIn(torso, 0.02, 0.1, 0.14, visorMat, 0.115, 0.34, 0.04);
+  boxIn(torso, 0.012, 0.025, 0.03, glowMat, 0.126, 0.36, 0.0);
+  boxIn(torso, 0.1, 0.09, 0.1, steel, 0, 0.08, 0);
+  boxIn(torso, 0.07, 0.1, 0.08, steel, -0.01, 0.48, 0);
+  const head = new THREE.Group(); robot.add(head);
+  boxIn(head, 0.24, 0.2, 0.21, orange, 0, 0.02, 0);
+  boxIn(head, 0.03, 0.08, 0.17, visorMat, 0.12, 0.03, 0);
+  const eye = shadowy(new THREE.Mesh(sphG, glowMat)); eye.scale.setScalar(0.022); eye.position.set(0.137, 0.03, 0.04); head.add(eye);
+  const eye2 = eye.clone(); eye2.position.z = -0.04; head.add(eye2);
+  const ant = shadowy(new THREE.Mesh(cylG, dark)); ant.scale.set(0.008, 0.12, 0.008); ant.position.set(-0.05, 0.17, 0.06); head.add(ant);
+  const antTip = new THREE.Mesh(sphG, glowMat); antTip.scale.setScalar(0.022); antTip.position.set(-0.05, 0.235, 0.06); head.add(antTip);
+  const footG = [0, 1].map(i => { const g = new THREE.Group(); robot.add(g);
+    boxIn(g, TOE + HEEL + 0.01, 0.055, 0.1, i === 0 ? dark : dark, (TOE - HEEL) / 2, -AH + 0.03, 0);
+    boxIn(g, 0.06, 0.02, 0.102, orange, TOE - 0.03, -AH + 0.062, 0); return g; });
+
+  // physics markers
+  const comM = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.004, 24), new THREE.MeshBasicMaterial({ color: 0xd6336c }));
+  const cpM = new THREE.Mesh(new THREE.RingGeometry(0.045, 0.065, 32).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0x12a9c4, side: THREE.DoubleSide }));
+  const copM = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.004, 20), new THREE.MeshBasicMaterial({ color: 0x2f9e44 }));
+  const comBall = new THREE.Mesh(sphG, new THREE.MeshBasicMaterial({ color: 0xd6336c, depthTest: false })); comBall.scale.setScalar(0.03); comBall.renderOrder = 5;
+  const lineGeo = new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(6), 3));
+  const pend = new THREE.Line(lineGeo, new THREE.LineBasicMaterial({ color: 0x2f9e44 }));
+  const arrow = new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), new THREE.Vector3(), 0.5, 0xd6336c, 0.08, 0.05);
+  const phys = new THREE.Group(); phys.add(comM, cpM, copM, comBall, pend, arrow); scene.add(phys);
+  [comM, cpM, copM].forEach(m => m.position.y = 0.004);
+
+  const fpGeo = new THREE.PlaneGeometry(0.22, 0.09).rotateX(-Math.PI / 2);
+  const fpMat = new THREE.MeshBasicMaterial({ color: 0x1b2a3a, transparent: true, opacity: 0.14, depthWrite: false });
+  const fps = []; for (let i = 0; i < 36; i++) { const m = new THREE.Mesh(fpGeo, fpMat); m.visible = false; m.position.y = 0.002; scene.add(m); fps.push(m); }
+
+  [torso, head, parts.uaL, parts.uaR, parts.faL, parts.faR, parts.jShL, parts.jShR, parts.jElL, parts.jElR, parts.hdL, parts.hdR].forEach(m => { m.visible = false; });
+  return { renderer, scene, cam, controls, sun, groundMat, ground, grid, gridFine, parts, pelvis, torso, head, footG, phys, comM, cpM, copM, comBall, pend, arrow, fps, fpMat, antTip,
+    mats: { comM: comM.material, cpM: cpM.material, copM: copM.material, comBall: comBall.material, pend: pend.material } };
+}
+try { R3 = init3D(); } catch (err) {
+  const d = document.createElement('div'); d.className = 'nogl';
+  d.textContent = 'เบราว์เซอร์นี้เปิด 3D (WebGL) ไม่ได้ ใช้มุมมอง 2D แทนได้ครับ';
+  v3d.appendChild(d); R3 = null; setView('2d');
+}
+
+const hasT = !!window.THREE;
+const tv = hasT ? new THREE.Vector3() : null, tv2 = hasT ? new THREE.Vector3() : null, tm4 = hasT ? new THREE.Matrix4() : null, UPV = hasT ? new THREE.Vector3(0, 1, 0) : null;
+function place(mesh, a, b) {
+  tv.set(b[0] - a[0], b[1] - a[1], b[2] - a[2]);
+  const L = tv.length();
+  mesh.position.set((a[0] + b[0]) / 2, (a[1] + b[1]) / 2, (a[2] + b[2]) / 2);
+  mesh.quaternion.setFromUnitVectors(UPV, tv.divideScalar(L || 1));
+  const r = mesh.userData.r; mesh.scale.set(r, L, r);
+}
+function orient(g, pos, X, Y) {
+  const Z = cross(X, Y);
+  tm4.makeBasis(tv.set(X[0], X[1], X[2]), tv2.set(Y[0], Y[1], Y[2]), new THREE.Vector3(Z[0], Z[1], Z[2]));
+  g.quaternion.setFromRotationMatrix(tm4);
+  g.position.set(pos[0], pos[1], pos[2]);
+}
+let lastTarget = null;
+function render3D(p, T) {
+  if (!R3 || views.dataset.view === '2d') return;
+  const r = R3, q = p.pts, v = p.vec, pr = r.parts;
+  if (T.changed || !r._init) {
+    r._init = true;
+    const L = c => new THREE.Color(c).convertSRGBToLinear();
+    r.scene.background = L(T.sky3d); r.scene.fog.color.copy(L(T.sky3d));
+    r.groundMat.color.copy(L(T.ground3d));
+    [r.grid, r.gridFine].forEach(g => { const c = L(T.grid3d); g.material.color = c; if (g.material.vertexColors) { g.material.vertexColors = false; g.material.needsUpdate = true; } });
+    r.fpMat.color.set(T.ink);
+    r.mats.comM.color.set(T.com); r.mats.comBall.color.set(T.com); r.mats.cpM.color.set(T.cp); r.mats.copM.color.set(T.cop); r.mats.pend.color.set(T.cop);
+    r.arrow.setColor(new THREE.Color(T.com));
+  }
+  place(pr.thighL, q.hipL, q.kneeL); place(pr.shinL, q.kneeL, q.ankL);
+  place(pr.thighR, q.hipR, q.kneeR); place(pr.shinR, q.kneeR, q.ankR);
+  place(pr.uaL, q.shL, q.elL); place(pr.faL, q.elL, q.hdL);
+  place(pr.uaR, q.shR, q.elR); place(pr.faR, q.elR, q.hdR);
+  const J = [['jHipL', 'hipL'], ['jHipR', 'hipR'], ['jKneeL', 'kneeL'], ['jKneeR', 'kneeR'], ['jAnkL', 'ankL'], ['jAnkR', 'ankR'], ['jShL', 'shL'], ['jShR', 'shR'], ['jElL', 'elL'], ['jElR', 'elR'], ['hdL', 'hdL'], ['hdR', 'hdR']];
+  J.forEach(([m, k]) => pr[m].position.set(q[k][0], q[k][1], q[k][2]));
+  // pelvis from hip line
+  const Zr = norm(sub(q.hipR, q.hipL));
+  let X = norm(cross(v.tUp, Zr)); const Yp = cross(Zr, X);
+  orient(r.pelvis, q.P, X, Yp);
+  orient(r.torso, q.P, v.tF, v.tUp);
+  orient(r.head, q.head, v.tF, v.tUp);
+  orient(r.footG[0], q.ankL, v.fFL, v.fUL);
+  orient(r.footG[1], q.ankR, v.fFR, v.fUR);
+  r.antTip.material.emissiveIntensity = 0.8 + 0.6 * Math.sin(performance.now() / 160);
+
+  // camera follow
+  const tgt = [q.P[0], Math.max(0.3, Math.min(0.6, q.P[1] * 0.6)), q.P[2]];
+  if (!lastTarget) lastTarget = tgt;
+  const sm = Math.min(1, frameDt * 4);
+  const nt = [lerp(lastTarget[0], tgt[0], sm), lerp(lastTarget[1], tgt[1], sm), lerp(lastTarget[2], tgt[2], sm)];
+  const d = sub(nt, lastTarget); lastTarget = nt;
+  r.cam.position.x += d[0]; r.cam.position.y += d[1]; r.cam.position.z += d[2];
+  r.controls.target.set(nt[0], nt[1], nt[2]);
+  r.controls.update();
+  r.sun.position.set(q.P[0] + 2.5, 5, q.P[2] + 1.8); r.sun.target.position.set(q.P[0], 0, q.P[2]);
+  r.ground.position.set(Math.round(q.P[0]), 0, Math.round(q.P[2]));
+  r.grid.position.set(Math.round(q.P[0]), 0.001, Math.round(q.P[2]));
+  r.gridFine.position.set(Math.round(q.P[0]), 0.0008, Math.round(q.P[2]));
+
+  // footprints
+  S.footprints.forEach((fp, i) => { const m = r.fps[i]; m.visible = true; const c = Math.cos(fp.yaw), s = Math.sin(fp.yaw);
+    m.position.set(fp.x + c * 0.05, 0.002, fp.z + s * 0.05); m.rotation.set(0, -fp.yaw, 0); });
+  for (let i = S.footprints.length; i < r.fps.length; i++) r.fps[i].visible = false;
+
+  // physics markers
+  const show = physChk.checked && S.mode !== 'fall' && S.mode !== 'fallen';
+  r.phys.visible = show;
+  if (show) {
+    r.comM.position.set(S.x, 0.004, S.z);
+    r.cpM.position.set(S.x + S.vx / OM, 0.005, S.z + S.vz / OM);
+    r.copM.position.set(S.copx, 0.006, S.copz);
+    r.comBall.position.set(S.x, S.y, S.z);
+    const a = r.pend.geometry.attributes.position.array; a.set([S.copx, 0.006, S.copz, S.x, S.y, S.z]); r.pend.geometry.attributes.position.needsUpdate = true;
+    const spd = Math.hypot(S.vx, S.vz, S.mode === 'air' || S.mode === 'land' ? S.vy : 0);
+    r.arrow.visible = spd > 0.05;
+    if (spd > 0.05) { r.arrow.position.set(S.x, S.y, S.z); r.arrow.setDirection(tv.set(S.vx, S.mode === 'air' ? S.vy : 0, S.vz).normalize()); r.arrow.setLength(0.12 + spd * 0.35, 0.07, 0.045); }
+  }
+  r.renderer.render(r.scene, r.cam);
+}
+
+/* ================= 2D view ================= */
+const cv2 = $('cv2'), c2 = cv2.getContext('2d');
+let W2 = 0, H2 = 0;
+function resizeAll() {
+  const dpr = Math.min(devicePixelRatio || 1, 2);
+  const r2 = cv2.getBoundingClientRect(); W2 = r2.width; H2 = r2.height;
+  if (W2 > 0) { cv2.width = Math.round(W2 * dpr); cv2.height = Math.round(H2 * dpr); c2.setTransform(dpr, 0, 0, dpr, 0, 0); }
+  if (R3) { const r = v3d.getBoundingClientRect(); if (r.width > 0) { R3.renderer.setSize(r.width, r.height, false); R3.renderer.domElement.style.width = '100%'; R3.renderer.domElement.style.height = '100%'; R3.cam.aspect = r.width / r.height; R3.cam.updateProjectionMatrix(); } }
+}
+new ResizeObserver(resizeAll).observe(views);
+resizeAll();
+
+function render2D(p, T) {
+  if (views.dataset.view === '3d' || W2 === 0) return;
+  const q = p.pts, v = p.vec, ctx = c2;
+  ctx.clearRect(0, 0, W2, H2);
+  const gy = H2 - Math.max(40, H2 * 0.12), sc = Math.min((gy - 50) / 1.15, W2 / 2.0), cx = W2 / 2;
+  const th = S.fall ? S.fall.th : S.th; const fx = Math.cos(th), fz = Math.sin(th);
+  const ox = S.fall && (S.mode === 'fall' || S.mode === 'fallen') ? S.fall.px : S.x, oz = S.fall && (S.mode === 'fall' || S.mode === 'fallen') ? S.fall.pz : S.z;
+  const X = a => cx + ((a[0] - ox) * fx + (a[2] - oz) * fz) * sc;
+  const Yv = a => gy - a[1] * sc;
+  const P = a => [X(a), Yv(a)];
+  const odo = ((ox * fx + oz * fz));
+
+  // grid (0.1 m minor, 0.5 m major) scrolling with distance along heading
+  ctx.lineWidth = 1;
+  const minor = 0.1;
+  const left = odo - cx / sc, right = odo + (W2 - cx) / sc;
+  for (let k = Math.floor(left / minor); k * minor <= right; k++) {
+    const x = cx + (k * minor - odo) * sc;
+    ctx.strokeStyle = k % 5 === 0 ? T['grid-strong'] : T.grid; ctx.globalAlpha = k % 5 === 0 ? 0.7 : 0.6;
+    ctx.beginPath(); ctx.moveTo(Math.round(x) + .5, 0); ctx.lineTo(Math.round(x) + .5, gy); ctx.stroke();
+  }
+  for (let k = 1; gy - k * minor * sc > 0; k++) {
+    const y = gy - k * minor * sc;
+    ctx.strokeStyle = k % 5 === 0 ? T['grid-strong'] : T.grid; ctx.globalAlpha = k % 5 === 0 ? 0.7 : 0.6;
+    ctx.beginPath(); ctx.moveTo(0, Math.round(y) + .5); ctx.lineTo(W2, Math.round(y) + .5); ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+  // height labels
+  ctx.fillStyle = T.muted; ctx.font = '10px "JetBrains Mono", monospace'; ctx.textAlign = 'right';
+  for (let m = 0.5; gy - m * sc > 20; m += 0.5) ctx.fillText(m.toFixed(1) + ' m', W2 - 8, gy - m * sc - 3);
+  // ground
+  ctx.fillStyle = T.grid; ctx.fillRect(0, gy, W2, H2 - gy);
+  ctx.strokeStyle = T.ink; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W2, gy); ctx.stroke();
+  ctx.textAlign = 'center';
+  for (let m = Math.floor(left); m <= right; m++) {
+    const x = cx + (m - odo) * sc;
+    ctx.strokeStyle = T.ink; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x, gy); ctx.lineTo(x, gy + 8); ctx.stroke();
+    ctx.fillStyle = T.muted; ctx.fillText(m + ' m', x, gy + 22);
+  }
+
+  // footprints
+  ctx.fillStyle = T.ink; ctx.globalAlpha = 0.18;
+  S.footprints.forEach(fp => { const a = [fp.x, 0, fp.z]; const x = X(a); ctx.fillRect(x - HEEL * sc * Math.abs(Math.cos(fp.yaw - th)), gy - 2, (TOE + HEEL) * sc * Math.abs(Math.cos(fp.yaw - th)), 3); });
+  ctx.globalAlpha = 1;
+
+  const line = (a, b, w, col) => { ctx.strokeStyle = col; ctx.lineWidth = w; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(...P(a)); ctx.lineTo(...P(b)); ctx.stroke(); };
+  const disc = (a, r, col) => { ctx.fillStyle = col; ctx.beginPath(); ctx.arc(X(a), Yv(a), r, 0, Math.PI * 2); ctx.fill(); };
+  const poly = (pts, col) => { ctx.fillStyle = col; ctx.beginPath(); pts.forEach((a, i) => i ? ctx.lineTo(...P(a)) : ctx.moveTo(...P(a))); ctx.closePath(); ctx.fill(); };
+  const foot = (A, F, U, col) => {
+    const pt = (f, u) => add(add(A, mul(F, f)), mul(U, u));
+    poly([pt(-HEEL, -AH), pt(TOE, -AH), pt(TOE, -AH + 0.04), pt(0.03, -AH + 0.06), pt(-HEEL, -AH + 0.055)], col);
+  };
+  const box = (C, F, U, f0, f1, u0, u1, col) => {
+    const pt = (f, u) => add(add(C, mul(F, f)), mul(U, u));
+    poly([pt(f0, u0), pt(f1, u0), pt(f1, u1), pt(f0, u1)], col);
+  };
+  const lw = sc * 0.1;
+  // far side (right limbs)
+  line(q.hipR, q.kneeR, lw * 1.05, T['grid-strong']); line(q.kneeR, q.ankR, lw * 0.85, T['robot-dark']);
+  disc(q.kneeR, lw * 0.55, T.joint); foot(q.ankR, v.fFR, v.fUR, T.joint);
+  // body
+  box(q.P, v.tF, v.tUp, -0.08, 0.08, -0.055, 0.055, T.ink);
+  box(q.P, v.tF, v.tUp, -0.1, 0.1, 0.05, 0.1, T.robot);
+  box(q.P, v.tF, v.tUp, 0.085, 0.1, 0.06, 0.09, T.glow);
+  // near side (left limbs)
+  line(q.hipL, q.kneeL, lw * 1.1, T.joint); line(q.kneeL, q.ankL, lw * 0.9, T.robot);
+  disc(q.kneeL, lw * 0.6, T.ink); foot(q.ankL, v.fFL, v.fUL, T.ink);
+  disc(q.hipL, lw * 0.65, T.ink); disc(q.hipL, lw * 0.25, T.robot);
+
+  // physics overlay
+  if (physChk.checked && S.mode !== 'fall' && S.mode !== 'fallen') {
+    const com = [S.x, S.y, S.z], cop = [S.copx, 0, S.copz], xi = [S.x + S.vx / OM, 0, S.z + S.vz / OM];
+    ctx.setLineDash([4, 4]); ctx.lineWidth = 1; ctx.strokeStyle = T.com;
+    ctx.beginPath(); ctx.moveTo(X(com), Yv(com)); ctx.lineTo(X(com), gy); ctx.stroke(); ctx.setLineDash([]);
+    if (S.mode !== 'air') { ctx.strokeStyle = T.cop; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(X(cop), gy); ctx.lineTo(X(com), Yv(com)); ctx.stroke(); }
+    ctx.fillStyle = T.cop; ctx.beginPath(); ctx.moveTo(X(cop), gy); ctx.lineTo(X(cop) - 6, gy + 9); ctx.lineTo(X(cop) + 6, gy + 9); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = T.cp; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(X(xi), gy, 7, Math.PI, 0); ctx.stroke();
+    // CoM symbol
+    const cx0 = X(com), cy0 = Yv(com), rr = 8;
+    ctx.fillStyle = T.sheet; ctx.beginPath(); ctx.arc(cx0, cy0, rr, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = T.com;
+    ctx.beginPath(); ctx.moveTo(cx0, cy0); ctx.arc(cx0, cy0, rr, -Math.PI / 2, 0); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(cx0, cy0); ctx.arc(cx0, cy0, rr, Math.PI / 2, Math.PI); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = T.com; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(cx0, cy0, rr, 0, Math.PI * 2); ctx.stroke();
+    // velocity arrow
+    const vf = S.vx * fx + S.vz * fz, vy = (S.mode === 'air' || S.mode === 'land') ? S.vy : 0;
+    const vl = Math.hypot(vf, vy);
+    if (vl > 0.05) {
+      const k = 0.35 * sc, ex = cx0 + vf * k, ey = cy0 - vy * k, ang = Math.atan2(ey - cy0, ex - cx0);
+      ctx.strokeStyle = T.com; ctx.fillStyle = T.com; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(cx0 + Math.cos(ang) * rr, cy0 + Math.sin(ang) * rr); ctx.lineTo(ex, ey); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(ex + Math.cos(ang) * 6, ey + Math.sin(ang) * 6);
+      ctx.lineTo(ex + Math.cos(ang + 2.5) * 8, ey + Math.sin(ang + 2.5) * 8); ctx.lineTo(ex + Math.cos(ang - 2.5) * 8, ey + Math.sin(ang - 2.5) * 8); ctx.closePath(); ctx.fill();
+      ctx.font = '11px "JetBrains Mono", monospace'; ctx.textAlign = 'left';
+      ctx.fillText(vl.toFixed(2) + ' m/s', ex + 8, ey - 6);
+    }
+  }
+}
+
+/* ================= telemetry ================= */
+const MODE = { stand: ['ยืนทรงตัว', 'ok'], shift: ['ถ่ายน้ำหนัก', 'ok'], walk: ['เดิน', 'ok'], crouch: ['ย่อตัวเตรียมกระโดด', 'warn'], air: ['ลอยตัว', 'warn'],
+  land: ['ลงพื้น · ซับแรงกระแทก', 'warn'], fall: ['เสียสมดุล · กำลังล้ม', 'bad'], fallen: ['ล้ม · กำลังลุกขึ้น', 'bad'] };
+let telTick = 0;
+function deg(r) { return (r * 180 / Math.PI).toFixed(1) + '°'; }
+function telemetry(p) {
+  if (++telTick % 5) return;
+  const q = p.pts, v = p.vec;
+  let [label, tone] = MODE[S.mode];
+  if (S.mode === 'walk' && S.recover > 0) { label = 'ก้าวกู้สมดุล'; tone = 'warn'; }
+  else if (S.mode === 'walk' && !wantsMove()) label = 'กำลังหยุด';
+  $('mode').textContent = label; $('status').dataset.tone = tone;
+  const sp = Math.hypot(S.vx, S.vz);
+  $('tVel').textContent = sp.toFixed(2) + ' m/s';
+  $('tH').textContent = q.P[1].toFixed(3) + ' m';
+  $('tStep').textContent = S.stepLen.toFixed(2) + ' m';
+  $('tCad').textContent = (S.mode === 'walk' ? Math.round(60 / S.T) : 0) + ' ก้าว/นาที';
+  const flex = (hip, knee, ank) => {
+    const th = sub(knee, hip), sh = sub(ank, knee);
+    const h = Math.atan2(dot(th, v.tF), -dot(th, v.tUp));
+    const k = Math.acos(clamp(dot(norm(th), norm(sh)), -1, 1));
+    return [h, k];
+  };
+  const [hl, kl] = flex(q.hipL, q.kneeL, q.ankL), [hr, kr] = flex(q.hipR, q.kneeR, q.ankR);
+  $('hL').textContent = deg(hl); $('hR').textContent = deg(hr); $('kL').textContent = deg(kl); $('kR').textContent = deg(kr);
+  const st = S.mode === 'walk' ? S.feet[S.si] : mid();
+  $('tXi').textContent = Math.hypot(S.x + S.vx / OM - st.x, S.z + S.vz / OM - st.z).toFixed(2) + ' m';
+  $('tDist').textContent = S.path.toFixed(1) + ' m';
+  $('tSteps').textContent = S.steps;
+  $('tFalls').textContent = S.falls + ' ครั้ง';
+}
+
+/* ================= loop ================= */
+if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) setWalking(false);
+let last = performance.now(), acc = 0;
+const H = 1 / 240;
+function loop(now) {
+  const dt = Math.min(0.05, (now - last) / 1000); last = now; frameDt = dt || 1 / 60;
+  acc += dt;
+  while (acc >= H) { step(H); acc -= H; }
+  const p = pose(), T = tokens();
+  render3D(p, T); render2D(p, T); telemetry(p);
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
