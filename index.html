@@ -14,43 +14,33 @@
 <meta property="og:description" content="ขาหุ่นยนต์สองขาเดินได้แบบ 3D และ 2D ทรงตัวด้วยฟิสิกส์ ปรับ Kp Kd ได้ ผลักได้ กระโดดได้ ล้มได้">
 <meta property="og:url" content="https://arraychinvon89.github.io/array.github.io/">
 <meta property="og:locale" content="th_TH">
-<meta name="theme-color" content="#f08a24">
+<meta name="theme-color" content="#06080a">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='7' y='3' width='18' height='7' rx='2' fill='%23f08a24'/%3E%3Cpath d='M11 10 L9 19 L12 29 M21 10 L23 19 L20 29' stroke='%231b2a3a' stroke-width='4' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=IBM+Plex+Sans+Thai:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
 <style>
 /* Layout: engineering test bench — title block, 3D + 2D viewports side by side, control strip and telemetry beneath */
-:root {
+:root {   /* black by default (the viewer's "system" setting too); light only when light is chosen explicitly */
+  --paper: #06080a; --sheet: #0d1014; --grid: #171c23; --grid-strong: #2a323d;
+  --ink: #e6ebf0; --muted: #8b96a3; --robot: #f39a3d; --robot-dark: #c46d22;
+  --joint: #7b8a9b; --glow: #5fe0f2; --line: #1b2129;
+  --com: #ff6b9a; --cp: #5fe0f2; --cop: #69db7c;
+  --btn: #11151a; --btn-active: #e6ebf0; --btn-active-fg: #06080a;
+  --ground3d: #0e1216; --grid3d: #232b35; --sky3d: #06080a;
+  --f-display: "Chakra Petch", "IBM Plex Sans Thai", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans Thai", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  color-scheme: dark;
+}
+:root[data-theme="light"] {
   --paper: #eef2f6; --sheet: #f8fafc; --grid: #d3dce6; --grid-strong: #a9b8c8;
   --ink: #1b2a3a; --muted: #5a6b7d; --robot: #f08a24; --robot-dark: #c4651a;
   --joint: #43566b; --glow: #12a9c4; --line: #c8d3de;
   --com: #d6336c; --cp: #12a9c4; --cop: #2f9e44;
   --btn: #ffffff; --btn-active: #1b2a3a; --btn-active-fg: #ffffff;
   --ground3d: #dde5ec; --grid3d: #b9c6d3; --sky3d: #eef2f6;
-  --f-display: "Chakra Petch", "IBM Plex Sans Thai", system-ui, sans-serif;
-  --f-body: "IBM Plex Sans Thai", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --f-mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --paper: #0f1923; --sheet: #142230; --grid: #1e3142; --grid-strong: #34506a;
-    --ink: #e3ebf3; --muted: #8fa3b6; --robot: #f39a3d; --robot-dark: #c46d22;
-    --joint: #7d93a9; --glow: #5fe0f2; --line: #253a4d;
-    --com: #ff6b9a; --cp: #5fe0f2; --cop: #69db7c;
-    --btn: #182a3a; --btn-active: #e3ebf3; --btn-active-fg: #0f1923;
-    --ground3d: #16232f; --grid3d: #2a4256; --sky3d: #0f1923;
-    color-scheme: dark;
-  }
-}
-:root[data-theme="dark"] {
-  --paper: #0f1923; --sheet: #142230; --grid: #1e3142; --grid-strong: #34506a;
-  --ink: #e3ebf3; --muted: #8fa3b6; --robot: #f39a3d; --robot-dark: #c46d22;
-  --joint: #7d93a9; --glow: #5fe0f2; --line: #253a4d;
-  --com: #ff6b9a; --cp: #5fe0f2; --cop: #69db7c;
-  --btn: #182a3a; --btn-active: #e3ebf3; --btn-active-fg: #0f1923;
-  --ground3d: #16232f; --grid3d: #2a4256; --sky3d: #0f1923;
-  color-scheme: dark;
+  color-scheme: light;
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; }
@@ -157,11 +147,38 @@ pre.code { margin: 0; max-height: 460px; overflow: auto; background: var(--paper
 .msg.bot .h { font-weight: 700; margin: 8px 0 4px; }
 .msg .act { font-size: 12px; color: var(--muted); font-family: var(--f-mono); margin-top: 6px; }
 .msg.wait { color: var(--muted); }
-.chip { min-height: 36px; padding: 6px 12px; font-size: 14px; font-weight: 500; border-radius: 18px; }
+.qchip { min-height: 36px; padding: 6px 12px; font-size: 14px; font-weight: 500; border-radius: 18px; }
 .aiform { display: grid; gap: 8px; }
+.aikey { display: grid; gap: 6px; border-top: 1px solid var(--line); padding-top: 12px; }
+.aikey label { font-size: 14px; font-weight: 600; }
+.aikey input { flex: 1; min-width: 200px; font: 14px var(--f-mono); color: var(--ink); background: var(--btn); border: 1px solid var(--grid-strong); border-radius: 4px; padding: 10px 12px; min-height: 44px; }
+.aikey input:focus-visible { outline: 2px solid var(--glow); outline-offset: 2px; }
+.aikey a { color: var(--glow); }
 .aiform textarea { width: 100%; font: 15px/1.5 var(--f-body); color: var(--ink); background: var(--btn); border: 1px solid var(--grid-strong); border-radius: 4px; padding: 10px 12px; resize: vertical; }
 .aiform textarea:focus-visible { outline: 2px solid var(--glow); outline-offset: 2px; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.splash { position: fixed; inset: 0; z-index: 100; background: #06080a; display: grid; place-items: center; overflow: hidden;
+  padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+  transition: opacity .6s ease, visibility .6s; }
+.splash.out { opacity: 0; visibility: hidden; }
+.sp-bg { position: absolute; inset: -40px; filter: blur(5px) saturate(1.15); transform: scale(1.06); transition: transform .25s ease-out; }
+.sp-bg canvas { width: 100%; height: 100%; display: block; }
+.sp-bg.nogl { background: radial-gradient(60% 50% at 50% 55%, rgba(243,154,61,.35), transparent 70%), #06080a; }
+.sp-shade { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 50%, rgba(6,8,10,.25) 0%, rgba(6,8,10,.75) 70%, rgba(6,8,10,.95) 100%); pointer-events: none; }
+.sp-card { position: relative; width: min(560px, 100%); padding: 40px 36px 30px; text-align: center; color: #e6ebf0;
+  background: rgba(13,16,20,.55); border: 1px solid rgba(255,255,255,.12); border-radius: 14px;
+  -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); box-shadow: 0 30px 80px rgba(0,0,0,.55);
+  transition: transform .25s ease-out; display: grid; gap: 14px; justify-items: center; }
+.sp-eyebrow { font-family: var(--f-body); font-size: 17px; letter-spacing: .04em; color: #b7c2cd; }
+.sp-title { margin: 0; font-family: var(--f-display); font-weight: 700; font-size: clamp(36px, 8vw, 62px); line-height: 1; letter-spacing: -.01em; color: #fff; }
+.sp-title span { color: #f39a3d; text-shadow: 0 0 28px rgba(243,154,61,.45); }
+.sp-sub { margin: 0; max-width: 42ch; color: #a7b2be; font-size: 15px; }
+.sp-btn { margin-top: 8px; font: 700 18px var(--f-display); letter-spacing: .02em; color: #1b1206; background: #f39a3d; border: 0; border-radius: 8px;
+  padding: 14px 30px; min-height: 52px; box-shadow: 0 0 0 1px rgba(255,255,255,.15) inset, 0 10px 30px rgba(243,154,61,.35); transition: transform .15s, box-shadow .15s; }
+.sp-btn:hover { transform: translateY(-1px); box-shadow: 0 0 0 1px rgba(255,255,255,.25) inset, 0 14px 38px rgba(243,154,61,.5); border: 0; }
+.sp-btn:focus-visible { outline: 2px solid #5fe0f2; outline-offset: 3px; }
+.sp-meta { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 14px; font: 12px var(--f-mono); color: #6f7b88; margin-top: 4px; }
+@media (prefers-reduced-motion: reduce) { .sp-bg, .sp-card { transition: none; } .splash { transition: none; } }
 .hint { font-size: 13px; color: var(--muted); margin: 0; }
 .notes { font-size: 14px; color: var(--muted); margin: 0; max-width: 90ch; }
 .notes b { color: var(--ink); font-weight: 600; }
@@ -169,6 +186,17 @@ pre.code { margin: 0; max-height: 460px; overflow: auto; background: var(--paper
 
 </head>
 <body>
+<div id="splash" class="splash" role="dialog" aria-modal="true" aria-labelledby="spTitle">
+  <div class="sp-bg" id="spBg"><canvas id="spCanvas" aria-hidden="true"></canvas></div>
+  <div class="sp-shade" aria-hidden="true"></div>
+  <div class="sp-card" id="spCard">
+    <div class="sp-eyebrow">ยินดีต้อนรับสู่</div>
+    <h1 class="sp-title" id="spTitle">array_<span>simulator</span></h1>
+    <p class="sp-sub">จำลองหุ่นยนต์สองขาด้วยฟิสิกส์จริง ทั้ง 3D และ 2D ปรับ Kp Kd ขนาด และน้ำหนักได้ พร้อมโค้ด C++ สำหรับหุ่นยนต์จริง</p>
+    <button id="spStart" class="sp-btn">เริ่ม simulator <span aria-hidden="true">→</span></button>
+    <div class="sp-meta"><span>g = 9.81 m/s²</span><span>LIPM + capture point</span><span>ESP32 · C++</span></div>
+  </div>
+</div>
 <div class="wrap">
   <header>
     <div>
@@ -341,10 +369,10 @@ pre.code { margin: 0; max-height: 460px; overflow: auto; background: var(--paper
     <p class="hint" id="aiIntro">ถามเรื่องโค้ด C++ การจูน Kp Kd ปัญหาของหุ่นยนต์จริง หรือเรื่องอื่นได้เลย ผู้ช่วยเห็นค่าที่ตั้งไว้ สถานะหุ่น และค่าไจโรบนหน้านี้ อ่านโค้ด C++ ได้ และถ้าคุณขอ ก็ปรับค่าหรือสั่งหุ่นบนหน้านี้ให้ได้</p>
     <div id="aiLog" class="ailog" aria-live="polite"></div>
     <div class="row" id="aiChips">
-      <button type="button" class="chip">ทำไมหุ่นถึงล้ม แก้ยังไง</button>
-      <button type="button" class="chip">อธิบายโค้ด array_biped.hpp แบบเข้าใจง่าย</button>
-      <button type="button" class="chip">ตั้ง Kp Kd ให้หุ่นหนัก 80 kg</button>
-      <button type="button" class="chip">เซอร์โวสั่นตอนยืน แก้ยังไง</button>
+      <button type="button" class="qchip">ทำไมหุ่นถึงล้ม แก้ยังไง</button>
+      <button type="button" class="qchip">อธิบายโค้ด array_biped.hpp แบบเข้าใจง่าย</button>
+      <button type="button" class="qchip">ตั้ง Kp Kd ให้หุ่นหนัก 80 kg</button>
+      <button type="button" class="qchip">เซอร์โวสั่นตอนยืน แก้ยังไง</button>
     </div>
     <form id="aiForm" class="aiform">
       <label for="aiInput" class="sr">คำถาม</label>
@@ -356,6 +384,15 @@ pre.code { margin: 0; max-height: 460px; overflow: auto; background: var(--paper
       </div>
     </form>
     <p class="hint" id="aiNote" hidden></p>
+    <div class="aikey" id="aiKeyBox" hidden>
+      <label for="aiKey">ใช้ผู้ช่วยบนเว็บนี้ด้วย Anthropic API key ของคุณ</label>
+      <div class="row">
+        <input id="aiKey" type="password" autocomplete="off" spellcheck="false" placeholder="sk-ant-...">
+        <button type="button" id="aiKeySave">บันทึก key</button>
+        <button type="button" id="aiKeyDel" hidden>ลบ key</button>
+      </div>
+      <p class="hint" id="aiKeyNote">key เก็บไว้ในเบราว์เซอร์เครื่องนี้เท่านั้น และส่งตรงไปที่ api.anthropic.com ไม่ผ่านเซิร์ฟเวอร์อื่น ค่าใช้จ่ายคิดกับบัญชีเจ้าของ key · สร้าง key ได้ที่ <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com</a> · อย่าใช้ key บนคอมพิวเตอร์ที่คนอื่นใช้ร่วม</p>
+    </div>
   </section>
 
   <p class="notes"><b>ฟิสิกส์ที่ใช้:</b> แรงโน้มถ่วง 9.81 m/s² · CoM เคลื่อนตามสมการ ẍ = (g/h)(x − p) โดย p คือจุดศูนย์กลางแรงกด (CoP) ใต้ฝ่าเท้า · เท้าถัดไปวางที่ ξ = x + ẋ/ω ที่คาดว่าจะเป็นตอนจบก้าว · ความสูงสะโพกถูกจำกัดด้วยความยาวขาจริง (ปรับได้ในแผงขนาด) จึงยุบขึ้นลงเองตามธรรมชาติ · เท้าลงด้วยส้นและถีบออกด้วยปลายเท้า · กระโดดเป็นวิถีโพรเจกไทล์ แล้วลงพื้นด้วยสปริง-แดมเปอร์ · ถ้าก้าวที่ต้องใช้ยาวเกินราว 1.3 เท่าของความยาวขา หุ่นจะล้ม ตอนล้มทุกข้อต่อเป็นมวลที่ตกตามแรงโน้มถ่วง ชนพื้นและมีแรงเสียดทาน มอเตอร์ยังเกร็งอยู่จนลำตัวเอียงเกิน 40° แล้วจึงตัดแรงบิด (ตรงกับโค้ด C++) · CoM จริงคิดจากน้ำหนักทุกส่วน ลำตัวโน้มไปหน้าสะโพกจะถอยไปหลังเพื่อให้ CoM อยู่เหนือเท้า · ถ้าเข่ารับน้ำหนักไม่ไหว ลำตัวจะทรุดลง เท้าไม่ลอยจากพื้น · หยุดเดินกลางก้าวจะถ่ายน้ำหนักไปเท้าหน้าแล้วชักเท้าหลังมาชิด · มอเตอร์ข้อต่อจำลองเป็น J·θ̈ = Kp·e − Kd·θ̇ + แรงบิดจากน้ำหนักตัว · ไจโร/IMU อยู่กลางลำตัว วัดมุม roll pitch yaw และความเร็วเชิงมุม · ล้มคว่ำจะลุกด้วยการดันมือแล้วชันเข่า ล้มหงายจะลุกนั่งใช้มือยันแล้วโยกตัวขึ้น</p>
@@ -1529,7 +1566,7 @@ $('rough').oninput = e => { TA = +e.target.value / 100; $('roughOut').textConten
 $('force').oninput = e => { $('forceOut').textContent = (+e.target.value) + ' N·s'; };
 window.addEventListener('keydown', e => {
   const tag = e.target.tagName;
-  if (tag === 'TEXTAREA') return;
+  if (tag === 'TEXTAREA' || spOn) return;
   if (tag === 'INPUT' && e.key.startsWith('Arrow')) return;
   const k = e.key.toLowerCase();
   if (k === 'a' || e.key === 'ArrowLeft') { keyTurn.l = 1; updTurn(); e.preventDefault(); }
@@ -1698,8 +1735,8 @@ function orient(g, pos, X, Y) {
   g.position.set(pos[0], pos[1], pos[2]);
 }
 let lastTarget = null;
-function render3D(p, T) {
-  if (!R3 || views.dataset.view === '2d') return;
+function render3D(p, T, meshesOnly) {
+  if (!R3 || (views.dataset.view === '2d' && !meshesOnly)) return;
   const r = R3, q = p.pts, v = p.vec, pr = r.parts;
   if (T.changed || !r._init) {
     r._init = true;
@@ -1782,7 +1819,7 @@ function render3D(p, T) {
   }
   r.imuG.visible = physChk.checked && !!IMU.pos;
   if (r.imuG.visible) orient(r.imuG, IMU.pos, IMU.f, IMU.u);
-  r.renderer.render(r.scene, r.cam);
+  if (!meshesOnly) r.renderer.render(r.scene, r.cam);
 }
 
 /* ================= 2D view ================= */
@@ -2114,7 +2151,22 @@ async function ask(q) {
   aiTurns.push({ role: 'user', content: q });
   while (aiTurns.length > 14) aiTurns.shift();
   const b = bubble('bot wait', 'กำลังคิด…'), acts = [];
-  if (!aiSample) { b.textContent = 'กำลังเชื่อมต่อผู้ช่วย…'; await aiReady; }
+  if (!aiSample && aiMode !== 'api') { b.textContent = 'กำลังเชื่อมต่อผู้ช่วย…'; await aiReady; }
+  if (aiMode === 'api') {
+    setBusy(true); aiCtl = new AbortController();
+    try {
+      const text = await askApi(b, acts);
+      aiTurns.push({ role: 'assistant', content: text });
+    } catch (e) {
+      b.className = 'msg bot';
+      b.innerHTML = e.name === 'AbortError' ? '<div class="act">หยุดแล้ว</div>' : '<div class="act">' + esc(API_ERR[e.status] || ('เชื่อมต่อไม่สำเร็จ' + (e.message ? ': ' + e.message : ''))) + '</div>';
+      aiTurns.pop();
+    } finally {
+      if (acts.length) { const d = document.createElement('div'); d.className = 'act'; d.textContent = 'ใช้เครื่องมือ: ' + [...new Set(acts)].join(', '); b.appendChild(d); }
+      setBusy(false);
+    }
+    return;
+  }
   if (!aiSample) { b.remove(); aiTurns.pop(); copyPrompt(q); return; }
   setBusy(true); aiCtl = new AbortController();
   const tools = AI_TOOLS.map(t => ({ ...t, execute: async (inp) => { acts.push(t.name); const r = await t.execute(inp || {}); return r; } }));
@@ -2137,21 +2189,107 @@ async function ask(q) {
     setBusy(false);
   }
 }
+/* --- outside claude.ai (e.g. the GitHub Pages site): call the Anthropic API with the visitor's own key --- */
+const KEY_LS = 'array_sim_anthropic_key';
+const lsGet = () => { try { return localStorage.getItem(KEY_LS) || ''; } catch (e) { return ''; } };
+const lsSet = v => { try { v ? localStorage.setItem(KEY_LS, v) : localStorage.removeItem(KEY_LS); } catch (e) {} };
+let apiKey = '';
 function aiFallback() {
-  aiSend.textContent = 'คัดลอกคำถามพร้อมข้อมูลหุ่น';
-  aiNote.hidden = false;
-  aiNote.textContent = 'ผู้ช่วย AI ตอบในหน้านี้ได้เมื่อเปิดหน้าผ่าน Claude (claude.ai) · ตอนนี้พิมพ์คำถามแล้วกดปุ่ม ระบบจะคัดลอกคำถามพร้อมค่าหุ่นและโค้ด config ไปวางในแชต Claude ได้';
+  $('aiKeyBox').hidden = false;
+  apiKey = lsGet();
+  aiMode = apiKey ? 'api' : 'copy';
+  $('aiKeyDel').hidden = !apiKey;
+  $('aiKey').placeholder = apiKey ? 'บันทึก key แล้ว (' + apiKey.slice(0, 10) + '…)' : 'sk-ant-...';
+  aiSend.textContent = apiKey ? 'ส่ง' : 'คัดลอกคำถามพร้อมข้อมูลหุ่น';
+  aiNote.hidden = !!apiKey;
+  aiNote.textContent = 'ผู้ช่วยตอบในหน้าได้เองเมื่อเปิดผ่าน Claude (claude.ai) · บนเว็บนี้ใส่ Anthropic API key ด้านล่างเพื่อคุยได้เลย หรือพิมพ์คำถามแล้วกดปุ่มเพื่อคัดลอกคำถามพร้อมค่าหุ่นไปวางในแชต Claude';
 }
+$('aiKeySave').onclick = () => { const v = $('aiKey').value.trim(); if (!v) return; lsSet(v); $('aiKey').value = ''; aiFallback(); $('aiKeyNote').textContent = 'บันทึก key แล้ว พิมพ์คำถามได้เลย'; };
+$('aiKeyDel').onclick = () => { lsSet(''); aiFallback(); };
+$('aiKey').addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Enter') $('aiKeySave').click(); });
+const API_TOOLS = () => AI_TOOLS.map(t => ({ name: t.name, description: t.description, input_schema: t.inputSchema || { type: 'object', properties: {} } }));
+async function askApi(bubbleEl, acts) {
+  const msgs = aiTurns.map(t => ({ role: t.role, content: t.content }));
+  let shown = '';
+  for (let round = 0; round < 6; round++) {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST', signal: aiCtl.signal,
+      headers: { 'content-type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      body: JSON.stringify({ model: 'claude-sonnet-5-5', max_tokens: 4096, system: RULES(), tools: API_TOOLS(), messages: msgs })
+    });
+    if (!res.ok) {
+      let msg = ''; try { msg = (await res.json()).error.message; } catch (e) {}
+      const err = new Error(msg); err.status = res.status; throw err;
+    }
+    const data = await res.json();
+    const text = data.content.filter(b => b.type === 'text').map(b => b.text).join('\n');
+    if (text) { shown += (shown ? '\n\n' : '') + text; bubbleEl.className = 'msg bot'; bubbleEl.innerHTML = md(shown); aiLog.scrollTop = aiLog.scrollHeight; }
+    if (data.stop_reason !== 'tool_use') return shown || '(ไม่มีคำตอบ)';
+    msgs.push({ role: 'assistant', content: data.content });
+    const results = [];
+    for (const b of data.content.filter(b => b.type === 'tool_use')) {
+      const tool = AI_TOOLS.find(t => t.name === b.name); acts.push(b.name);
+      let out, isErr = false;
+      try { out = tool ? await tool.execute(b.input || {}) : 'unknown tool'; } catch (e) { out = 'Error: ' + e.message; isErr = true; }
+      results.push({ type: 'tool_result', tool_use_id: b.id, content: typeof out === 'string' ? out : JSON.stringify(out), is_error: isErr });
+    }
+    msgs.push({ role: 'user', content: results });
+  }
+  return shown;
+}
+const API_ERR = { 401: 'API key ไม่ถูกต้อง ตรวจ key แล้วบันทึกใหม่', 403: 'key นี้ไม่มีสิทธิ์ใช้งาน', 429: 'เรียกถี่เกินไปหรือเครดิตหมด ลองใหม่อีกสักครู่', 529: 'เซิร์ฟเวอร์ Anthropic ยุ่งอยู่ ลองใหม่อีกครั้ง' };
 const aiReady = (async () => {
   try { aiSample = window.claude && window.claude.use ? await window.claude.use('sample') : null; } catch (e) { aiSample = null; }
-  if (!aiSample) { aiMode = 'copy'; aiFallback(); } else aiMode = 'live';
+  if (!aiSample) aiFallback(); else aiMode = 'live';
 })();
 $('aiForm').addEventListener('submit', e => { e.preventDefault(); ask(aiInput.value); });
 aiInput.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); ask(aiInput.value); } e.stopPropagation(); });
 aiInput.addEventListener('keyup', e => e.stopPropagation());
 aiStop.onclick = () => aiCtl && aiCtl.abort();
 $('aiClear').onclick = () => { if (aiBusy) return; aiTurns.length = 0; aiLog.textContent = ''; };
-document.querySelectorAll('#aiChips .chip').forEach(c => c.onclick = () => { if (aiMode === 'copy') { aiInput.value = c.textContent; copyPrompt(c.textContent); } else ask(c.textContent); });
+document.querySelectorAll('#aiChips .qchip').forEach(c => c.onclick = () => { if (aiMode === 'copy') { aiInput.value = c.textContent; copyPrompt(c.textContent); } else ask(c.textContent); });
+
+
+/* ================= welcome screen ================= */
+const splash = $('splash'), spBg = $('spBg'), spCard = $('spCard'), spCanvas = $('spCanvas');
+const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+let spOn = true, spR = null, spCam = null, mx = 0, my = 0, smx = 0, smy = 0;
+try {
+  if (!R3) throw 0;
+  spR = new THREE.WebGLRenderer({ canvas: spCanvas, antialias: true });
+  spR.setPixelRatio(Math.min(devicePixelRatio || 1, 1.5)); spR.outputEncoding = THREE.sRGBEncoding;
+  spR.shadowMap.enabled = true; spR.shadowMap.type = THREE.PCFSoftShadowMap;
+  spCam = new THREE.PerspectiveCamera(32, 1, 0.05, 80);
+} catch (e) { spR = null; spBg.classList.add('nogl'); }
+function spResize() { if (!spR) return; const r = spBg.getBoundingClientRect(); spR.setSize(r.width, r.height, false); spCam.aspect = r.width / Math.max(1, r.height); spCam.updateProjectionMatrix(); }
+window.addEventListener('resize', spResize); spResize();
+window.addEventListener('pointermove', e => { mx = e.clientX / innerWidth * 2 - 1; my = e.clientY / innerHeight * 2 - 1; });
+function spFrame(p) {
+  if (!spOn) return;
+  const k = reducedMotion ? 0 : 1;
+  smx += (mx - smx) * 0.06; smy += (my - smy) * 0.06;
+  spBg.style.transform = `scale(1.06) translate(${-smx * 22 * k}px, ${-smy * 16 * k}px)`;
+  spCard.style.transform = `perspective(900px) rotateY(${smx * 5 * k}deg) rotateX(${-smy * 4 * k}deg) translate(${smx * 8 * k}px, ${smy * 6 * k}px)`;
+  if (!spR || !p) return;
+  const P = p.pts.P, f2 = fwdOf(S.th), n2 = leftOf(S.th);
+  const ang = 0.9 + smx * 0.7 * k, dist = 2.6, side = [f2[0] * Math.cos(ang) + n2[0] * Math.sin(ang), f2[1] * Math.cos(ang) + n2[1] * Math.sin(ang)];
+  spCam.position.set(P[0] + side[0] * dist, 0.75 + smy * 0.45 * k + P[1] * 0.3, P[2] + side[1] * dist);
+  spCam.lookAt(P[0], P[1] * 0.75, P[2]);
+  const physWas = R3.phys.visible, imuWas = R3.imuG.visible;
+  R3.phys.visible = false; R3.imuG.visible = false;
+  spR.render(R3.scene, spCam);
+  R3.phys.visible = physWas; R3.imuG.visible = imuWas;
+}
+function startSim() {
+  if (!spOn) return;
+  spOn = false; splash.classList.add('out');
+  setTimeout(() => { splash.hidden = true; if (spR) { spR.dispose(); spR = null; } }, 650);
+  requestAnimationFrame(resizeAll);
+  $('walk').focus({ preventScroll: true });
+}
+$('spStart').onclick = startSim;
+splash.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); startSim(); } e.stopPropagation(); });
+setTimeout(() => { try { $('spStart').focus({ preventScroll: true }); } catch (e) {} }, 50);
 
 /* ================= telemetry ================= */
 const MODE = { stand: ['ยืนทรงตัว', 'ok'], shift: ['ถ่ายน้ำหนัก', 'ok'], walk: ['เดิน', 'ok'], crouch: ['ย่อตัวเตรียมกระโดด', 'warn'], air: ['ลอยตัว', 'warn'],
@@ -2208,7 +2346,8 @@ function loop(now) {
     if (S.errT > 0.25) { S.errT = 0; startFall(); S.fallReason = 'servo'; }
   }
   updImu(p, dt); drawAtt(T);
-  render3D(p, T); render2D(p, T); telemetry(p);
+  if (spOn) { render3D(p, T, true); spFrame(p); } else { render3D(p, T); render2D(p, T); }
+  telemetry(p);
   requestAnimationFrame(loop);
 }
 requestAnimationFrame(loop);
