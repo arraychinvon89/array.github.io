@@ -46,6 +46,7 @@
 html, body { margin: 0; }
 img { max-width: 100%; }
 [hidden] { display: none !important; }
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
 body { background: var(--paper); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.6; }
 .wrap {
   max-width: 1280px; margin: 0 auto; display: grid; gap: 16px;
@@ -191,7 +192,7 @@ pre.code { margin: 0; max-height: 460px; overflow: auto; background: var(--paper
   padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
   transition: opacity .6s ease, visibility .6s; }
 .splash.out { opacity: 0; visibility: hidden; }
-.sp-bg { position: absolute; inset: -40px; filter: blur(5px) saturate(1.15); transform: scale(1.06); transition: transform .25s ease-out; }
+.sp-bg { position: absolute; inset: -40px; filter: blur(5px) saturate(1.15); transform: scale(1.06); will-change: transform; }
 .sp-bg canvas { width: 100%; height: 100%; display: block; }
 .sp-bg.nogl { background: radial-gradient(60% 50% at 50% 55%, rgba(243,154,61,.35), transparent 70%), #06080a; }
 .sp-shade { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 50%, rgba(6,8,10,.25) 0%, rgba(6,8,10,.75) 70%, rgba(6,8,10,.95) 100%); pointer-events: none; }
@@ -248,10 +249,10 @@ pre.code { margin: 0; max-height: 460px; overflow: auto; background: var(--paper
   background-size: 64px 64px; transform: perspective(420px) rotateX(62deg); transform-origin: 50% 100%;
   -webkit-mask-image: linear-gradient(to top, #000 10%, transparent 90%); mask-image: linear-gradient(to top, #000 10%, transparent 90%);
   animation: gridMove 2.2s linear infinite, riseIn 1.6s ease .2s both; }
-.sp-particles { position: absolute; inset: 0; pointer-events: none; transition: transform .3s ease-out; }
+.sp-particles { position: absolute; inset: 0; pointer-events: none; will-change: transform; }
 .sp-particles i { position: absolute; bottom: -10px; border-radius: 50%; background: var(--c); box-shadow: 0 0 8px var(--c); animation: floatUp var(--d) linear var(--dl) infinite; }
 .sp-sweep { position: absolute; top: -20%; bottom: -20%; left: 0; width: 22vw; pointer-events: none; background: linear-gradient(90deg, transparent, rgba(255,255,255,.06), transparent); animation: sweep 6s ease-in-out 1.2s infinite; }
-.sp-tilt { position: relative; width: min(560px, 100%); transition: transform .25s ease-out; }
+.sp-tilt { position: relative; width: min(560px, 100%); will-change: transform; }
 .splash.leaving .sp-card { animation: spCardOut .55s ease-in forwards; }
 .splash.leaving .sp-bg canvas { animation: spBgOut .8s ease-in forwards; }
 .splash.leaving .sp-particles, .splash.leaving .sp-grid { transition: opacity .5s; opacity: 0; }
@@ -326,25 +327,31 @@ body.entered .workspace { animation: none; }
   -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
 .sp-ghost:hover { border-color: rgba(95,224,242,.8); background: rgba(95,224,242,.12); }
 .sp-ghost:focus-visible { outline: 2px solid #5fe0f2; outline-offset: 3px; }
-.sp-focusable { transition: transform .45s cubic-bezier(.2,.9,.25,1.2), box-shadow .45s, background-color .3s, border-color .3s, opacity .4s, filter .4s !important; will-change: transform; }
-.sp-shade, .sp-bg, .sp-grid, .sp-particles, .sp-card > *, .sp-actions > *, .sp-card { transition: opacity .45s ease, filter .45s ease, background .45s ease, box-shadow .45s ease; }
-.splash.focusing .sp-shade { background: rgba(3,4,6,.86); }
-.splash.focusing .sp-bg { filter: blur(10px) saturate(.8) brightness(.55); }
-.splash.focusing .sp-grid, .splash.focusing .sp-particles { opacity: .12; }
-.splash.focusing .sp-card { background: rgba(8,10,13,.35); box-shadow: 0 30px 80px rgba(0,0,0,.2); border-color: rgba(255,255,255,.05); }
-.splash.focusing .sp-card > :not(.sp-actions), .splash.focusing .sp-actions > :not(.is-focus) { opacity: .22; filter: blur(1.5px); }
-.splash .is-focus { transform: scale(1.16); z-index: 2; }
-.splash .sp-btn.is-focus { box-shadow: 0 0 0 1px rgba(255,255,255,.35) inset, 0 18px 50px rgba(243,154,61,.65), 0 0 90px rgba(243,154,61,.35); }
+.sp-focusable { transition: transform .6s cubic-bezier(.22,1,.36,1), box-shadow .6s cubic-bezier(.22,1,.36,1), background-color .45s ease, border-color .45s ease, opacity .5s ease !important; }
+.sp-dim { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 50%, rgba(3,4,6,.55), rgba(3,4,6,.92)); opacity: 0; pointer-events: none; transition: opacity .6s cubic-bezier(.22,1,.36,1); z-index: 1; }
+.splash.focusing .sp-dim { opacity: 1; }
+.sp-tilt { z-index: 2; }
+.sp-card > *, .sp-actions > * { transition: opacity .55s cubic-bezier(.22,1,.36,1); }
+.sp-card { transition: background-color .55s ease, border-color .55s ease, box-shadow .55s ease; }
+.splash.focusing .sp-card { background: rgba(8,10,13,.3); box-shadow: 0 30px 80px rgba(0,0,0,.15); border-color: rgba(255,255,255,.04); }
+.splash.focusing .sp-card > :not(.sp-actions) { opacity: .2; }
+.splash.focusing .sp-actions > :not(.is-focus) { opacity: .3; transform: scale(.96); }
+.splash .is-focus { transform: scale(1.14); z-index: 2; }
+.splash .sp-btn.is-focus { box-shadow: 0 0 0 1px rgba(255,255,255,.35) inset, 0 18px 50px rgba(243,154,61,.6), 0 0 90px rgba(243,154,61,.3); }
 .splash .sp-ghost.is-focus { box-shadow: 0 0 40px rgba(95,224,242,.45); border-color: #5fe0f2; background: rgba(95,224,242,.16); }
 
 /* guided tour with the robot mascot */
 .tour { position: fixed; inset: 0; z-index: 90; pointer-events: none; }
 .tour-hole { position: fixed; border-radius: 10px; box-shadow: 0 0 0 9999px rgba(3,4,6,.74), 0 0 0 2px rgba(243,154,61,.95), 0 0 34px rgba(243,154,61,.45);
-  transition: top .55s cubic-bezier(.2,.8,.2,1), left .55s cubic-bezier(.2,.8,.2,1), width .55s cubic-bezier(.2,.8,.2,1), height .55s cubic-bezier(.2,.8,.2,1), opacity .3s; pointer-events: none; }
+  top: 0; left: 0; will-change: transform, width, height; pointer-events: none; }
 .tour-box { position: fixed; width: min(380px, calc(100vw - 32px)); display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 10px 12px; align-items: end; pointer-events: auto;
   background: rgba(13,16,20,.92); border: 1px solid rgba(255,255,255,.14); border-radius: 14px; padding: 14px; color: #e6ebf0; box-shadow: 0 24px 70px rgba(0,0,0,.55);
   -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
-  transition: top .55s cubic-bezier(.2,.8,.2,1), left .55s cubic-bezier(.2,.8,.2,1), opacity .3s, transform .3s; }
+  top: 0; left: 0; will-change: transform; animation: tourIn .5s cubic-bezier(.22,1,.36,1) both; }
+@keyframes tourIn { from { opacity: 0; } to { opacity: 1; } }
+.tour-say { transition: opacity .35s cubic-bezier(.22,1,.36,1), transform .35s cubic-bezier(.22,1,.36,1); }
+.tour-say.swap { opacity: 0; transform: translateY(6px); }
+.tour { animation: tourIn .45s ease both; }
 .tour-box img { width: 96px; height: auto; display: block; -webkit-mask-image: linear-gradient(to bottom, #000 80%, transparent); mask-image: linear-gradient(to bottom, #000 80%, transparent); animation: botFloat 3s ease-in-out infinite; }
 .tour-say { font-size: 15px; line-height: 1.55; min-height: 4.6em; }
 .tour-say b { color: #f39a3d; }
@@ -355,7 +362,7 @@ body.entered .workspace { animation: none; }
 .tour-dots { display: flex; gap: 4px; }
 .tour-dots i { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,.2); transition: background .3s, transform .3s; }
 .tour-dots i.on { background: #f39a3d; transform: scale(1.3); }
-@media (max-width: 600px) { .tour-box { left: 16px !important; right: 16px; top: auto !important; bottom: max(16px, env(safe-area-inset-bottom, 0px)); width: auto; } }
+@media (max-width: 600px) { .tour-box { left: 16px !important; right: 16px; top: auto !important; bottom: max(16px, env(safe-area-inset-bottom, 0px)); width: auto; transform: none !important; } }
 .hint { font-size: 13px; color: var(--muted); margin: 0; }
 .notes { font-size: 14px; color: var(--muted); margin: 0; max-width: 90ch; }
 .notes b { color: var(--ink); font-weight: 600; }
@@ -369,6 +376,7 @@ body.entered .workspace { animation: none; }
   <div class="sp-grid" aria-hidden="true"></div>
   <div class="sp-particles" id="spParticles" aria-hidden="true"></div>
   <div class="sp-sweep" aria-hidden="true"></div>
+  <div class="sp-dim" aria-hidden="true"></div>
   <div class="sp-tilt" id="spCard"><div class="sp-card">
     <div class="sp-eyebrow">ยินดีต้อนรับสู่</div>
     <h1 class="sp-title" id="spTitle">array_<span>simulator</span></h1>
@@ -2611,7 +2619,7 @@ let spOn = true, spR = null, spCam = null, mx = 0, my = 0, smx = 0, smy = 0;
 try {
   if (!R3) throw 0;
   spR = new THREE.WebGLRenderer({ canvas: spCanvas, antialias: true });
-  spR.setPixelRatio(Math.min(devicePixelRatio || 1, 1.5)); spR.outputEncoding = THREE.sRGBEncoding;
+  spR.setPixelRatio(0.75); spR.outputEncoding = THREE.sRGBEncoding;
   spR.shadowMap.enabled = true; spR.shadowMap.type = THREE.PCFSoftShadowMap;
   spCam = new THREE.PerspectiveCamera(32, 1, 0.05, 80);
 } catch (e) { spR = null; spBg.classList.add('nogl'); }
@@ -2645,9 +2653,10 @@ function spSteer() {
 function spFrame(p) {
   if (!spOn) return;
   const k = reducedMotion ? 0 : 1;
-  smx += (mx - smx) * 0.06; smy += (my - smy) * 0.06;
-  spBg.style.transform = `scale(1.06) translate(${-smx * 22 * k}px, ${-smy * 16 * k}px)`;
-  $('spParticles').style.transform = `translate(${smx * 34 * k}px, ${smy * 24 * k}px)`;
+  const sa = 1 - Math.exp(-frameDt * 4.5);
+  smx += (mx - smx) * sa; smy += (my - smy) * sa;
+  spBg.style.transform = `translate3d(${(-smx * 22 * k).toFixed(2)}px, ${(-smy * 16 * k).toFixed(2)}px, 0) scale(1.06)`;
+  $('spParticles').style.transform = `translate3d(${(smx * 34 * k).toFixed(2)}px, ${(smy * 24 * k).toFixed(2)}px, 0)`;
   spCard.style.transform = `perspective(900px) rotateY(${smx * 5 * k}deg) rotateX(${-smy * 4 * k}deg) translate(${smx * 8 * k}px, ${smy * 6 * k}px)`;
   if (!spR || !p) return;
   const P = p.pts.P;
@@ -2721,8 +2730,8 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') { $('setPane
 
 /* ================= welcome: spotlight the button under the pointer ================= */
 document.querySelectorAll('.sp-focusable').forEach(btn => {
-  const on = () => { splash.classList.add('focusing'); document.querySelectorAll('.sp-focusable').forEach(b => b.classList.toggle('is-focus', b === btn)); };
-  const off = () => { splash.classList.remove('focusing'); btn.classList.remove('is-focus'); };
+  const on = () => { clearTimeout(window.__spOff); splash.classList.add('focusing'); document.querySelectorAll('.sp-focusable').forEach(b => b.classList.toggle('is-focus', b === btn)); };
+  const off = () => { btn.classList.remove('is-focus'); clearTimeout(window.__spOff); window.__spOff = setTimeout(() => { if (!document.querySelector('.sp-focusable.is-focus')) splash.classList.remove('focusing'); }, 140); };
   btn.addEventListener('pointerenter', on); btn.addEventListener('pointerleave', off);
   btn.addEventListener('focus', on); btn.addEventListener('blur', off);
 });
@@ -2766,20 +2775,34 @@ function tourSpeak(html) {
     });
   } catch (e) { tourMouth(false); }
 }
+// where the spotlight and the robot box should be; tourTick glides them there every frame
+const TG = { hx: 0, hy: 0, hw: 0, hh: 0, bx: 0, by: 0, init: false };
+const TC = { hx: 0, hy: 0, hw: 0, hh: 0, bx: 0, by: 0 };
 function tourPlace() {
   if (tourI < 0) return;
   const el = tourTarget(tourI); if (!el) return;
   const r = el.getBoundingClientRect(), pad = 8;
-  Object.assign(hole.style, { top: (r.top - pad) + 'px', left: (r.left - pad) + 'px', width: (r.width + pad * 2) + 'px', height: (r.height + pad * 2) + 'px' });
-  if (innerWidth <= 600) return;                       // phone: the box sits at the bottom (CSS)
+  TG.hx = r.left - pad; TG.hy = r.top - pad; TG.hw = r.width + pad * 2; TG.hh = r.height + pad * 2;
   const bw = tbox.offsetWidth, bh = tbox.offsetHeight, gap = 18;
   let x, y;
   if (r.right + gap + bw < innerWidth - 12) { x = r.right + gap; y = r.top + r.height / 2 - bh / 2; }
   else if (r.left - gap - bw > 12) { x = r.left - gap - bw; y = r.top + r.height / 2 - bh / 2; }
   else if (r.bottom + gap + bh < innerHeight - 12) { x = r.left + r.width / 2 - bw / 2; y = r.bottom + gap; }
   else { x = r.left + r.width / 2 - bw / 2; y = r.top - gap - bh; }
-  tbox.style.left = clamp(x, 12, innerWidth - bw - 12) + 'px';
-  tbox.style.top = clamp(y, 12, innerHeight - bh - 12) + 'px';
+  TG.bx = clamp(x, 12, innerWidth - bw - 12); TG.by = clamp(y, 12, innerHeight - bh - 12);
+  if (!TG.init) { Object.assign(TC, TG); TG.init = true; }
+}
+let tourRAF = 0, tourLast = 0;
+function tourTick(now) {
+  if (tourI < 0) { tourRAF = 0; return; }
+  const dt = Math.min(0.05, (now - (tourLast || now)) / 1000); tourLast = now;
+  tourPlace();
+  const a = reducedMotion ? 1 : 1 - Math.exp(-dt * 9);          // smooth, no overshoot, frame-rate independent
+  for (const k in TC) TC[k] += (TG[k] - TC[k]) * a;
+  hole.style.transform = `translate3d(${TC.hx.toFixed(1)}px, ${TC.hy.toFixed(1)}px, 0)`;
+  hole.style.width = TC.hw.toFixed(1) + 'px'; hole.style.height = TC.hh.toFixed(1) + 'px';
+  if (innerWidth > 600) tbox.style.transform = `translate3d(${TC.bx.toFixed(1)}px, ${TC.by.toFixed(1)}px, 0)`;
+  tourRAF = requestAnimationFrame(tourTick);
 }
 function tourGo(i) {
   if (i < 0) i = 0;
@@ -2787,15 +2810,16 @@ function tourGo(i) {
   tourI = i;
   const el = tourTarget(i);
   if (el) el.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'center', inline: 'nearest' });
-  $('tourSay').innerHTML = TOUR[i].say;
+  const say = $('tourSay'); say.classList.add('swap');
+  setTimeout(() => { say.innerHTML = TOUR[i].say; say.classList.remove('swap'); }, reducedMotion ? 0 : 180);
   $('tourStep').textContent = (i + 1) + ' / ' + TOUR.length;
   $('tourDots').innerHTML = TOUR.map((_, k) => '<i class="' + (k === i ? 'on' : '') + '"></i>').join('');
   $('tourPrev').disabled = i === 0;
   $('tourNext').textContent = i === TOUR.length - 1 ? 'เสร็จแล้ว ✓' : 'ถัดไป →';
-  tourPlace(); setTimeout(tourPlace, 380); setTimeout(tourPlace, 750);
+  if (!tourRAF) { tourLast = 0; tourRAF = requestAnimationFrame(tourTick); }
   tourSpeak(TOUR[i].say);
 }
-function tourStart() { tourEl.hidden = false; tourGo(0); $('tourNext').focus({ preventScroll: true }); }
+function tourStart() { tourEl.hidden = false; TG.init = false; tourGo(0); $('tourNext').focus({ preventScroll: true }); }
 function tourEnd() {
   tourI = -1; tourEl.hidden = true; tourMouth(false); clearTimeout(tourTimer);
   try { if (hasTTS) speechSynthesis.cancel(); } catch (e) {}
@@ -2804,9 +2828,6 @@ function tourEnd() {
 $('tourNext').onclick = () => tourGo(tourI + 1);
 $('tourPrev').onclick = () => tourGo(tourI - 1);
 $('tourSkip').onclick = tourEnd;
-window.addEventListener('resize', tourPlace);
-window.addEventListener('scroll', tourPlace, { passive: true });
-$('sidebar').addEventListener('scroll', tourPlace, { passive: true });
 document.addEventListener('keydown', e => {
   if (tourI < 0) return;
   if (e.key === 'ArrowRight' || e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); tourGo(tourI + 1); }
