@@ -352,7 +352,15 @@ body.entered .workspace { animation: none; }
 .tour-say { transition: opacity .35s cubic-bezier(.22,1,.36,1), transform .35s cubic-bezier(.22,1,.36,1); }
 .tour-say.swap { opacity: 0; transform: translateY(6px); }
 .tour { animation: tourIn .45s ease both; }
-.tour-box img { width: 96px; height: auto; display: block; -webkit-mask-image: linear-gradient(to bottom, #000 80%, transparent); mask-image: linear-gradient(to bottom, #000 80%, transparent); animation: botFloat 3s ease-in-out infinite; }
+.tour-box img { width: 96px; height: auto; display: block; -webkit-mask-image: linear-gradient(to bottom, #000 80%, transparent); mask-image: linear-gradient(to bottom, #000 80%, transparent); transform-origin: 50% 90%; animation: tourBob 2.8s ease-in-out infinite; }
+@keyframes tourBob { 0%, 100% { transform: translateY(0) rotate(var(--lean, 0deg)) scaleX(var(--flip, 1)); } 50% { transform: translateY(-5px) rotate(var(--lean, 0deg)) scaleX(var(--flip, 1)); } }
+.tour-box.moving img { animation-duration: .5s; }
+.tour-link { transition: opacity .35s ease; position: fixed; left: 0; top: 0; width: 100vw; height: 100vh; overflow: visible; pointer-events: none; }
+.tour-link line { stroke: #f39a3d; stroke-width: 2; stroke-dasharray: 6 7; stroke-linecap: round; opacity: .85; animation: tourDash .9s linear infinite; filter: drop-shadow(0 0 4px rgba(243,154,61,.7)); }
+.tour-link circle { fill: #f39a3d; filter: drop-shadow(0 0 6px rgba(243,154,61,.9)); animation: tourPing 1.4s ease-out infinite; transform-box: fill-box; transform-origin: center; }
+@keyframes tourDash { to { stroke-dashoffset: -26; } }
+@keyframes tourPing { 0% { transform: scale(1); } 50% { transform: scale(1.6); } 100% { transform: scale(1); } }
+@media (max-width: 600px) { .tour-link { display: none; } }
 .tour-say { font-size: 15px; line-height: 1.55; min-height: 4.6em; }
 .tour-say b { color: #f39a3d; }
 .tour-nav { grid-column: 1 / -1; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
@@ -391,6 +399,7 @@ body.entered .workspace { animation: none; }
 </div>
 <div class="tour" id="tour" hidden>
   <div class="tour-hole" id="tourHole"></div>
+  <svg class="tour-link" id="tourLink" aria-hidden="true"><line id="tourLine" x1="0" y1="0" x2="0" y2="0"></line><circle id="tourDot" r="5" cx="0" cy="0"></circle></svg>
   <div class="tour-box" id="tourBox" role="dialog" aria-modal="false" aria-labelledby="tourSay">
     <img id="tourImg" alt="หุ่นยนต์ผู้สอน">
     <div class="tour-say" id="tourSay" aria-live="polite"></div>
@@ -2778,6 +2787,7 @@ function tourSpeak(html) {
 // where the spotlight and the robot box should be; tourTick glides them there every frame
 const TG = { hx: 0, hy: 0, hw: 0, hh: 0, bx: 0, by: 0, init: false };
 const TC = { hx: 0, hy: 0, hw: 0, hh: 0, bx: 0, by: 0 };
+let tourLean = 0, tourPrevBx = null, tourPrevBy = null;
 function tourPlace() {
   if (tourI < 0) return;
   const el = tourTarget(tourI); if (!el) return;
@@ -2802,6 +2812,23 @@ function tourTick(now) {
   hole.style.transform = `translate3d(${TC.hx.toFixed(1)}px, ${TC.hy.toFixed(1)}px, 0)`;
   hole.style.width = TC.hw.toFixed(1) + 'px'; hole.style.height = TC.hh.toFixed(1) + 'px';
   if (innerWidth > 600) tbox.style.transform = `translate3d(${TC.bx.toFixed(1)}px, ${TC.by.toFixed(1)}px, 0)`;
+  // the robot flies to what it explains: it leans into the move, turns to face the spot and points at it
+  const vx = tourPrevBx === null ? 0 : (TC.bx - tourPrevBx) / Math.max(dt, 1e-3), vy = tourPrevBy === null ? 0 : (TC.by - tourPrevBy) / Math.max(dt, 1e-3);
+  tourPrevBx = TC.bx; tourPrevBy = TC.by;
+  tourLean += (clamp(vx * 0.025, -16, 16) - tourLean) * Math.min(1, dt * 10);
+  const moving = Math.hypot(vx, vy) > 40;
+  tbox.classList.toggle('moving', moving && !reducedMotion);
+  tbox.style.setProperty('--lean', (reducedMotion ? 0 : tourLean).toFixed(2) + 'deg');
+  const ib = $('tourImg').getBoundingClientRect(), rx = ib.left + ib.width / 2, ry = ib.top + ib.height * 0.45;
+  const px = clamp(rx, TC.hx, TC.hx + TC.hw), py = clamp(ry, TC.hy, TC.hy + TC.hh);
+  tbox.style.setProperty('--flip', px < rx - 4 ? -1 : 1);
+  const far = Math.hypot(px - rx, py - ry) > 40 && innerWidth > 600;
+  $('tourLink').style.opacity = far ? 1 : 0;
+  if (far) {
+    const ang = Math.atan2(py - ry, px - rx), sx = rx + Math.cos(ang) * ib.width * 0.5, sy = ry + Math.sin(ang) * ib.height * 0.3;
+    const L = $('tourLine'); L.setAttribute('x1', sx.toFixed(1)); L.setAttribute('y1', sy.toFixed(1)); L.setAttribute('x2', px.toFixed(1)); L.setAttribute('y2', py.toFixed(1));
+    const D = $('tourDot'); D.setAttribute('cx', px.toFixed(1)); D.setAttribute('cy', py.toFixed(1));
+  }
   tourRAF = requestAnimationFrame(tourTick);
 }
 function tourGo(i) {
@@ -2819,7 +2846,7 @@ function tourGo(i) {
   if (!tourRAF) { tourLast = 0; tourRAF = requestAnimationFrame(tourTick); }
   tourSpeak(TOUR[i].say);
 }
-function tourStart() { tourEl.hidden = false; TG.init = false; tourGo(0); $('tourNext').focus({ preventScroll: true }); }
+function tourStart() { tourEl.hidden = false; TG.init = false; tourPrevBx = tourPrevBy = null; tourLean = 0; tourGo(0); $('tourNext').focus({ preventScroll: true }); }
 function tourEnd() {
   tourI = -1; tourEl.hidden = true; tourMouth(false); clearTimeout(tourTimer);
   try { if (hasTTS) speechSynthesis.cancel(); } catch (e) {}
