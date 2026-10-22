@@ -291,7 +291,7 @@ pre.code { margin: 0; max-height: 460px; overflow: auto; background: var(--paper
         <div><dt>ก้าวทั้งหมด</dt><dd id="tSteps">0</dd></div>
         <div><dt>ล้มไปแล้ว</dt><dd id="tFalls">0 ครั้ง</dd></div>
         <div><dt>ข้อต่อคลาดเคลื่อน</dt><dd id="tErr">0.0°</dd></div>
-        <div><dt>เท้าคลาดเคลื่อน</dt><dd id="tAErr">0 mm</dd></div>
+        <div><dt>ลำตัวทรุด / เท้าคลาด</dt><dd id="tAErr">0 mm</dd></div>
       </dl>
     </section>
   </div>
@@ -358,7 +358,7 @@ pre.code { margin: 0; max-height: 460px; overflow: auto; background: var(--paper
     <p class="hint" id="aiNote" hidden></p>
   </section>
 
-  <p class="notes"><b>ฟิสิกส์ที่ใช้:</b> แรงโน้มถ่วง 9.81 m/s² · CoM เคลื่อนตามสมการ ẍ = (g/h)(x − p) โดย p คือจุดศูนย์กลางแรงกด (CoP) ใต้ฝ่าเท้า · เท้าถัดไปวางที่ ξ = x + ẋ/ω ที่คาดว่าจะเป็นตอนจบก้าว · ความสูงสะโพกถูกจำกัดด้วยความยาวขาจริง (ปรับได้ในแผงขนาด) จึงยุบขึ้นลงเองตามธรรมชาติ · เท้าลงด้วยส้นและถีบออกด้วยปลายเท้า · กระโดดเป็นวิถีโพรเจกไทล์ แล้วลงพื้นด้วยสปริง-แดมเปอร์ · ถ้าก้าวที่ต้องใช้ยาวเกินราว 1.3 เท่าของความยาวขา หุ่นจะล้มแบบลูกตุ้มหมุนรอบเท้า แล้วลุกขึ้นยืนเอง · มอเตอร์ข้อต่อจำลองเป็น J·θ̈ = Kp·e − Kd·θ̇ + แรงบิดจากน้ำหนักตัว · ไจโร/IMU อยู่กลางลำตัว วัดมุม roll pitch yaw และความเร็วเชิงมุม · ล้มคว่ำจะลุกด้วยการดันมือแล้วชันเข่า ล้มหงายจะลุกนั่งใช้มือยันแล้วโยกตัวขึ้น</p>
+  <p class="notes"><b>ฟิสิกส์ที่ใช้:</b> แรงโน้มถ่วง 9.81 m/s² · CoM เคลื่อนตามสมการ ẍ = (g/h)(x − p) โดย p คือจุดศูนย์กลางแรงกด (CoP) ใต้ฝ่าเท้า · เท้าถัดไปวางที่ ξ = x + ẋ/ω ที่คาดว่าจะเป็นตอนจบก้าว · ความสูงสะโพกถูกจำกัดด้วยความยาวขาจริง (ปรับได้ในแผงขนาด) จึงยุบขึ้นลงเองตามธรรมชาติ · เท้าลงด้วยส้นและถีบออกด้วยปลายเท้า · กระโดดเป็นวิถีโพรเจกไทล์ แล้วลงพื้นด้วยสปริง-แดมเปอร์ · ถ้าก้าวที่ต้องใช้ยาวเกินราว 1.3 เท่าของความยาวขา หุ่นจะล้ม ตอนล้มทุกข้อต่อเป็นมวลที่ตกตามแรงโน้มถ่วง ชนพื้นและมีแรงเสียดทาน มอเตอร์ยังเกร็งอยู่จนลำตัวเอียงเกิน 40° แล้วจึงตัดแรงบิด (ตรงกับโค้ด C++) · CoM จริงคิดจากน้ำหนักทุกส่วน ลำตัวโน้มไปหน้าสะโพกจะถอยไปหลังเพื่อให้ CoM อยู่เหนือเท้า · ถ้าเข่ารับน้ำหนักไม่ไหว ลำตัวจะทรุดลง เท้าไม่ลอยจากพื้น · หยุดเดินกลางก้าวจะถ่ายน้ำหนักไปเท้าหน้าแล้วชักเท้าหลังมาชิด · มอเตอร์ข้อต่อจำลองเป็น J·θ̈ = Kp·e − Kd·θ̇ + แรงบิดจากน้ำหนักตัว · ไจโร/IMU อยู่กลางลำตัว วัดมุม roll pitch yaw และความเร็วเชิงมุม · ล้มคว่ำจะลุกด้วยการดันมือแล้วชันเข่า ล้มหงายจะลุกนั่งใช้มือยันแล้วโยกตัวขึ้น</p>
 </div>
 
 <script type="text/plain" id="src-hpp">
@@ -465,7 +465,7 @@ struct RobotConfig {
   float totalMass() const { return massTorso + 2.f * massLeg + 2.f * massArm; }
   float legLength() const { return thigh + shin; }
   // nominal pelvis height above the ground when standing
-  float pelvisHeight() const { return ankleHeight + 0.983f * legLength(); }
+  float pelvisHeight() const { return ankleHeight + 0.992f * legLength(); }
   // centre-of-mass height above the pelvis, from the mass distribution
   float comOffset() const {
     float arms = armLength > 0.f ? 2.f * massArm * (torsoHeight - armLength * 0.5f) : 0.f;
@@ -709,7 +709,7 @@ class BipedController {
 
   // the pelvis can never be higher than the legs can reach
   void limitHeight() {
-    const float reach = 0.985f * c_.legLength();
+    const float reach = 0.996f * c_.legLength();
     const float lx = -sinf(th_), ly = cosf(th_);
     float lim = 10.f;
     for (int i = 0; i < 2; i++) {
@@ -900,12 +900,12 @@ const BODY = { thigh: 0.44, shin: 0.44, torsoH: 0.44, torsoW: 0.36, arm: 0.54, m
 let L1, L2, LS, H0, OM, REACH, MAXSTEP, FALLSTEP, MTOT, COMOFF;
 function applyBody() {
   L1 = BODY.thigh; L2 = BODY.shin; const L = L1 + L2; LS = L / 0.88;
-  H0 = AH + 0.983 * L;
+  H0 = AH + 0.992 * L;
   const arms = BODY.arm > 0.05;
   MTOT = BODY.mT + 2 * BODY.mL + (arms ? 2 * BODY.mA : 0);
   COMOFF = (BODY.mT * BODY.torsoH * 0.45 + (arms ? 2 * BODY.mA * (BODY.torsoH - BODY.arm * 0.5) : 0) - 2 * BODY.mL * L * 0.45) / MTOT;
   OM = Math.sqrt(G / Math.max(0.3, H0 + COMOFF));
-  REACH = 0.985 * L; MAXSTEP = 0.966 * L; FALLSTEP = 1.31 * L;
+  REACH = 0.996 * L; MAXSTEP = 0.966 * L; FALLSTEP = 1.31 * L;
 }
 applyBody();
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -929,7 +929,7 @@ function reset(x = 0, z = 0, th = 0, y = null) {
   const n = leftOf(th);
   S.gref = terrain(x, z); y += S.gref;
   Object.assign(S, { x, z, vx: 0, vz: 0, ax: 0, az: 0, y, ys: y, vy: 0, th, mode: 'stand', t: 0, T: 0.55, si: 1, tm: 0, fall: null,
-    copx: x, copz: z, jumpReq: false });
+    copx: x, copz: z, jumpReq: false, closing: false });
   S.feet = [newFoot(x + n[0] * STEPW / 2, z + n[1] * STEPW / 2, th), newFoot(x - n[0] * STEPW / 2, z - n[1] * STEPW / 2, th)];
 }
 reset();
@@ -960,7 +960,8 @@ function startFall() {
   const l = Math.max(0.5, S.y);
   const h = (S.x - piv.x) * ux + (S.z - piv.z) * uz;
   const phi0 = Math.asin(clamp(h / l, -0.8, 0.8));
-  S.fall = { px: piv.x, pz: piv.z, ux, uz, l, phi0, phi: phi0, dphi: Math.max(0.4, (S.vx * ux + S.vz * uz) / l), pose: S.lastPose || computePose(), th: S.th };
+  S.fall = { px: piv.x, pz: piv.z, ux, uz, th: S.th };
+  S.rag = makeRag(S.lastPose || computePose(), S.prevPose, S.poseDt || 1 / 60);
   S.mode = 'fall'; S.tm = 0; S.falls++; S.jumpReq = false; S.fallReason = '';
 }
 // self-righting with hands and feet. Keyframes are in a frame on the ground under the pelvis:
@@ -980,10 +981,7 @@ function getupFrames(prone) {
     { t: 2.5, ph: 'ยืนขึ้น', pel: [0.4 * L, H0 - 0.01], a: 0.05, ft: 0.4 * L, fp: 0, hand: null }];
 }
 function getUp() {
-  const fp = S.fall.pose, k = [S.fall.uz, 0, -S.fall.ux], piv = [S.fall.px, terrain(S.fall.px, S.fall.pz), S.fall.pz], ang = S.fall.phi - S.fall.phi0;
-  const lying = { pts: {}, vec: {} };
-  for (const key in fp.pts) lying.pts[key] = rotateAbout(fp.pts[key], k, ang, piv);
-  for (const key in fp.vec) lying.vec[key] = rotateAbout(fp.vec[key], k, ang, null);
+  const lying = ragPose(S.rag);
   const up = lying.vec.tUp, prone = lying.vec.tF[1] <= 0;
   let fx = up[0], fz = up[2], fl = Math.hypot(fx, fz);
   if (fl < 1e-3) { fx = S.fall.ux; fz = S.fall.uz; fl = 1; }
@@ -1017,12 +1015,12 @@ function updGround(dt) {
   S.gref += (g - S.gref) * Math.min(1, dt * 8);
 }
 function limitHeight() {
-  const n = leftOf(S.th);
+  const n = leftOf(S.th), f = fwdOf(S.th), back = pelvisBack(leanNow());
   let lim = 2;
   S.feet.forEach((ft, i) => {
     if (S.mode === 'walk' && i !== S.si && S.t / S.T < 0.7) return;
     const sd = i === 0 ? 1 : -1;
-    const hx = S.x + n[0] * sd * HW, hz = S.z + n[1] * sd * HW;
+    const hx = S.x - f[0] * back + n[0] * sd * HW, hz = S.z - f[1] * back + n[1] * sd * HW;
     const dh = Math.hypot(ft.x - hx, ft.z - hz);
     const ay = ft.gy + AH + ft.lift + ankleRise(ft);
     lim = Math.min(lim, ay + Math.sqrt(Math.max(0, REACH * REACH - dh * dh)));
@@ -1039,7 +1037,7 @@ function step(dt) {
   if (S.mode === 'stand' || S.mode === 'shift' || S.mode === 'land' || S.mode === 'crouch') {
     const m = mid();
     let tx = m.x, tz = m.z;
-    if (S.mode === 'shift') { const st = S.feet[S.si]; tx = lerp(m.x, st.x, 0.55); tz = lerp(m.z, st.z, 0.55); }
+    if (S.mode === 'shift') { const st = S.feet[S.si], k = S.closing === true ? 0.92 : 0.55; tx = lerp(m.x, st.x, k); tz = lerp(m.z, st.z, k); }
     const ax = (S.kpB * (tx - S.x) - S.kdB * S.vx) / MTOT, az = (S.kpB * (tz - S.z) - S.kdB * S.vz) / MTOT;
     S.vx += ax * dt; S.vz += az * dt; S.x += S.vx * dt; S.z += S.vz * dt; S.ax = ax; S.az = az;
     S.copx = S.x - ax / (OM * OM); S.copz = S.z - az / (OM * OM);
@@ -1060,9 +1058,14 @@ function step(dt) {
       const sw = chooseSwing(dl); S.si = 1 - sw; S.lastSwing = sw; S.recover = 1.2; beginStep();
     } else if (S.jumpReq && (S.mode === 'stand' || S.mode === 'shift')) {
       S.jumpReq = false; S.mode = 'crouch'; S.tm = 0;
+    } else if (S.mode === 'stand' && !wants && S.tm > 0.5 && !S.closing && Math.abs((S.feet[0].x - S.feet[1].x) * f[0] + (S.feet[0].z - S.feet[1].z) * f[1]) > 0.12) {
+      // stopped mid-stride: bring the rear foot up next to the front one, like a person does
+      const rear = ((S.feet[0].x - S.feet[1].x) * f[0] + (S.feet[0].z - S.feet[1].z) * f[1]) < 0 ? 0 : 1;
+      S.si = 1 - rear; S.lastSwing = rear; S.closing = true; S.mode = 'shift'; S.tm = 0;   // weight onto the front foot first
     } else if (S.mode === 'stand' && wants) {
+      S.closing = false;
       const sw = S.lastSwing === 0 ? 1 : 0; S.si = 1 - sw; S.lastSwing = sw; S.mode = 'shift'; S.tm = 0;
-    } else if (S.mode === 'shift' && S.tm > 0.28) {
+    } else if (S.mode === 'shift' && S.tm > (S.closing === true ? 0.5 : 0.28)) {
       beginStep();
     } else if (S.mode === 'land' && S.tm > 0.45) {
       S.mode = 'stand'; S.tm = 0;
@@ -1089,6 +1092,7 @@ function step(dt) {
     const lat = (rx * n[0] + rz * n[1]) * side;
     if (lat < 0.02 && s > 0.25 && !S.quick && S.T - S.t > 0.08) quickTouchdown(0.08);   // ξ is on the wrong side: put this foot down now and switch legs
     if (lat < 0.1) { rx += n[0] * side * (0.1 - lat); rz += n[1] * side * (0.1 - lat); }
+    if (S.closing === true && S.recover <= 0 && Math.abs((ex - st.x) * f[0] + (ez - st.z) * f[1]) < 0.15) { rx = n[0] * side * STEPW; rz = n[1] * side * STEPW; }   // closing step: land beside the other foot
     const d = Math.hypot(rx, rz);
     if (d > FALLSTEP && s > 0.3) { startFall(); return; }
     if (d > MAXSTEP) { rx *= MAXSTEP / d; rz *= MAXSTEP / d; }
@@ -1120,6 +1124,7 @@ function step(dt) {
       sw.x = sw.tx; sw.z = sw.tz; sw.lift = 0; sw.yaw = S.th;
       const fl = (sw.x - st.x) * f[0] + (sw.z - st.z) * f[1];
       S.stepLen = Math.abs(fl); S.steps++;
+      if (S.closing === true) S.closing = 'done';
       addFootprint(sw);
       S.si = 1 - S.si;
       const sp = Math.hypot(S.vx, S.vz);
@@ -1145,13 +1150,9 @@ function step(dt) {
     }
     return;
   } else if (S.mode === 'fall') {
-    const F = S.fall;
-    F.dphi += (G / F.l) * Math.sin(F.phi) * dt;
-    F.phi += F.dphi * dt;
-    if (F.phi >= 1.42) {
-      F.phi = 1.42;
-      if (Math.abs(F.dphi) < 0.7) { S.mode = 'fallen'; S.tm = 0; } else F.dphi = -F.dphi * 0.28;
-    }
+    const v = ragStep(S.rag, dt);
+    S.rag.still = v < 0.3 ? S.rag.still + dt : 0;
+    if (S.rag.still > 0.5 || S.tm > 4) { S.mode = 'fallen'; S.tm = 0; }
     return;
   } else if (S.mode === 'fallen') {
     if (S.tm > 1.0) getUp();
@@ -1194,16 +1195,32 @@ function solveKnee(H, A, kf) {
 }
 
 let frameDt = 1 / 60;
+// torso lean (rad): forward with speed and acceleration, deeper when crouching or landing
+function leanNow() {
+  const f2 = fwdOf(S.th);
+  const sp = Math.hypot(S.vx, S.vz), accF = (S.ax || 0) * f2[0] + (S.az || 0) * f2[1];
+  let lean = clamp(0.04 + 0.06 * sp + 0.01 * accF, -0.12, 0.32);
+  if (S.mode === 'crouch') lean += 0.28;
+  if (S.mode === 'land') lean += clamp((S.gref + H0 - S.y) * 1.4, 0, 0.4);
+  if (S.mode === 'air') lean -= 0.05;
+  return lean;
+}
+// S.x/S.z is the true centre of mass. A leaning torso moves mass forward, so the pelvis sits that much behind it.
+function pelvisBack(lean) {
+  const arms = BODY.arm > 0.05 ? 2 * BODY.mA * (BODY.torsoH + 0.04 - BODY.arm * 0.5) : 0;
+  return (BODY.mT * 0.45 * BODY.torsoH + arms) / MTOT * Math.sin(lean);
+}
 function computePose() {
   const f2 = fwdOf(S.th), n2 = leftOf(S.th);
   const F = [f2[0], 0, f2[1]], N = [n2[0], 0, n2[1]], Y = [0, 1, 0];
-  const P = [S.x, S.y, S.z];
+  const lean0 = leanNow(), back = pelvisBack(lean0);
+  const P = [S.x - F[0] * back, S.y, S.z - F[2] * back];
   const sw = S.mode === 'walk' ? clamp(S.t / S.T, 0, 1) : 0;
   const dOff = ft => (ft.x - S.x) * f2[0] + (ft.z - S.z) * f2[1];
   const hips = [0, 1].map(i => {
     const sd = i === 0 ? 1 : -1, o = clamp(dOff(S.feet[i]) / 0.35, -1, 1) * 0.035;
     const drop = (S.mode === 'walk' && i !== S.si) ? 0.018 * Math.sin(Math.PI * sw) : 0;
-    return [S.x + N[0] * sd * HW + F[0] * o, S.y - drop, S.z + N[2] * sd * HW + F[2] * o];
+    return [P[0] + N[0] * sd * HW + F[0] * o, S.y - drop, P[2] + N[2] * sd * HW + F[2] * o];
   });
   const feetF = [], feetU = [];
   const ankles = S.feet.map((ft, i) => {
@@ -1217,11 +1234,7 @@ function computePose() {
     return solveKnee(hips[i], ankles[i], ff);
   });
   const sp = Math.hypot(S.vx, S.vz);
-  const accF = (S.ax || 0) * F[0] + (S.az || 0) * F[2];
-  let lean = clamp(0.04 + 0.06 * sp + 0.01 * accF, -0.12, 0.32);
-  if (S.mode === 'crouch') lean += 0.28;
-  if (S.mode === 'land') lean += clamp((S.gref + H0 - S.y) * 1.4, 0, 0.4);
-  if (S.mode === 'air') lean -= 0.05;
+  const lean = lean0;
   const up = norm([F[0] * Math.sin(lean), Math.cos(lean), F[2] * Math.sin(lean)]);
   const tF = norm(cross(up, cross(F, up)));
   const chest = add(P, mul(up, 0.04 + BODY.torsoH));
@@ -1291,6 +1304,11 @@ function getupPose() {
     const arm = solve2(sh, hand, norm(add(mul(F, -1), mul(N, sd * 0.6))), la, lb);
     out.pts['sh' + sfx] = sh; out.pts['el' + sfx] = arm.K; out.pts['hd' + sfx] = arm.A;
   });
+  for (const k of ['kneeL', 'kneeR', 'elL', 'elR', 'hdL', 'hdR', 'ankL', 'ankR', 'P', 'chest']) {   // nothing goes into the ground
+    const q = out.pts[k]; if (!q) continue;
+    const gmin = terrain(q[0], q[2]) + (RAG_R[k] || 0.04) * (k === 'P' || k === 'chest' ? 0.9 : 0.6);
+    if (q[1] < gmin) out.pts[k] = [q[0], gmin, q[2]];
+  }
   if (S.tm < 0.35) {                                        // blend out of the pose it fell into
     const b = ease(S.tm / 0.35), ly = g.lying;
     for (const key in out.pts) if (ly.pts[key]) out.pts[key] = add(mul(ly.pts[key], 1 - b), mul(out.pts[key], b));
@@ -1301,11 +1319,100 @@ function getupPose() {
 function pose() {
   if (S.mode === 'getup') return getupPose();
   if (S.mode !== 'fall' && S.mode !== 'fallen') return computePose();
-  const F = S.fall, k = [F.uz, 0, -F.ux], piv = [F.px, terrain(F.px, F.pz), F.pz], ang = F.phi - F.phi0;
-  const out = { pts: {}, vec: {} };
-  for (const key in F.pose.pts) out.pts[key] = rotateAbout(F.pose.pts[key], k, ang, piv);
-  for (const key in F.pose.vec) out.vec[key] = rotateAbout(F.pose.vec[key], k, ang, null);
-  return out;
+  return ragPose(S.rag);
+}
+
+
+/* ================= ragdoll for falls: particles + distance constraints + ground contact ================= */
+// Joints are particles; bones are rigid links; motors are soft links that try to keep each joint angle
+// (the controller cuts torque when it detects a fall, so they are weak). Every particle collides with the
+// ground (terrain height + its radius) and slides with friction.
+const RAG_R = { P: 0.1, mid: 0.11, chest: 0.11, head: 0.05, hipL: 0.06, hipR: 0.06, kneeL: 0.06, kneeR: 0.06, ankL: 0.045, ankR: 0.045,
+  toeL: 0.015, toeR: 0.015, heelL: 0.02, heelR: 0.02, shL: 0.055, shR: 0.055, elL: 0.045, elR: 0.045, hdL: 0.045, hdR: 0.045 };
+function makeRag(pose, prev, pdt) {
+  const q = pose.pts, v = pose.vec, pts = {};
+  const add3 = (k, p) => { pts[k] = { x: p.slice(), o: p.slice(), r: RAG_R[k] || 0.04, w: 1 }; };
+  for (const k of ['P', 'chest', 'head', 'hipL', 'hipR', 'kneeL', 'kneeR', 'ankL', 'ankR', 'shL', 'shR', 'elL', 'elR', 'hdL', 'hdR']) add3(k, q[k]);
+  add3('mid', mul(add(q.P, q.chest), 0.5));
+  [['L', v.fFL, v.fUL], ['R', v.fFR, v.fUR]].forEach(([s, fF, fU]) => {
+    add3('toe' + s, add(add(q['ank' + s], mul(fF, TOE)), mul(fU, -AH)));
+    add3('heel' + s, add(add(q['ank' + s], mul(fF, -HEEL)), mul(fU, -AH)));
+  });
+  // start with each particle's current velocity so the fall carries the robot's momentum
+  if (prev) for (const k in pts) {
+    const a = q[k] || (k === 'mid' ? mul(add(q.P, q.chest), 0.5) : null), b = prev.pts[k] || (k === 'mid' ? mul(add(prev.pts.P, prev.pts.chest), 0.5) : null);
+    if (a && b) { const vel = mul(sub(a, b), 1 / Math.max(1e-3, pdt)); pts[k].o = sub(pts[k].x, mul(vel, 1 / 240)); }
+  }
+  const pts0 = pts;
+  // the sole points carry a contact radius: lift the whole body so nothing starts inside the ground
+  let lift = 0;
+  for (const k in pts0) { const q = pts0[k].x; lift = Math.max(lift, terrain(q[0], q[2]) + pts0[k].r - q[1]); }
+  if (lift > 0) for (const k in pts0) { pts0[k].x[1] += lift; pts0[k].o[1] += lift; }
+  const mass = { P: BODY.mT * 0.3, mid: BODY.mT * 0.3, chest: BODY.mT * 0.25, head: BODY.mT * 0.05, shL: BODY.mT * 0.05, shR: BODY.mT * 0.05,
+    hipL: BODY.mL * 0.25, hipR: BODY.mL * 0.25, kneeL: BODY.mL * 0.4, kneeR: BODY.mL * 0.4, ankL: BODY.mL * 0.2, ankR: BODY.mL * 0.2,
+    toeL: BODY.mL * 0.075, toeR: BODY.mL * 0.075, heelL: BODY.mL * 0.075, heelR: BODY.mL * 0.075,
+    elL: Math.max(0.1, BODY.mA * 0.5), elR: Math.max(0.1, BODY.mA * 0.5), hdL: Math.max(0.1, BODY.mA * 0.5), hdR: Math.max(0.1, BODY.mA * 0.5) };
+  for (const k in pts0) pts0[k].w = 1 / Math.max(0.05, mass[k] || 1);
+  const links = [];
+  const link = (a, b, stiff, min, max, weak) => { const d = len(sub(pts0[a].x, pts0[b].x)); links.push({ a, b, d, stiff, weak: weak ?? stiff, min: min ?? d, max: max ?? d }); };
+  const rigid = ks => { for (let i = 0; i < ks.length; i++) for (let j = i + 1; j < ks.length; j++) link(ks[i], ks[j], 1); };
+  rigid(['P', 'mid', 'chest', 'head', 'hipL', 'hipR', 'shL', 'shR']);
+  ['L', 'R'].forEach(s => {
+    rigid(['ank' + s, 'toe' + s, 'heel' + s]);
+    link('hip' + s, 'knee' + s, 1); link('knee' + s, 'ank' + s, 1);
+    link('sh' + s, 'el' + s, 1); link('el' + s, 'hd' + s, 1);
+    // joint motors: they hold the pose until the body tilts past 40°, then the controller cuts torque
+    // (same rule as array_biped.hpp) and the joints go limp. Plus joint limits.
+    const L = L1 + L2;
+    link('hip' + s, 'ank' + s, 0.5, 0.3 * L, L, 0.08);      // knee
+    link('mid', 'knee' + s, 0.4, 0, 9, 0.03);               // hip
+    link('knee' + s, 'toe' + s, 0.5, 0, 9, 0.1);            // ankle
+    if (BODY.arm > 0.05) { link('sh' + s, 'hd' + s, 0.2, 0.25 * BODY.arm, BODY.arm, 0.01); link('mid', 'el' + s, 0.1, 0, 9, 0.005); }
+  });
+  return { pts: pts0, links, still: 0, limp: false };
+}
+function ragStep(R, dt) {
+  const h = dt, g = -G * h * h;
+  let vmax = 0;
+  for (const k in R.pts) {
+    const p = R.pts[k], x = p.x, o = p.o;
+    const vx = (x[0] - o[0]) * 0.998, vy = (x[1] - o[1]) * 0.998, vz = (x[2] - o[2]) * 0.998;
+    p.o = x.slice(); p.x = [x[0] + vx, x[1] + vy + g, x[2] + vz];
+  }
+  const tilt = Math.acos(clamp(norm(sub(R.pts.chest.x, R.pts.P.x))[1], -1, 1));
+  if (tilt > 0.7) R.limp = true;
+  for (let it = 0; it < 12; it++) {
+    for (const c of R.links) {
+      const A = R.pts[c.a], B = R.pts[c.b];
+      const d = sub(B.x, A.x), L = len(d) || 1e-6;
+      let target = c.stiff >= 1 ? c.d : L < c.min ? c.min : L > c.max ? c.max : null;
+      let k = 1;
+      if (target === null) { target = c.d; k = R.limp ? c.weak : c.stiff; }
+      const diff = (L - target) / L * k, wa = A.w / (A.w + B.w), wb = B.w / (A.w + B.w);
+      A.x = add(A.x, mul(d, diff * wa)); B.x = sub(B.x, mul(d, diff * wb));
+    }
+    for (const k in R.pts) {
+      const p = R.pts[k], ground = terrain(p.x[0], p.x[2]) + p.r;
+      if (p.x[1] < ground) {
+        p.x[1] = ground; p.o[1] = ground;                         // inelastic contact: no bounce, no energy from the push-out
+        // Coulomb-like friction: slow the sliding along the ground
+        p.x[0] = p.o[0] + (p.x[0] - p.o[0]) * 0.55; p.x[2] = p.o[2] + (p.x[2] - p.o[2]) * 0.55;
+      }
+    }
+  }
+  for (const k in R.pts) { const p = R.pts[k]; vmax = Math.max(vmax, len(sub(p.x, p.o)) / h); }
+  return vmax;
+}
+function ragPose(R) {
+  const P = k => R.pts[k].x;
+  const up0 = norm(sub(P('chest'), P('P'))), left = norm(sub(P('hipL'), P('hipR')));
+  const tF = norm(cross(left, up0)), tUp = norm(cross(tF, left));
+  const foot = s => { const fF = norm(sub(P('toe' + s), P('heel' + s))); return [fF, norm(cross(fF, left))]; };
+  const [fFL, fUL] = foot('L'), [fFR, fUR] = foot('R');
+  const pts = {};
+  for (const k of ['P', 'chest', 'hipL', 'hipR', 'kneeL', 'kneeR', 'ankL', 'ankR', 'shL', 'shR', 'elL', 'elR', 'hdL', 'hdR']) pts[k] = P(k).slice();
+  pts.head = add(pts.chest, mul(tUp, 0.13));
+  return { pts, vec: { tUp, tF, fFL, fUL, fFR, fUR } };
 }
 
 /* ================= joint servos (PD) ================= */
@@ -1316,6 +1423,7 @@ function servo(p, n, h) {
   const f2 = fwdOf(S.th), n2 = leftOf(S.th), F = [f2[0], 0, f2[1]], N = [n2[0], 0, n2[1]];
   S._F = F;
   let maxErr = 0;
+  const res = [];
   [['hipL', 'kneeL', 'ankL'], ['hipR', 'kneeR', 'ankR']].forEach((L, i) => {
     const H = p.pts[L[0]], Kd = p.pts[L[1]], Ad = p.pts[L[2]];
     const t = norm(sub(Kd, H)), sh = norm(sub(Ad, Kd));
@@ -1338,10 +1446,38 @@ function servo(p, n, h) {
     }
     const K = add(H, mul(dirFrom(s.h, bt, F, N), L1));
     const A = add(K, mul(dirFrom(s.h - s.k, bs, F, N), L2));
-    S.ankErr[i] = len(sub(A, Ad));
-    p.pts[L[1]] = K; p.pts[L[2]] = A;
+    res.push({ L, H, Ad, K, A, sup });
     maxErr = Math.max(maxErr, Math.abs(dh - s.h), Math.abs(dk - s.k));
   });
+  // A foot standing on the ground cannot move. If its knee sags (or over-extends) the BODY moves instead:
+  // the pelvis drops by however much shorter the supporting leg really is.
+  let drop = null;
+  res.forEach(r => {
+    if (r.sup <= 0) return;
+    const Cd = Math.max(0.05, len(sub(r.Ad, r.H))), Ca = len(sub(r.A, r.H));
+    const dI = (Cd - Ca) * clamp((r.H[1] - r.Ad[1]) / Cd, 0, 1);
+    drop = drop === null ? dI : Math.min(drop, dI);          // the longer leg carries the body
+  });
+  drop = drop || 0;
+  if (Math.abs(drop) > 1e-5) {
+    const stanceAnk = new Set(res.filter(r => r.sup > 0).map(r => r.L[2]));
+    for (const k in p.pts) if (!stanceAnk.has(k)) p.pts[k] = [p.pts[k][0], p.pts[k][1] - drop, p.pts[k][2]];
+    res.forEach(r => { r.H = p.pts[r.L[0]]; r.K = [r.K[0], r.K[1] - drop, r.K[2]]; r.A = [r.A[0], r.A[1] - drop, r.A[2]]; });
+  }
+  const kf = norm([F[0], 0.05, F[2]]);
+  res.forEach((r, i) => {
+    if (r.sup > 0) {
+      const k = solveKnee(r.H, r.Ad, kf);
+      p.pts[r.L[1]] = k.K; p.pts[r.L[2]] = r.Ad;
+      S.ankErr[i] = Math.abs(drop);
+    } else {
+      const A = r.A.slice(), gmin = terrain(A[0], A[2]) + AH;
+      if (A[1] < gmin) A[1] = gmin;                            // a swinging foot cannot go into the ground
+      p.pts[r.L[1]] = r.K; p.pts[r.L[2]] = A;
+      S.ankErr[i] = len(sub(A, r.Ad));
+    }
+  });
+  S.sag = drop;
   S.svInit = true; S.jointErr = maxErr;
 }
 
@@ -1637,11 +1773,12 @@ function render3D(p, T) {
     r.comM.position.set(S.x, terrain(S.x, S.z) + 0.01, S.z);
     r.cpM.position.set(S.x + S.vx / OM, terrain(S.x + S.vx / OM, S.z + S.vz / OM) + 0.012, S.z + S.vz / OM);
     r.copM.position.set(S.copx, terrain(S.copx, S.copz) + 0.014, S.copz);
-    r.comBall.position.set(S.x, S.y, S.z);
-    const a = r.pend.geometry.attributes.position.array; a.set([S.copx, 0.006, S.copz, S.x, S.y, S.z]); r.pend.geometry.attributes.position.needsUpdate = true;
+    const cy = S.y - (S.sag || 0) + COMOFF;
+    r.comBall.position.set(S.x, cy, S.z);
+    const a = r.pend.geometry.attributes.position.array; a.set([S.copx, terrain(S.copx, S.copz) + 0.006, S.copz, S.x, cy, S.z]); r.pend.geometry.attributes.position.needsUpdate = true;
     const spd = Math.hypot(S.vx, S.vz, S.mode === 'air' || S.mode === 'land' ? S.vy : 0);
     r.arrow.visible = spd > 0.05;
-    if (spd > 0.05) { r.arrow.position.set(S.x, S.y, S.z); r.arrow.setDirection(tv.set(S.vx, S.mode === 'air' ? S.vy : 0, S.vz).normalize()); r.arrow.setLength(0.12 + spd * 0.35, 0.07, 0.045); }
+    if (spd > 0.05) { r.arrow.position.set(S.x, cy, S.z); r.arrow.setDirection(tv.set(S.vx, S.mode === 'air' ? S.vy : 0, S.vz).normalize()); r.arrow.setLength(0.12 + spd * 0.35, 0.07, 0.045); }
   }
   r.imuG.visible = physChk.checked && !!IMU.pos;
   if (r.imuG.visible) orient(r.imuG, IMU.pos, IMU.f, IMU.u);
@@ -1667,7 +1804,8 @@ function render2D(p, T) {
   const gy = H2 - Math.max(40, H2 * 0.12), sc = Math.min((gy - 50) / (H0 + BODY.torsoH + 0.15), W2 / 2.2), cx = W2 / 2;
   const gu = S.mode === 'getup' && S.getup;
   const th = gu ? Math.atan2(S.getup.F[2], S.getup.F[0]) : S.fall ? S.fall.th : S.th; const fx = Math.cos(th), fz = Math.sin(th);
-  const ox = gu ? q.P[0] : S.fall && (S.mode === 'fall' || S.mode === 'fallen') ? S.fall.px : S.x, oz = gu ? q.P[2] : S.fall && (S.mode === 'fall' || S.mode === 'fallen') ? S.fall.pz : S.z;
+  const onGround = gu || S.mode === 'fall' || S.mode === 'fallen';
+  const ox = onGround ? q.P[0] : S.x, oz = onGround ? q.P[2] : S.z;
   const X = a => cx + ((a[0] - ox) * fx + (a[2] - oz) * fz) * sc;
   const Yv = a => gy - a[1] * sc;
   const P = a => [X(a), Yv(a)];
@@ -1752,7 +1890,7 @@ function render2D(p, T) {
   }
   // physics overlay
   if (physChk.checked && S.mode !== 'fall' && S.mode !== 'fallen' && S.mode !== 'getup') {
-    const com = [S.x, S.y, S.z], cop = [S.copx, 0, S.copz], xi = [S.x + S.vx / OM, 0, S.z + S.vz / OM];
+    const com = [S.x, S.y - (S.sag || 0) + COMOFF, S.z], cop = [S.copx, 0, S.copz], xi = [S.x + S.vx / OM, 0, S.z + S.vz / OM];
     ctx.setLineDash([4, 4]); ctx.lineWidth = 1; ctx.strokeStyle = T.com;
     ctx.beginPath(); ctx.moveTo(X(com), Yv(com)); ctx.lineTo(X(com), Yg(com)); ctx.stroke(); ctx.setLineDash([]);
     const cy = Yg(cop), xy = Yg(xi);
@@ -2064,7 +2202,7 @@ function loop(now) {
   const p = pose(), T = tokens();
   if (S.mode !== 'fall' && S.mode !== 'fallen' && S.mode !== 'getup') {
     servo(p, n, H);
-    S.lastPose = p;
+    S.prevPose = S.lastPose; S.poseDt = dt; S.lastPose = p;
     const stErr = S.mode === 'walk' ? S.ankErr[S.si] : Math.max(S.ankErr[0], S.ankErr[1]);
     S.errT = stErr > 0.12 * LS && S.mode !== 'air' ? S.errT + dt : 0;
     if (S.errT > 0.25) { S.errT = 0; startFall(); S.fallReason = 'servo'; }

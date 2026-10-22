@@ -101,7 +101,7 @@ struct RobotConfig {
   float totalMass() const { return massTorso + 2.f * massLeg + 2.f * massArm; }
   float legLength() const { return thigh + shin; }
   // nominal pelvis height above the ground when standing
-  float pelvisHeight() const { return ankleHeight + 0.983f * legLength(); }
+  float pelvisHeight() const { return ankleHeight + 0.992f * legLength(); }
   // centre-of-mass height above the pelvis, from the mass distribution
   float comOffset() const {
     float arms = armLength > 0.f ? 2.f * massArm * (torsoHeight - armLength * 0.5f) : 0.f;
@@ -345,7 +345,7 @@ class BipedController {
 
   // the pelvis can never be higher than the legs can reach
   void limitHeight() {
-    const float reach = 0.985f * c_.legLength();
+    const float reach = 0.996f * c_.legLength();
     const float lx = -sinf(th_), ly = cosf(th_);
     float lim = 10.f;
     for (int i = 0; i < 2; i++) {
