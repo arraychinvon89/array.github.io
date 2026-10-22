@@ -230,19 +230,19 @@ pre.code { margin: 0; max-height: 460px; overflow: auto; background: var(--paper
 @keyframes pop { 0% { transform: scale(1); } 40% { transform: scale(1.08); } 100% { transform: scale(1); } }
 
 .sp-bg canvas { animation: spBgIn 2.4s cubic-bezier(.2,.7,.2,1) both; transform-origin: 50% 55%; }
-.sp-card { animation: spCardIn 1s cubic-bezier(.2,.8,.2,1) .25s both; }
-.sp-eyebrow { animation: riseIn .7s ease .45s both; }
+.sp-card { animation: spCardIn 1s cubic-bezier(.2,.8,.2,1) .25s backwards; }
+.sp-eyebrow { animation: riseIn .7s ease .45s backwards; }
 .sp-title { perspective: 600px; }
-.sp-title .ch { display: inline-block; animation: chIn .7s cubic-bezier(.2,.8,.2,1) both; animation-delay: calc(.55s + var(--i) * 45ms); }
+.sp-title .ch { display: inline-block; animation: chIn .7s cubic-bezier(.2,.8,.2,1) backwards; animation-delay: calc(.55s + var(--i) * 45ms); }
 .sp-title span.hl { color: #f39a3d; animation: glowPulse 3.2s ease-in-out 1.6s infinite; text-shadow: 0 0 22px rgba(243,154,61,.35); }
-.sp-sub { animation: riseIn .7s ease 1.05s both; }
-.sp-btn { position: relative; overflow: hidden; animation: riseIn .7s ease 1.25s both, ring 2.4s ease-out 2.2s infinite; }
+.sp-sub { animation: riseIn .7s ease 1.05s backwards; }
+.sp-btn { position: relative; overflow: hidden; animation: ring 2.4s ease-out 2.2s infinite; }
 .sp-btn::after { content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 40%; background: linear-gradient(90deg, transparent, rgba(255,255,255,.55), transparent); animation: shimmer 3.4s ease-in-out 2s infinite; pointer-events: none; }
 .sp-btn span { display: inline-block; transition: transform .2s; }
 .sp-btn:hover span { transform: translateX(4px); }
 .sp-btn:active { transform: scale(.97); }
-.sp-meta { animation: riseIn .7s ease 1.45s both; }
-.sp-hint { font-size: 13px; color: #8b96a3; animation: riseIn .7s ease 1.35s both; }
+.sp-meta { animation: riseIn .7s ease 1.45s backwards; }
+.sp-hint { font-size: 13px; color: #8b96a3; animation: riseIn .7s ease 1.35s backwards; }
 .sp-grid { position: absolute; left: -10%; right: -10%; bottom: -10%; height: 55%; pointer-events: none; opacity: .35;
   background-image: linear-gradient(rgba(95,224,242,.22) 1px, transparent 1px), linear-gradient(90deg, rgba(95,224,242,.22) 1px, transparent 1px);
   background-size: 64px 64px; transform: perspective(420px) rotateX(62deg); transform-origin: 50% 100%;
@@ -318,6 +318,44 @@ body.entered .workspace { animation: none; }
 .splash { clip-path: circle(150% at var(--rx, 50%) var(--ry, 50%)); }
 .ai-claude { display: inline-flex; align-items: center; gap: 8px; text-decoration: none; font-weight: 600; color: #1b1206; background: var(--robot); border-radius: 6px; padding: 10px 16px; min-height: 44px; width: fit-content; }
 .ai-claude:focus-visible { outline: 2px solid var(--glow); outline-offset: 2px; }
+
+/* welcome: the button under the pointer grows, everything else sinks into the dark */
+.sp-actions { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 8px; animation: riseIn .7s ease 1.25s backwards; position: relative; z-index: 3; }
+.sp-actions .sp-btn { margin-top: 0; }
+.sp-ghost { font: 600 15px var(--f-body); color: #e6ebf0; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.22); border-radius: 999px; padding: 10px 20px; min-height: 44px; display: inline-flex; align-items: center; gap: 8px;
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+.sp-ghost:hover { border-color: rgba(95,224,242,.8); background: rgba(95,224,242,.12); }
+.sp-ghost:focus-visible { outline: 2px solid #5fe0f2; outline-offset: 3px; }
+.sp-focusable { transition: transform .45s cubic-bezier(.2,.9,.25,1.2), box-shadow .45s, background-color .3s, border-color .3s, opacity .4s, filter .4s !important; will-change: transform; }
+.sp-shade, .sp-bg, .sp-grid, .sp-particles, .sp-card > *, .sp-actions > *, .sp-card { transition: opacity .45s ease, filter .45s ease, background .45s ease, box-shadow .45s ease; }
+.splash.focusing .sp-shade { background: rgba(3,4,6,.86); }
+.splash.focusing .sp-bg { filter: blur(10px) saturate(.8) brightness(.55); }
+.splash.focusing .sp-grid, .splash.focusing .sp-particles { opacity: .12; }
+.splash.focusing .sp-card { background: rgba(8,10,13,.35); box-shadow: 0 30px 80px rgba(0,0,0,.2); border-color: rgba(255,255,255,.05); }
+.splash.focusing .sp-card > :not(.sp-actions), .splash.focusing .sp-actions > :not(.is-focus) { opacity: .22; filter: blur(1.5px); }
+.splash .is-focus { transform: scale(1.16); z-index: 2; }
+.splash .sp-btn.is-focus { box-shadow: 0 0 0 1px rgba(255,255,255,.35) inset, 0 18px 50px rgba(243,154,61,.65), 0 0 90px rgba(243,154,61,.35); }
+.splash .sp-ghost.is-focus { box-shadow: 0 0 40px rgba(95,224,242,.45); border-color: #5fe0f2; background: rgba(95,224,242,.16); }
+
+/* guided tour with the robot mascot */
+.tour { position: fixed; inset: 0; z-index: 90; pointer-events: none; }
+.tour-hole { position: fixed; border-radius: 10px; box-shadow: 0 0 0 9999px rgba(3,4,6,.74), 0 0 0 2px rgba(243,154,61,.95), 0 0 34px rgba(243,154,61,.45);
+  transition: top .55s cubic-bezier(.2,.8,.2,1), left .55s cubic-bezier(.2,.8,.2,1), width .55s cubic-bezier(.2,.8,.2,1), height .55s cubic-bezier(.2,.8,.2,1), opacity .3s; pointer-events: none; }
+.tour-box { position: fixed; width: min(380px, calc(100vw - 32px)); display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 10px 12px; align-items: end; pointer-events: auto;
+  background: rgba(13,16,20,.92); border: 1px solid rgba(255,255,255,.14); border-radius: 14px; padding: 14px; color: #e6ebf0; box-shadow: 0 24px 70px rgba(0,0,0,.55);
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  transition: top .55s cubic-bezier(.2,.8,.2,1), left .55s cubic-bezier(.2,.8,.2,1), opacity .3s, transform .3s; }
+.tour-box img { width: 96px; height: auto; display: block; -webkit-mask-image: linear-gradient(to bottom, #000 80%, transparent); mask-image: linear-gradient(to bottom, #000 80%, transparent); animation: botFloat 3s ease-in-out infinite; }
+.tour-say { font-size: 15px; line-height: 1.55; min-height: 4.6em; }
+.tour-say b { color: #f39a3d; }
+.tour-nav { grid-column: 1 / -1; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.tour-nav .tour-step { font: 12px var(--f-mono); color: #8b96a3; margin-right: auto; }
+.tour-nav button { min-height: 38px; padding: 6px 14px; font-size: 14px; color: #e6ebf0; background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.2); }
+.tour-nav button.primary { color: #1b1206; background: #f39a3d; border-color: #f39a3d; }
+.tour-dots { display: flex; gap: 4px; }
+.tour-dots i { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,.2); transition: background .3s, transform .3s; }
+.tour-dots i.on { background: #f39a3d; transform: scale(1.3); }
+@media (max-width: 600px) { .tour-box { left: 16px !important; right: 16px; top: auto !important; bottom: max(16px, env(safe-area-inset-bottom, 0px)); width: auto; } }
 .hint { font-size: 13px; color: var(--muted); margin: 0; }
 .notes { font-size: 14px; color: var(--muted); margin: 0; max-width: 90ch; }
 .notes b { color: var(--ink); font-weight: 600; }
@@ -335,10 +373,27 @@ body.entered .workspace { animation: none; }
     <div class="sp-eyebrow">ยินดีต้อนรับสู่</div>
     <h1 class="sp-title" id="spTitle">array_<span>simulator</span></h1>
     <p class="sp-sub">จำลองหุ่นยนต์สองขาด้วยฟิสิกส์จริง ทั้ง 3D และ 2D ปรับ Kp Kd ขนาด และน้ำหนักได้ พร้อมโค้ด C++ สำหรับหุ่นยนต์จริง</p>
-    <button id="spStart" class="sp-btn">เริ่ม simulator <span aria-hidden="true">→</span></button>
+    <div class="sp-actions">
+      <button id="spStart" class="sp-btn sp-focusable">เริ่ม simulator <span aria-hidden="true">→</span></button>
+      <button id="spTour" class="sp-ghost sp-focusable"><span aria-hidden="true">🤖</span> คุณต้องการให้เราสอนใช้ไหม?</button>
+    </div>
     <div class="sp-hint">ขยับเมาส์ หุ่นยนต์ด้านหลังจะเดินตามจุดที่ชี้</div>
     <div class="sp-meta"><span>g = 9.81 m/s²</span><span>LIPM + capture point</span><span>ESP32 · C++</span></div>
   </div></div>
+</div>
+<div class="tour" id="tour" hidden>
+  <div class="tour-hole" id="tourHole"></div>
+  <div class="tour-box" id="tourBox" role="dialog" aria-modal="false" aria-labelledby="tourSay">
+    <img id="tourImg" alt="หุ่นยนต์ผู้สอน">
+    <div class="tour-say" id="tourSay" aria-live="polite"></div>
+    <div class="tour-nav">
+      <span class="tour-step" id="tourStep"></span>
+      <div class="tour-dots" id="tourDots" aria-hidden="true"></div>
+      <button type="button" id="tourSkip">ข้าม</button>
+      <button type="button" id="tourPrev">ย้อนกลับ</button>
+      <button type="button" id="tourNext" class="primary">ถัดไป →</button>
+    </div>
+  </div>
 </div>
 <div class="wrap">
   <header>
@@ -355,6 +410,7 @@ body.entered .workspace { animation: none; }
             <div class="seg" role="group" aria-label="ตำแหน่งแผงควบคุม"><button id="sideL" aria-pressed="true">ซ้าย</button><button id="sideR" aria-pressed="false">ขวา</button></div>
           </div>
           <p class="hint">ถนัดมือไหนก็ย้ายแผงควบคุมไปด้านนั้น ค่านี้จำไว้ในเบราว์เซอร์นี้</p>
+          <button type="button" id="tourAgain">🤖 ให้หุ่นยนต์สอนใช้อีกครั้ง</button>
         </div>
       </div>
     </div>
@@ -2644,7 +2700,7 @@ function startSim() {
     $('walk').focus({ preventScroll: true });
   }, 1400 * fast + 20);
 }$('spStart').onclick = startSim;
-splash.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); startSim(); } e.stopPropagation(); });
+splash.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.tagName !== 'BUTTON') { e.preventDefault(); startSim(); } e.stopPropagation(); });
 setTimeout(() => { try { $('spStart').focus({ preventScroll: true }); } catch (e) {} }, 50);
 
 
@@ -2661,6 +2717,104 @@ $('sideL').onclick = () => setSide('left'); $('sideR').onclick = () => setSide('
 $('setBtn').onclick = e => { const p = $('setPanel'); p.hidden = !p.hidden; $('setBtn').setAttribute('aria-expanded', String(!p.hidden)); e.stopPropagation(); };
 document.addEventListener('click', e => { const p = $('setPanel'); if (!p.hidden && !p.contains(e.target)) { p.hidden = true; $('setBtn').setAttribute('aria-expanded', 'false'); } });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') { $('setPanel').hidden = true; $('setBtn').setAttribute('aria-expanded', 'false'); } });
+
+
+/* ================= welcome: spotlight the button under the pointer ================= */
+document.querySelectorAll('.sp-focusable').forEach(btn => {
+  const on = () => { splash.classList.add('focusing'); document.querySelectorAll('.sp-focusable').forEach(b => b.classList.toggle('is-focus', b === btn)); };
+  const off = () => { splash.classList.remove('focusing'); btn.classList.remove('is-focus'); };
+  btn.addEventListener('pointerenter', on); btn.addEventListener('pointerleave', off);
+  btn.addEventListener('focus', on); btn.addEventListener('blur', off);
+});
+
+/* ================= guided tour: the robot mascot shows how to use the page ================= */
+const TOUR = [
+  { t: '#v3d', say: 'สวัสดีครับ! ผมจะพาดูวิธีใช้เว็บนี้นะครับ เริ่มที่ <b>จอ 3D</b> ลากเมาส์เพื่อหมุนกล้องรอบหุ่น และหมุนล้อเมาส์เพื่อซูมเข้าออกได้' },
+  { t: '#v2d', say: '<b>จอ 2D</b> มองหุ่นจากด้านข้าง จุดสีชมพูคือจุดศูนย์ถ่วง สีฟ้าคือจุดที่ต้องวางเท้าถัดไป สีเขียวคือจุดรับแรงใต้เท้า' },
+  { t: () => $('walk').closest('.group'), say: 'ปุ่ม <b>เดิน/หยุด เลี้ยว และกระโดด</b> อยู่ตรงนี้ หรือกดคีย์บอร์ด W, A, D และ Space ก็ได้ครับ' },
+  { t: () => $('pushB').closest('.group'), say: 'ลอง <b>ผลักหุ่น</b> ดูครับ ผลักเบาๆ หุ่นจะก้าวกู้สมดุล ผลักแรงๆ จะล้ม แล้วลุกขึ้นเองด้วยมือกับเท้า' },
+  { t: () => $('speed').closest('.sliders'), say: 'ตรงนี้ปรับ <b>ความเร็ว แรงผลัก และความขรุขระของพื้น</b> ครับ' },
+  { t: () => $('kp').closest('.group'), say: '<b>Kp Kd</b> คือค่าของมอเตอร์และการทรงตัว ดูค่า ζ ด้านล่าง ถ้าขึ้นว่า "พอดี" แปลว่าตั้งได้ดีครับ' },
+  { t: '[aria-labelledby="body-h"]', say: 'ปรับ <b>ขนาดขา แขน ลำตัว และน้ำหนัก</b> ของหุ่นได้ ฟิสิกส์จะเปลี่ยนตามทันที' },
+  { t: '[aria-labelledby="tel-h"]', say: '<b>ค่าจากเซนเซอร์</b> และไจโรกลางลำตัว บอกความเร็ว มุมข้อต่อ และการเอียงของหุ่นแบบสดๆ' },
+  { t: '#setBtn', say: 'ถนัดมือซ้ายหรือขวา ย้ายแผงควบคุมได้ที่ปุ่ม <b>ตั้งค่า</b> และกดให้ผมสอนอีกครั้งได้จากตรงนี้ครับ' },
+  { t: '[aria-labelledby="code-h"]', say: '<b>โค้ด C++</b> สำหรับหุ่นยนต์จริง ค่าในไฟล์ robot_config.h ตรงกับที่ตั้งไว้บนหน้านี้ กดคัดลอกไปใช้ได้เลย' },
+  { t: '[aria-labelledby="ai-h"]', say: 'สงสัยอะไร ถาม <b>ผู้ช่วย AI</b> ได้ครับ ผมจะคิดแล้วตอบ และพูดให้ฟังด้วย จบการสอนแล้ว สนุกกับการทดลองนะครับ!' }
+];
+let tourI = -1, tourFlap = null, tourTimer = null;
+const tourEl = $('tour'), hole = $('tourHole'), tbox = $('tourBox');
+const plain = h => { const d = document.createElement('div'); d.innerHTML = h; return d.textContent; };
+function tourTarget(i) { const t = TOUR[i].t; return typeof t === 'function' ? t() : document.querySelector(t); }
+function tourMouth(talk) {
+  clearInterval(tourFlap); tourFlap = null;
+  const img = $('tourImg');
+  if (talk && !reducedMotion) { let o = true; img.src = AV.talk; tourFlap = setInterval(() => { o = !o; img.src = o ? AV.talk : AV.idle; }, 140); }
+  else img.src = AV.idle;
+}
+function tourSpeak(html) {
+  const text = plain(html);
+  try { if (hasTTS) speechSynthesis.cancel(); } catch (e) {}
+  const voice = hasTTS ? speechSynthesis.getVoices().find(v => /^th/i.test(v.lang) && v.voiceURI === TTS.voiceURI) || speechSynthesis.getVoices().find(v => /^th/i.test(v.lang)) : null;
+  if (!hasTTS || !TTS.on || !voice) { tourMouth(true); clearTimeout(tourTimer); tourTimer = setTimeout(() => tourMouth(false), Math.min(4200, 400 + text.length * 45)); return; }
+  try {
+    const parts = ttsChunks(text); let left = parts.length;
+    parts.forEach(pt => {
+      const u = new SpeechSynthesisUtterance(pt); u.voice = voice; u.lang = voice.lang; u.rate = TTS.rate;
+      u.onstart = () => tourMouth(true);
+      u.onend = u.onerror = () => { if (--left <= 0) tourMouth(false); };
+      speechSynthesis.speak(u);
+    });
+  } catch (e) { tourMouth(false); }
+}
+function tourPlace() {
+  if (tourI < 0) return;
+  const el = tourTarget(tourI); if (!el) return;
+  const r = el.getBoundingClientRect(), pad = 8;
+  Object.assign(hole.style, { top: (r.top - pad) + 'px', left: (r.left - pad) + 'px', width: (r.width + pad * 2) + 'px', height: (r.height + pad * 2) + 'px' });
+  if (innerWidth <= 600) return;                       // phone: the box sits at the bottom (CSS)
+  const bw = tbox.offsetWidth, bh = tbox.offsetHeight, gap = 18;
+  let x, y;
+  if (r.right + gap + bw < innerWidth - 12) { x = r.right + gap; y = r.top + r.height / 2 - bh / 2; }
+  else if (r.left - gap - bw > 12) { x = r.left - gap - bw; y = r.top + r.height / 2 - bh / 2; }
+  else if (r.bottom + gap + bh < innerHeight - 12) { x = r.left + r.width / 2 - bw / 2; y = r.bottom + gap; }
+  else { x = r.left + r.width / 2 - bw / 2; y = r.top - gap - bh; }
+  tbox.style.left = clamp(x, 12, innerWidth - bw - 12) + 'px';
+  tbox.style.top = clamp(y, 12, innerHeight - bh - 12) + 'px';
+}
+function tourGo(i) {
+  if (i < 0) i = 0;
+  if (i >= TOUR.length) return tourEnd();
+  tourI = i;
+  const el = tourTarget(i);
+  if (el) el.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'center', inline: 'nearest' });
+  $('tourSay').innerHTML = TOUR[i].say;
+  $('tourStep').textContent = (i + 1) + ' / ' + TOUR.length;
+  $('tourDots').innerHTML = TOUR.map((_, k) => '<i class="' + (k === i ? 'on' : '') + '"></i>').join('');
+  $('tourPrev').disabled = i === 0;
+  $('tourNext').textContent = i === TOUR.length - 1 ? 'เสร็จแล้ว ✓' : 'ถัดไป →';
+  tourPlace(); setTimeout(tourPlace, 380); setTimeout(tourPlace, 750);
+  tourSpeak(TOUR[i].say);
+}
+function tourStart() { tourEl.hidden = false; tourGo(0); $('tourNext').focus({ preventScroll: true }); }
+function tourEnd() {
+  tourI = -1; tourEl.hidden = true; tourMouth(false); clearTimeout(tourTimer);
+  try { if (hasTTS) speechSynthesis.cancel(); } catch (e) {}
+  window.scrollTo({ top: 0, behavior: reducedMotion ? 'auto' : 'smooth' });
+}
+$('tourNext').onclick = () => tourGo(tourI + 1);
+$('tourPrev').onclick = () => tourGo(tourI - 1);
+$('tourSkip').onclick = tourEnd;
+window.addEventListener('resize', tourPlace);
+window.addEventListener('scroll', tourPlace, { passive: true });
+$('sidebar').addEventListener('scroll', tourPlace, { passive: true });
+document.addEventListener('keydown', e => {
+  if (tourI < 0) return;
+  if (e.key === 'ArrowRight' || e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); tourGo(tourI + 1); }
+  else if (e.key === 'ArrowLeft') { e.preventDefault(); e.stopPropagation(); tourGo(tourI - 1); }
+  else if (e.key === 'Escape') tourEnd();
+}, true);
+$('spTour').onclick = () => { startSim(); setTimeout(tourStart, reducedMotion ? 50 : 1500); };
+$('tourAgain').onclick = () => { $('setPanel').hidden = true; $('setBtn').setAttribute('aria-expanded', 'false'); tourStart(); };
 
 /* ================= telemetry ================= */
 const MODE = { stand: ['ยืนทรงตัว', 'ok'], shift: ['ถ่ายน้ำหนัก', 'ok'], walk: ['เดิน', 'ok'], crouch: ['ย่อตัวเตรียมกระโดด', 'warn'], air: ['ลอยตัว', 'warn'],
