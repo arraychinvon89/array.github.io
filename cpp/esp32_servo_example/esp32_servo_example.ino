@@ -5,7 +5,8 @@
 //    * ESP32 dev board
 //    * PCA9685 16-channel servo driver on I2C (SDA 21, SCL 22), address 0x40
 //    * 12 position-controlled servos, 6 per leg, 500–2500 µs = 0–180°
-//    * MPU6050 IMU on the same I2C bus, mounted flat on the pelvis, X forward, Y left
+//    * MPU6050 IMU (gyro + accelerometer) on the same I2C bus, mounted flat at the centre
+//      of the torso, X forward, Y left, Z up
 //
 //  Libraries (Arduino Library Manager):
 //    Adafruit PWM Servo Driver Library, Adafruit MPU6050

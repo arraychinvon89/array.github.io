@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>array_simulator · จำลองขาหุ่นยนต์สองขาเดินด้วยฟิสิกส์ 3D และ 2D</title>
-<meta name="description" content="array_simulator จำลองขาหุ่นยนต์สองขาเดินได้แบบ 3D และ 2D ด้วยฟิสิกส์จริง ทรงตัวด้วยแบบจำลองลูกตุ้มกลับหัว (LIPM) และ capture point เดินบนพื้นขรุขระ ปรับขนาดและน้ำหนักหุ่นได้ ปรับค่า Kp Kd ของมอเตอร์ได้ ล้มแล้วลุกเอง พร้อมโค้ด C++ สำหรับหุ่นยนต์จริง (ESP32 / Arduino) ผลักได้ กระโดดได้ ล้มได้ เล่นบนเบราว์เซอร์ได้ทันที">
+<meta name="description" content="array_simulator จำลองขาหุ่นยนต์สองขาเดินได้แบบ 3D และ 2D ด้วยฟิสิกส์จริง ทรงตัวด้วยแบบจำลองลูกตุ้มกลับหัว (LIPM) และ capture point เดินบนพื้นขรุขระ ปรับขนาดและน้ำหนักหุ่นได้ ปรับค่า Kp Kd ของมอเตอร์ได้ ล้มแล้วลุกเองด้วยมือและเท้า มีไจโร IMU และผู้ช่วย AI พร้อมโค้ด C++ สำหรับหุ่นยนต์จริง (ESP32 / Arduino) ผลักได้ กระโดดได้ ล้มได้ เล่นบนเบราว์เซอร์ได้ทันที">
 <meta name="keywords" content="array_simulator, หุ่นยนต์สองขา, โค้ดหุ่นยนต์ C++, ESP32 หุ่นยนต์เดิน, ขาหุ่นยนต์, biped robot, จำลองหุ่นยนต์, PD controller, Kp Kd, ฟิสิกส์, LIPM, capture point, 3D">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://arraychinvon89.github.io/array.github.io/">
@@ -137,6 +137,31 @@ input[type=range] { width: 100%; accent-color: var(--robot); }
 pre.code { margin: 0; max-height: 460px; overflow: auto; background: var(--paper); border: 1px solid var(--line); border-radius: 4px; padding: 12px 14px; font: 12.5px/1.55 var(--f-mono); color: var(--ink); tab-size: 2; }
 .codeintro { max-width: 100ch; }
 .codeintro b { color: var(--ink); font-weight: 600; }
+.imu { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
+#att { width: 132px; height: 132px; flex: none; }
+.imu-data { flex: 1; min-width: 180px; display: grid; gap: 4px; }
+.imu-title { font-size: 12px; font-family: var(--f-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.imu-grid { display: grid; grid-template-columns: auto 1fr 1fr; gap: 2px 12px; margin: 0; font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+.imu-grid dt { color: var(--muted); }
+.imu-grid dd { margin: 0; font-weight: 600; text-align: right; white-space: nowrap; }
+.imu-note { font-size: 12px; color: var(--muted); }
+.ailog { display: grid; gap: 10px; max-height: 520px; overflow-y: auto; }
+.ailog:empty { display: none; }
+.msg { padding: 10px 14px; border-radius: 6px; max-width: 92%; min-width: 0; overflow-wrap: anywhere; }
+.msg.user { justify-self: end; background: var(--btn-active); color: var(--btn-active-fg); white-space: pre-wrap; }
+.msg.bot { justify-self: start; background: var(--paper); border: 1px solid var(--line); }
+.msg.bot p { margin: 0 0 8px; } .msg.bot p:last-child { margin-bottom: 0; }
+.msg.bot pre { margin: 8px 0; padding: 10px 12px; background: var(--sheet); border: 1px solid var(--line); border-radius: 4px; overflow-x: auto; font: 12.5px/1.5 var(--f-mono); }
+.msg.bot code { font-family: var(--f-mono); font-size: 0.92em; }
+.msg.bot :not(pre) > code { background: var(--sheet); padding: 0 4px; border-radius: 3px; }
+.msg.bot .h { font-weight: 700; margin: 8px 0 4px; }
+.msg .act { font-size: 12px; color: var(--muted); font-family: var(--f-mono); margin-top: 6px; }
+.msg.wait { color: var(--muted); }
+.chip { min-height: 36px; padding: 6px 12px; font-size: 14px; font-weight: 500; border-radius: 18px; }
+.aiform { display: grid; gap: 8px; }
+.aiform textarea { width: 100%; font: 15px/1.5 var(--f-body); color: var(--ink); background: var(--btn); border: 1px solid var(--grid-strong); border-radius: 4px; padding: 10px 12px; resize: vertical; }
+.aiform textarea:focus-visible { outline: 2px solid var(--glow); outline-offset: 2px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .hint { font-size: 13px; color: var(--muted); margin: 0; }
 .notes { font-size: 14px; color: var(--muted); margin: 0; max-width: 90ch; }
 .notes b { color: var(--ink); font-weight: 600; }
@@ -240,6 +265,18 @@ pre.code { margin: 0; max-height: 460px; overflow: auto; background: var(--paper
     <section class="panel" aria-labelledby="tel-h">
       <h2 id="tel-h">ค่าจากเซนเซอร์</h2>
       <div class="status" id="status" data-tone="ok"><span class="dot"></span><span id="mode">ยืนทรงตัว</span></div>
+      <div class="imu">
+        <canvas id="att" width="132" height="132" aria-label="มาตรวัดท่าทางจากไจโร"></canvas>
+        <div class="imu-data">
+          <div class="imu-title">ไจโร / IMU · กลางลำตัว</div>
+          <dl class="imu-grid">
+            <dt>Roll</dt><dd id="iRoll">0.0°</dd><dd id="iGRoll">0 °/s</dd>
+            <dt>Pitch</dt><dd id="iPitch">0.0°</dd><dd id="iGPitch">0 °/s</dd>
+            <dt>Yaw</dt><dd id="iYaw">0.0°</dd><dd id="iGYaw">0 °/s</dd>
+          </dl>
+          <div class="imu-note">Roll + = เอียงขวา · Pitch + = ก้มไปข้างหน้า</div>
+        </div>
+      </div>
       <dl class="telemetry">
         <div><dt>ความเร็ว</dt><dd id="tVel">0.00 m/s</dd></div>
         <div><dt>ความสูง CoM</dt><dd id="tH">0.86 m</dd></div>
@@ -299,7 +336,29 @@ pre.code { margin: 0; max-height: 460px; overflow: auto; background: var(--paper
     <pre class="code"><code id="codeView"></code></pre>
   </section>
 
-  <p class="notes"><b>ฟิสิกส์ที่ใช้:</b> แรงโน้มถ่วง 9.81 m/s² · CoM เคลื่อนตามสมการ ẍ = (g/h)(x − p) โดย p คือจุดศูนย์กลางแรงกด (CoP) ใต้ฝ่าเท้า · เท้าถัดไปวางที่ ξ = x + ẋ/ω ที่คาดว่าจะเป็นตอนจบก้าว · ความสูงสะโพกถูกจำกัดด้วยความยาวขาจริง (ปรับได้ในแผงขนาด) จึงยุบขึ้นลงเองตามธรรมชาติ · เท้าลงด้วยส้นและถีบออกด้วยปลายเท้า · กระโดดเป็นวิถีโพรเจกไทล์ แล้วลงพื้นด้วยสปริง-แดมเปอร์ · ถ้าก้าวที่ต้องใช้ยาวเกินราว 1.3 เท่าของความยาวขา หุ่นจะล้มแบบลูกตุ้มหมุนรอบเท้า แล้วลุกขึ้นยืนเอง · มอเตอร์ข้อต่อจำลองเป็น J·θ̈ = Kp·e − Kd·θ̇ + แรงบิดจากน้ำหนักตัว</p>
+  <section class="panel" aria-labelledby="ai-h">
+    <h2 id="ai-h">ผู้ช่วย AI</h2>
+    <p class="hint" id="aiIntro">ถามเรื่องโค้ด C++ การจูน Kp Kd ปัญหาของหุ่นยนต์จริง หรือเรื่องอื่นได้เลย ผู้ช่วยเห็นค่าที่ตั้งไว้ สถานะหุ่น และค่าไจโรบนหน้านี้ อ่านโค้ด C++ ได้ และถ้าคุณขอ ก็ปรับค่าหรือสั่งหุ่นบนหน้านี้ให้ได้</p>
+    <div id="aiLog" class="ailog" aria-live="polite"></div>
+    <div class="row" id="aiChips">
+      <button type="button" class="chip">ทำไมหุ่นถึงล้ม แก้ยังไง</button>
+      <button type="button" class="chip">อธิบายโค้ด array_biped.hpp แบบเข้าใจง่าย</button>
+      <button type="button" class="chip">ตั้ง Kp Kd ให้หุ่นหนัก 80 kg</button>
+      <button type="button" class="chip">เซอร์โวสั่นตอนยืน แก้ยังไง</button>
+    </div>
+    <form id="aiForm" class="aiform">
+      <label for="aiInput" class="sr">คำถาม</label>
+      <textarea id="aiInput" rows="2" placeholder="พิมพ์คำถาม แล้วกด Enter"></textarea>
+      <div class="row">
+        <button type="submit" class="primary" id="aiSend">ส่ง</button>
+        <button type="button" id="aiStop" hidden>หยุด</button>
+        <button type="button" id="aiClear">ล้างแชต</button>
+      </div>
+    </form>
+    <p class="hint" id="aiNote" hidden></p>
+  </section>
+
+  <p class="notes"><b>ฟิสิกส์ที่ใช้:</b> แรงโน้มถ่วง 9.81 m/s² · CoM เคลื่อนตามสมการ ẍ = (g/h)(x − p) โดย p คือจุดศูนย์กลางแรงกด (CoP) ใต้ฝ่าเท้า · เท้าถัดไปวางที่ ξ = x + ẋ/ω ที่คาดว่าจะเป็นตอนจบก้าว · ความสูงสะโพกถูกจำกัดด้วยความยาวขาจริง (ปรับได้ในแผงขนาด) จึงยุบขึ้นลงเองตามธรรมชาติ · เท้าลงด้วยส้นและถีบออกด้วยปลายเท้า · กระโดดเป็นวิถีโพรเจกไทล์ แล้วลงพื้นด้วยสปริง-แดมเปอร์ · ถ้าก้าวที่ต้องใช้ยาวเกินราว 1.3 เท่าของความยาวขา หุ่นจะล้มแบบลูกตุ้มหมุนรอบเท้า แล้วลุกขึ้นยืนเอง · มอเตอร์ข้อต่อจำลองเป็น J·θ̈ = Kp·e − Kd·θ̇ + แรงบิดจากน้ำหนักตัว · ไจโร/IMU อยู่กลางลำตัว วัดมุม roll pitch yaw และความเร็วเชิงมุม · ล้มคว่ำจะลุกด้วยการดันมือแล้วชันเข่า ล้มหงายจะลุกนั่งใช้มือยันแล้วโยกตัวขึ้น</p>
 </div>
 
 <script type="text/plain" id="src-hpp">
@@ -703,7 +762,8 @@ class BipedController {
 //    * ESP32 dev board
 //    * PCA9685 16-channel servo driver on I2C (SDA 21, SCL 22), address 0x40
 //    * 12 position-controlled servos, 6 per leg, 500–2500 µs = 0–180°
-//    * MPU6050 IMU on the same I2C bus, mounted flat on the pelvis, X forward, Y left
+//    * MPU6050 IMU (gyro + accelerometer) on the same I2C bus, mounted flat at the centre
+//      of the torso, X forward, Y left, Z up
 //
 //  Libraries (Arduino Library Manager):
 //    Adafruit PWM Servo Driver Library, Adafruit MPU6050
@@ -903,13 +963,41 @@ function startFall() {
   S.fall = { px: piv.x, pz: piv.z, ux, uz, l, phi0, phi: phi0, dphi: Math.max(0.4, (S.vx * ux + S.vz * uz) / l), pose: S.lastPose || computePose(), th: S.th };
   S.mode = 'fall'; S.tm = 0; S.falls++; S.jumpReq = false; S.fallReason = '';
 }
-// self-righting: tuck the legs in, swing the body back over the feet, then stand up
+// self-righting with hands and feet. Keyframes are in a frame on the ground under the pelvis:
+// f = distance along F (the way the robot will face when it stands), y = height.
+function getupFrames(prone) {
+  const L = L1 + L2, tH = BODY.torsoH;
+  if (prone) return [   // lying face down: push up on the hands, knees under the hips, squat, stand
+    { t: 0.0, ph: 'วางมือข้างไหล่', pel: [0, 0.13], a: 1.48, ft: -0.95 * L, fp: 1.25, hand: 0.85 * tH },
+    { t: 0.8, ph: 'ดันตัวขึ้นด้วยมือ', pel: [0, 0.2], a: 1.15, ft: -0.93 * L, fp: 1.1, hand: 0.85 * tH },
+    { t: 1.6, ph: 'ชันเข่าเข้าใต้สะโพก', pel: [-0.12 * L, 0.42 * L], a: 1.35, ft: -0.42 * L, fp: 0.45, hand: 0.85 * tH },
+    { t: 2.4, ph: 'ยกมือ ย่อตัว', pel: [-0.34 * L, 0.5 * L], a: 0.7, ft: -0.3 * L, fp: 0, hand: null },
+    { t: 3.1, ph: 'ยืนขึ้น', pel: [-0.3 * L, H0 - 0.01], a: 0.05, ft: -0.3 * L, fp: 0, hand: null }];
+  return [               // lying on the back: sit up on the hands, feet in, rock forward, stand
+    { t: 0.0, ph: 'วางมือข้างลำตัว', pel: [0, 0.13], a: -1.45, ft: 0.95 * L, fp: -1.1, hand: -0.85 * tH },
+    { t: 0.9, ph: 'ลุกนั่ง ใช้มือยัน', pel: [0, 0.13], a: -0.75, ft: 0.45 * L, fp: 0, hand: -0.35 },
+    { t: 1.7, ph: 'โยกตัวไปข้างหน้า', pel: [0.36 * L, 0.36 * L], a: 0.6, ft: 0.4 * L, fp: 0, hand: null },
+    { t: 2.5, ph: 'ยืนขึ้น', pel: [0.4 * L, H0 - 0.01], a: 0.05, ft: 0.4 * L, fp: 0, hand: null }];
+}
 function getUp() {
-  const F = S.fall;
-  F.lie = F.phi;
-  reset(F.px + F.ux * 0.12, F.pz + F.uz * 0.12, F.th, 0.55 * H0);
-  S.getup = { F, crouch: computePose() };
+  const fp = S.fall.pose, k = [S.fall.uz, 0, -S.fall.ux], piv = [S.fall.px, terrain(S.fall.px, S.fall.pz), S.fall.pz], ang = S.fall.phi - S.fall.phi0;
+  const lying = { pts: {}, vec: {} };
+  for (const key in fp.pts) lying.pts[key] = rotateAbout(fp.pts[key], k, ang, piv);
+  for (const key in fp.vec) lying.vec[key] = rotateAbout(fp.vec[key], k, ang, null);
+  const up = lying.vec.tUp, prone = lying.vec.tF[1] <= 0;
+  let fx = up[0], fz = up[2], fl = Math.hypot(fx, fz);
+  if (fl < 1e-3) { fx = S.fall.ux; fz = S.fall.uz; fl = 1; }
+  fx /= fl; fz /= fl;
+  if (!prone) { fx = -fx; fz = -fz; }
+  const P = lying.pts.P;
+  S.getup = { lying, prone, F: [fx, 0, fz], O: [P[0], terrain(P[0], P[2]), P[2]], frames: getupFrames(prone) };
   S.mode = 'getup'; S.tm = 0; S.svInit = false;
+}
+function finishGetUp() {
+  const g = S.getup, last = g.frames[g.frames.length - 1];
+  const x = g.O[0] + g.F[0] * last.pel[0], z = g.O[2] + g.F[2] * last.pel[0];
+  reset(x, z, Math.atan2(g.F[2], g.F[0]));
+  S.getup = null; S.svInit = false;
 }
 
 function updGround(dt) {
@@ -1069,7 +1157,7 @@ function step(dt) {
     if (S.tm > 1.0) getUp();
     return;
   } else if (S.mode === 'getup') {
-    if (S.tm > 1.5) { S.mode = 'stand'; S.tm = 0; S.getup = null; S.svInit = false; }
+    if (S.tm > S.getup.frames[S.getup.frames.length - 1].t + 0.35) finishGetUp();
     return;
   }
   updGround(dt);
@@ -1167,17 +1255,47 @@ function rotateAbout(p, k, ang, piv) {
   return piv ? add(r, piv) : r;
 }
 const ease = t => { t = clamp(t, 0, 1); return t * t * (3 - 2 * t); };
+function solve2(H, A, kf, l1, l2) {           // two-link limb: H root, A tip, kf = bend direction
+  let d = sub(A, H), L = len(d);
+  const max = l1 + l2 - 1e-4;
+  if (L > max) { A = add(H, mul(d, max / L)); d = sub(A, H); L = max; }
+  if (L < 1e-4) return { K: add(H, mul(kf, l1)), A };
+  const u = mul(d, 1 / L), p = norm(sub(kf, mul(u, dot(kf, u))));
+  const a = (l1 * l1 - l2 * l2 + L * L) / (2 * L), h = Math.sqrt(Math.max(0, l1 * l1 - a * a));
+  return { K: add(add(H, mul(u, a)), mul(p, h)), A };
+}
 function getupPose() {
-  const g = S.getup, F = g.F, a = F.pose, b = g.crouch, kb = ease(S.tm / 0.7);
-  const out = { pts: {}, vec: {} };
-  for (const key in b.pts) out.pts[key] = a.pts[key] ? add(mul(a.pts[key], 1 - kb), mul(b.pts[key], kb)) : b.pts[key];
-  for (const key in b.vec) out.vec[key] = a.vec[key] ? norm(add(mul(a.vec[key], 1 - kb), mul(b.vec[key], kb))) : b.vec[key];
-  const f2 = fwdOf(F.th), kf = [f2[0], 0, f2[1]];
-  [['hipL', 'kneeL', 'ankL'], ['hipR', 'kneeR', 'ankR']].forEach(L => { const k = solveKnee(out.pts[L[0]], out.pts[L[2]], kf); out.pts[L[1]] = k.K; out.pts[L[2]] = k.A; });
-  const k = [F.uz, 0, -F.ux], piv = [F.px, terrain(F.px, F.pz), F.pz];
-  const ang = (F.lie - F.phi0) * (1 - ease((S.tm - 0.25) / 1.1));
-  for (const key in out.pts) out.pts[key] = rotateAbout(out.pts[key], k, ang, piv);
-  for (const key in out.vec) out.vec[key] = rotateAbout(out.vec[key], k, ang, null);
+  const g = S.getup, fr = g.frames, t = S.tm - 0.35;            // 0.35 s to settle into the first keyframe
+  let i = 0; while (i < fr.length - 2 && t > fr[i + 1].t) i++;
+  const k0 = fr[i], k1 = fr[i + 1], e = ease((t - k0.t) / (k1.t - k0.t));
+  g.phase = (e < 0.5 ? k0 : k1).ph;
+  const F = g.F, Y = [0, 1, 0], N = [F[2], 0, -F[0]];      // N = robot's left
+  const at = (f, y, lat) => { const x = g.O[0] + F[0] * f + N[0] * lat, z = g.O[2] + F[2] * f + N[2] * lat; return [x, terrain(x, z) + y, z]; };
+  const pf = lerp(k0.pel[0], k1.pel[0], e), py = lerp(k0.pel[1], k1.pel[1], e), a = lerp(k0.a, k1.a, e);
+  const fpitch = lerp(k0.fp, k1.fp, e), ftf = lerp(k0.ft, k1.ft, e);
+  const P = at(pf, py, 0);
+  const up = add(mul(F, Math.sin(a)), mul(Y, Math.cos(a))), tF = sub(mul(F, Math.cos(a)), mul(Y, Math.sin(a)));
+  const fF = sub(mul(F, Math.cos(fpitch)), mul(Y, Math.sin(fpitch))), fU = add(mul(F, Math.sin(fpitch)), mul(Y, Math.cos(fpitch)));
+  const rise = fpitch > 0 ? Math.sin(fpitch) * TOE : Math.sin(-fpitch) * HEEL;
+  const kf = norm(add(F, mul(Y, 0.6)));
+  const chest = add(P, mul(up, 0.04 + BODY.torsoH)), shw = BODY.torsoW / 2 + 0.03, la = BODY.arm * 0.52, lb = BODY.arm * 0.48;
+  const out = { pts: { P, chest, head: add(chest, mul(up, 0.13)) }, vec: { tUp: up, tF, fFL: fF, fUL: fU, fFR: fF, fUR: fU } };
+  [['L', 1], ['R', -1]].forEach(([sfx, sd]) => {
+    const hip = add(P, mul(N, sd * HW));
+    const leg = solveKnee(hip, at(ftf, AH + rise, sd * STEPW / 2), kf);
+    out.pts['hip' + sfx] = hip; out.pts['knee' + sfx] = leg.K; out.pts['ank' + sfx] = leg.A;
+    const sh = sub(add(chest, mul(N, sd * shw)), mul(up, 0.03));
+    const free = add(sh, mul(add(mul(F, Math.sin(0.3)), mul(Y, -Math.cos(0.3))), BODY.arm * 0.95));
+    const handAt = k => k.hand === null ? free : at(k.hand, 0.035, sd * shw);
+    const hand = add(mul(handAt(k0), 1 - e), mul(handAt(k1), e));
+    const arm = solve2(sh, hand, norm(add(mul(F, -1), mul(N, sd * 0.6))), la, lb);
+    out.pts['sh' + sfx] = sh; out.pts['el' + sfx] = arm.K; out.pts['hd' + sfx] = arm.A;
+  });
+  if (S.tm < 0.35) {                                        // blend out of the pose it fell into
+    const b = ease(S.tm / 0.35), ly = g.lying;
+    for (const key in out.pts) if (ly.pts[key]) out.pts[key] = add(mul(ly.pts[key], 1 - b), mul(out.pts[key], b));
+    for (const key in out.vec) if (ly.vec[key]) out.vec[key] = norm(add(mul(ly.vec[key], 1 - b), mul(out.vec[key], b)));
+  }
   return out;
 }
 function pose() {
@@ -1275,6 +1393,7 @@ $('rough').oninput = e => { TA = +e.target.value / 100; $('roughOut').textConten
 $('force').oninput = e => { $('forceOut').textContent = (+e.target.value) + ' N·s'; };
 window.addEventListener('keydown', e => {
   const tag = e.target.tagName;
+  if (tag === 'TEXTAREA') return;
   if (tag === 'INPUT' && e.key.startsWith('Arrow')) return;
   const k = e.key.toLowerCase();
   if (k === 'a' || e.key === 'ArrowLeft') { keyTurn.l = 1; updTurn(); e.preventDefault(); }
@@ -1407,6 +1526,10 @@ function init3D() {
   const pend = new THREE.Line(lineGeo, new THREE.LineBasicMaterial({ color: 0x2f9e44 }));
   const arrow = new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), new THREE.Vector3(), 0.5, 0xd6336c, 0.08, 0.05);
   const phys = new THREE.Group(); phys.add(comM, cpM, copM, comBall, pend, arrow); scene.add(phys);
+  const imuG = new THREE.Group();
+  const imuBox = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.015, 0.05), new THREE.MeshBasicMaterial({ color: 0x2f9e44, depthTest: false }));
+  const imuAx = new THREE.AxesHelper(0.2); imuAx.material.depthTest = false;
+  imuBox.renderOrder = 6; imuAx.renderOrder = 7; imuG.add(imuBox, imuAx); scene.add(imuG);
   [comM, cpM, copM].forEach(m => m.position.y = 0.004);
 
   const fpGeo = new THREE.PlaneGeometry(0.22, 0.09).rotateX(-Math.PI / 2);
@@ -1414,7 +1537,7 @@ function init3D() {
   const fps = []; for (let i = 0; i < 36; i++) { const m = new THREE.Mesh(fpGeo, fpMat); m.visible = false; m.position.y = 0.002; scene.add(m); fps.push(m); }
 
   head.visible = false;
-  return { renderer, scene, cam, controls, sun, groundMat, ground, terrainMesh, TN, TS, grid, gridFine, parts, pelvis, torso, head, footG, phys, comM, cpM, copM, comBall, pend, arrow, fps, fpMat, antTip,
+  return { imuG, renderer, scene, cam, controls, sun, groundMat, ground, terrainMesh, TN, TS, grid, gridFine, parts, pelvis, torso, head, footG, phys, comM, cpM, copM, comBall, pend, arrow, fps, fpMat, antTip,
     mats: { comM: comM.material, cpM: cpM.material, copM: copM.material, comBall: comBall.material, pend: pend.material } };
 }
 try { R3 = init3D(); } catch (err) {
@@ -1520,6 +1643,8 @@ function render3D(p, T) {
     r.arrow.visible = spd > 0.05;
     if (spd > 0.05) { r.arrow.position.set(S.x, S.y, S.z); r.arrow.setDirection(tv.set(S.vx, S.mode === 'air' ? S.vy : 0, S.vz).normalize()); r.arrow.setLength(0.12 + spd * 0.35, 0.07, 0.045); }
   }
+  r.imuG.visible = physChk.checked && !!IMU.pos;
+  if (r.imuG.visible) orient(r.imuG, IMU.pos, IMU.f, IMU.u);
   r.renderer.render(r.scene, r.cam);
 }
 
@@ -1540,8 +1665,9 @@ function render2D(p, T) {
   const q = p.pts, v = p.vec, ctx = c2;
   ctx.clearRect(0, 0, W2, H2);
   const gy = H2 - Math.max(40, H2 * 0.12), sc = Math.min((gy - 50) / (H0 + BODY.torsoH + 0.15), W2 / 2.2), cx = W2 / 2;
-  const th = S.fall ? S.fall.th : S.th; const fx = Math.cos(th), fz = Math.sin(th);
-  const ox = S.fall && (S.mode === 'fall' || S.mode === 'fallen') ? S.fall.px : S.x, oz = S.fall && (S.mode === 'fall' || S.mode === 'fallen') ? S.fall.pz : S.z;
+  const gu = S.mode === 'getup' && S.getup;
+  const th = gu ? Math.atan2(S.getup.F[2], S.getup.F[0]) : S.fall ? S.fall.th : S.th; const fx = Math.cos(th), fz = Math.sin(th);
+  const ox = gu ? q.P[0] : S.fall && (S.mode === 'fall' || S.mode === 'fallen') ? S.fall.px : S.x, oz = gu ? q.P[2] : S.fall && (S.mode === 'fall' || S.mode === 'fallen') ? S.fall.pz : S.z;
   const X = a => cx + ((a[0] - ox) * fx + (a[2] - oz) * fz) * sc;
   const Yv = a => gy - a[1] * sc;
   const P = a => [X(a), Yv(a)];
@@ -1618,6 +1744,12 @@ function render2D(p, T) {
   disc(q.hipL, lw * 0.65, T.ink); disc(q.hipL, lw * 0.25, T.robot);
   if (armsOn) { line(q.shL, q.elL, lw * 0.8, T.joint); line(q.elL, q.hdL, lw * 0.7, T.robot); disc(q.elL, lw * 0.4, T.ink); disc(q.hdL, lw * 0.45, T.ink); disc(q.shL, lw * 0.55, T.ink); }
 
+  if (physChk.checked && IMU.pos) {
+    const ix = X(IMU.pos), iy = Yv(IMU.pos);
+    ctx.fillStyle = T.cop; ctx.fillRect(ix - 6, iy - 4, 12, 8);
+    ctx.strokeStyle = T.cop; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(ix, iy); ctx.lineTo(ix + (IMU.f[0] * fx + IMU.f[2] * fz) * 28, iy - IMU.f[1] * 28); ctx.stroke();
+    ctx.font = '10px "JetBrains Mono", monospace'; ctx.textAlign = 'left'; ctx.fillText('IMU', ix + 9, iy + 14);
+  }
   // physics overlay
   if (physChk.checked && S.mode !== 'fall' && S.mode !== 'fallen' && S.mode !== 'getup') {
     const com = [S.x, S.y, S.z], cop = [S.copx, 0, S.copz], xi = [S.x + S.vx / OM, 0, S.z + S.vz / OM];
@@ -1718,16 +1850,183 @@ $('copyCode').onclick = async () => {
 };
 updBody();
 
+
+/* ================= IMU (gyro) at the centre of the torso ================= */
+const IMU = { roll: 0, pitch: 0, yaw: 0, gr: 0, gp: 0, gy: 0, init: false, pos: null };
+const wrapA = a => Math.atan2(Math.sin(a), Math.cos(a));
+function updImu(p, dt) {
+  const u = p.vec.tUp, f = p.vec.tF, left = cross(u, f);
+  const pitch = Math.asin(clamp(-f[1], -1, 1)), roll = Math.asin(clamp(left[1], -1, 1)), yaw = Math.atan2(f[2], f[0]);
+  if (IMU.init && dt > 0) {
+    const k = Math.min(1, dt * 12);
+    IMU.gp += (wrapA(pitch - IMU.pitch) / dt - IMU.gp) * k;
+    IMU.gr += (wrapA(roll - IMU.roll) / dt - IMU.gr) * k;
+    IMU.gy += (wrapA(yaw - IMU.yaw) / dt - IMU.gy) * k;
+  }
+  Object.assign(IMU, { pitch, roll, yaw, init: true, u, f, l: left, pos: add(p.pts.P, mul(u, 0.04 + BODY.torsoH / 2)) });
+}
+const att = $('att'), actx = att.getContext('2d');
+(function () { const d = Math.min(devicePixelRatio || 1, 2); att.width = 132 * d; att.height = 132 * d; actx.setTransform(d, 0, 0, d, 0, 0); })();
+function drawAtt(T) {
+  const c = actx, R0 = 62, cx = 66, cy = 66;
+  c.clearRect(0, 0, 132, 132);
+  c.save(); c.beginPath(); c.arc(cx, cy, R0, 0, Math.PI * 2); c.clip();
+  c.translate(cx, cy); c.rotate(-IMU.roll);
+  const off = -clamp(IMU.pitch, -1.2, 1.2) * 70;      // nose down -> horizon moves up
+  c.fillStyle = T.cp; c.globalAlpha = 0.35; c.fillRect(-150, -150 + off, 300, 150);
+  c.fillStyle = T['robot-dark']; c.globalAlpha = 0.45; c.fillRect(-150, off, 300, 150);
+  c.globalAlpha = 1; c.strokeStyle = T.ink; c.lineWidth = 1.5;
+  c.beginPath(); c.moveTo(-150, off); c.lineTo(150, off); c.stroke();
+  c.lineWidth = 1; c.font = '9px "JetBrains Mono", monospace'; c.fillStyle = T.ink; c.textAlign = 'left';
+  for (const d of [-20, -10, 10, 20]) { const y = off - d * Math.PI / 180 * 70, w = Math.abs(d) === 20 ? 18 : 11; c.beginPath(); c.moveTo(-w, y); c.lineTo(w, y); c.stroke(); c.fillText(String(Math.abs(d)), w + 3, y + 3); }
+  c.restore();
+  c.strokeStyle = T['grid-strong']; c.lineWidth = 2; c.beginPath(); c.arc(cx, cy, R0, 0, Math.PI * 2); c.stroke();
+  c.strokeStyle = T.ink; c.lineWidth = 1.2;
+  for (const d of [-60, -30, -20, -10, 0, 10, 20, 30, 60]) { const a = -Math.PI / 2 + d * Math.PI / 180, r1 = d % 30 === 0 ? 52 : 56; c.beginPath(); c.moveTo(cx + Math.cos(a) * r1, cy + Math.sin(a) * r1); c.lineTo(cx + Math.cos(a) * 61, cy + Math.sin(a) * 61); c.stroke(); }
+  const ra = -Math.PI / 2 - IMU.roll;
+  c.fillStyle = T.com; c.beginPath(); c.moveTo(cx + Math.cos(ra) * 50, cy + Math.sin(ra) * 50);
+  c.lineTo(cx + Math.cos(ra + 0.07) * 42, cy + Math.sin(ra + 0.07) * 42); c.lineTo(cx + Math.cos(ra - 0.07) * 42, cy + Math.sin(ra - 0.07) * 42); c.fill();
+  c.strokeStyle = T.robot; c.lineWidth = 3; c.lineCap = 'round';
+  c.beginPath(); c.moveTo(cx - 30, cy); c.lineTo(cx - 10, cy); c.lineTo(cx - 4, cy + 6); c.moveTo(cx + 30, cy); c.lineTo(cx + 10, cy); c.lineTo(cx + 4, cy + 6); c.stroke();
+  c.fillStyle = T.robot; c.beginPath(); c.arc(cx, cy, 2.5, 0, Math.PI * 2); c.fill();
+}
+function imuText() {
+  const d = r => (r * 180 / Math.PI).toFixed(1) + '°', g = r => Math.round(r * 180 / Math.PI) + ' °/s';
+  $('iRoll').textContent = d(IMU.roll); $('iPitch').textContent = d(IMU.pitch); $('iYaw').textContent = ((IMU.yaw * 180 / Math.PI + 360) % 360).toFixed(1) + '°';
+  $('iGRoll').textContent = g(IMU.gr); $('iGPitch').textContent = g(IMU.gp); $('iGYaw').textContent = g(IMU.gy);
+}
+
+
+/* ================= AI assistant ================= */
+const aiLog = $('aiLog'), aiInput = $('aiInput'), aiSend = $('aiSend'), aiStop = $('aiStop'), aiNote = $('aiNote');
+const aiTurns = [];
+let aiSample = null, aiCtl = null, aiBusy = false, aiMode = 'wait';
+const esc = t => t.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+function md(text) {
+  const parts = text.split(/```[\w+-]*\n?/);
+  return parts.map((seg, i) => {
+    if (i % 2) return '<pre><code>' + esc(seg.replace(/\n$/, '')) + '</code></pre>';
+    return seg.split(/\n{2,}/).map(par => {
+      const lines = par.split('\n').map(l => {
+        let h = esc(l).replace(/`([^`]+)`/g, '<code>$1</code>').replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>');
+        if (/^#{1,4}\s/.test(l)) return '<div class="h">' + h.replace(/^#{1,4}\s/, '') + '</div>';
+        if (/^\s*[-*]\s/.test(l)) return '• ' + h.replace(/^\s*[-*]\s/, '');
+        return h;
+      });
+      return par.trim() ? '<p>' + lines.join('<br>') + '</p>' : '';
+    }).join('');
+  }).join('');
+}
+function bubble(role, html) {
+  const d = document.createElement('div'); d.className = 'msg ' + role;
+  if (role === 'user') d.textContent = html; else d.innerHTML = html;
+  aiLog.appendChild(d); aiLog.scrollTop = aiLog.scrollHeight; return d;
+}
+function stateSnapshot() {
+  const r1 = x => Math.round(x * 1000) / 1000, deg = x => Math.round(x * 1800 / Math.PI) / 10;
+  return {
+    mode: S.mode, status: $('mode').textContent, walking: S.walking, targetSpeed_mps: S.vdes,
+    speed_mps: r1(Math.hypot(S.vx, S.vz)), comHeight_m: r1(S.y - S.gref + COMOFF), steps: S.steps, falls: S.falls,
+    jointTrackingError_deg: deg(S.jointErr), footError_mm: Math.round(Math.max(S.ankErr[0], S.ankErr[1]) * 1000),
+    imu_deg: { roll: deg(IMU.roll), pitch: deg(IMU.pitch), yaw: deg(IMU.yaw) }, imuRate_degps: { roll: deg(IMU.gr), pitch: deg(IMU.gp), yaw: deg(IMU.gy) },
+    terrainRoughness_m: TA, body: { ...BODY, totalMass_kg: r1(MTOT), standingHeight_m: r1(H0 + BODY.torsoH + 0.065) },
+    gains: { kpJoint: S.kp, kdJoint: S.kd, kpBalance: S.kpB, kdBalance: S.kdB }, damping: { stanceKnee: $('pdJ').textContent, swingHip: $('pdJ2').textContent, balance: $('pdB').textContent }
+  };
+}
+const RULES = () => `คุณคือผู้ช่วยในเว็บ array_simulator เว็บจำลองหุ่นยนต์สองขาที่เดินด้วยแบบจำลองลูกตุ้มกลับหัว (LIPM) + capture point มีมอเตอร์ข้อต่อแบบ PD (J·θ̈ = Kp·e − Kd·θ̇ + แรงบิดจากน้ำหนัก) ไจโร/IMU อยู่กลางลำตัว และมีโค้ด C++ (array_biped.hpp, robot_config.h, esp32_servo_example.ino) ให้ผู้ใช้นำไปใช้กับหุ่นจริง (ESP32 + PCA9685 + MPU6050 หรือมอเตอร์แบบสั่งแรงบิด)
+ผู้ใช้อาจถามเรื่องโค้ด การจูน Kp Kd ฮาร์ดแวร์ ปัญหาหุ่นจริง หรือเรื่องอื่นทั่วไปก็ได้ ตอบเป็นภาษาไทยที่อ่านง่าย ตรงประเด็น ใช้หัวข้อหรือรายการเมื่อช่วยให้อ่านง่าย ใส่โค้ดใน \`\`\`cpp เมื่อเกี่ยวข้อง
+เครื่องมือ: get_state (สถานะล่าสุด), get_code (อ่านไฟล์ C++ ก่อนตอบเรื่องโค้ดเสมอ), set_params (ปรับค่าบนหน้า), control_robot (สั่งเดิน/หยุด/กระโดด/ผลัก/ตั้งใหม่) ใช้ set_params หรือ control_robot เฉพาะเมื่อผู้ใช้ขอให้ปรับหรือทดลอง แล้วบอกว่าเปลี่ยนอะไรไป
+เรื่องความปลอดภัยของหุ่นจริง: แนะนำให้ทดสอบตอนแขวนหุ่น เริ่มจากค่าต่ำ และมีสวิตช์ตัดไฟ
+สถานะตอนนี้ (JSON): ${JSON.stringify(stateSnapshot())}`;
+const SLIDERS = { kp: 'kp', kd: 'kd', kpBalance: 'kpb', kdBalance: 'kdb', thigh: 'bThigh', shin: 'bShin', torsoHeight: 'bTorsoH', torsoWidth: 'bTorsoW', arm: 'bArm', massTorso: 'bMT', massLeg: 'bML', massArm: 'bMA', speed: 'speed', roughness_cm: 'rough', pushImpulse: 'force' };
+const AI_TOOLS = [
+  { name: 'get_state', description: 'Returns the live robot state on the page: mode, speed, falls, joint/foot tracking error, IMU angles and rates, body sizes and masses, PD gains and damping ratios.', execute: () => stateSnapshot() },
+  { name: 'get_code', description: 'Returns the full text of one C++ file shown on the page. robot_config.h reflects the current page settings.',
+    inputSchema: { type: 'object', properties: { file: { type: 'string', enum: ['array_biped.hpp', 'robot_config.h', 'esp32_servo_example.ino'] } }, required: ['file'] },
+    execute: ({ file }) => { const f = String(file); if (f === 'robot_config.h') return configSrc(); if (f === 'array_biped.hpp') return SRC.hpp; if (f === 'esp32_servo_example.ino') return SRC.ino; throw new Error('unknown file'); } },
+  { name: 'set_params', description: 'Sets page sliders. Any subset of: kp, kd (N·m/rad, N·m·s/rad), kpBalance, kdBalance (N/m, N·s/m), thigh, shin, torsoHeight, torsoWidth, arm (m), massTorso, massLeg, massArm (kg), speed (m/s), roughness_cm (0-10), pushImpulse (N·s). Values are clamped to the slider range. Returns the values applied.',
+    inputSchema: { type: 'object', properties: Object.fromEntries(Object.keys(SLIDERS).map(k => [k, { type: 'number' }])) },
+    execute: (input) => {
+      const applied = {};
+      for (const k in input) { const id = SLIDERS[k]; if (!id) continue; const el = $(id), v = clamp(Number(input[k]), +el.min, +el.max); if (!isFinite(v)) continue;
+        el.value = v; el.dispatchEvent(new Event('input')); applied[k] = +el.value; }
+      return applied;
+    } },
+  { name: 'control_robot', description: 'Acts on the simulated robot: walk, stop, jump, push_back, push_side, push_front, reset. Returns the new status text.',
+    inputSchema: { type: 'object', properties: { action: { type: 'string', enum: ['walk', 'stop', 'jump', 'push_back', 'push_side', 'push_front', 'reset'] } }, required: ['action'] },
+    execute: ({ action }) => {
+      const a = String(action);
+      if (a === 'walk') setWalking(true); else if (a === 'stop') setWalking(false); else if (a === 'jump') jump();
+      else if (a.startsWith('push_')) push(a.slice(5)); else if (a === 'reset') { reset(S.x, S.z, S.th); S.svInit = false; } else throw new Error('unknown action');
+      return { status: $('mode').textContent };
+    } }
+];
+const ERRS = { not_granted: 'ยังไม่ได้อนุญาตให้หน้านี้ใช้ Claude', sampling_disabled: 'บัญชีนี้ใช้ Claude จากหน้านี้ไม่ได้', rate_limited: 'ถามถี่เกินไปหรือใช้โควตาหมด ลองใหม่อีกสักครู่',
+  session_expired: 'ต้องเข้าสู่ระบบ Claude ใหม่', refused: 'ผู้ช่วยตอบคำถามนี้ไม่ได้ ลองถามแบบอื่น', prompt_too_large: 'ข้อความยาวเกินไป ล้างแชตแล้วลองใหม่', empty_completion: 'ไม่ได้คำตอบ ลองถามให้สั้นลง' };
+function setBusy(b) { aiBusy = b; aiSend.disabled = b; aiStop.hidden = !b; }
+function copyPrompt(q) {
+  const text = RULES().replace(/^เครื่องมือ:.*$/m, '') + '\n\nคำถาม: ' + q + '\n\nโค้ด robot_config.h ปัจจุบัน:\n' + configSrc();
+  navigator.clipboard.writeText(text).then(() => { aiNote.hidden = false; aiNote.textContent = 'คัดลอกคำถามพร้อมข้อมูลหุ่นแล้ว นำไปวางในแชต Claude ได้เลย'; },
+    () => { aiNote.hidden = false; aiNote.textContent = 'คัดลอกไม่ได้ ลองเลือกข้อความแล้วกด Ctrl+C'; });
+}
+async function ask(q) {
+  q = q.trim(); if (!q || aiBusy) return;
+  if (aiMode === 'copy') { copyPrompt(q); return; }
+  bubble('user', q); aiInput.value = '';
+  aiTurns.push({ role: 'user', content: q });
+  while (aiTurns.length > 14) aiTurns.shift();
+  const b = bubble('bot wait', 'กำลังคิด…'), acts = [];
+  if (!aiSample) { b.textContent = 'กำลังเชื่อมต่อผู้ช่วย…'; await aiReady; }
+  if (!aiSample) { b.remove(); aiTurns.pop(); copyPrompt(q); return; }
+  setBusy(true); aiCtl = new AbortController();
+  const tools = AI_TOOLS.map(t => ({ ...t, execute: async (inp) => { acts.push(t.name); const r = await t.execute(inp || {}); return r; } }));
+  const lim = await aiSample.limits().catch(() => null);
+  try {
+    const { text, truncated } = await aiSample([{ role: 'user', content: RULES() }, ...aiTurns], {
+      cache: false, signal: aiCtl.signal, ...(lim && lim.tools ? { tools } : {}),
+      onText: ({ text }) => { b.className = 'msg bot'; b.innerHTML = md(text); aiLog.scrollTop = aiLog.scrollHeight; }
+    });
+    b.className = 'msg bot'; b.innerHTML = md(text) + (truncated ? '<div class="act">คำตอบถูกตัดเพราะยาวเกิน</div>' : '');
+    aiTurns.push({ role: 'assistant', content: text });
+  } catch (e) {
+    b.className = 'msg bot';
+    if (e && e.code === 'cancelled') b.innerHTML = e.text ? md(e.text) + '<div class="act">หยุดแล้ว</div>' : '<div class="act">หยุดแล้ว</div>';
+    else { b.innerHTML = (e && e.text ? md(e.text) : '') + '<div class="act">' + esc(ERRS[e && e.code] || 'เชื่อมต่อผู้ช่วยไม่สำเร็จ ลองใหม่อีกครั้ง') + '</div>';
+      if (e && (e.code === 'not_granted' || e.code === 'sampling_disabled')) { aiSample = null; aiMode = 'copy'; aiFallback(); } }
+    if (e && e.text) aiTurns.push({ role: 'assistant', content: e.text });
+  } finally {
+    if (acts.length) { const d = document.createElement('div'); d.className = 'act'; d.textContent = 'ใช้เครื่องมือ: ' + [...new Set(acts)].join(', '); b.appendChild(d); }
+    setBusy(false);
+  }
+}
+function aiFallback() {
+  aiSend.textContent = 'คัดลอกคำถามพร้อมข้อมูลหุ่น';
+  aiNote.hidden = false;
+  aiNote.textContent = 'ผู้ช่วย AI ตอบในหน้านี้ได้เมื่อเปิดหน้าผ่าน Claude (claude.ai) · ตอนนี้พิมพ์คำถามแล้วกดปุ่ม ระบบจะคัดลอกคำถามพร้อมค่าหุ่นและโค้ด config ไปวางในแชต Claude ได้';
+}
+const aiReady = (async () => {
+  try { aiSample = window.claude && window.claude.use ? await window.claude.use('sample') : null; } catch (e) { aiSample = null; }
+  if (!aiSample) { aiMode = 'copy'; aiFallback(); } else aiMode = 'live';
+})();
+$('aiForm').addEventListener('submit', e => { e.preventDefault(); ask(aiInput.value); });
+aiInput.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); ask(aiInput.value); } e.stopPropagation(); });
+aiInput.addEventListener('keyup', e => e.stopPropagation());
+aiStop.onclick = () => aiCtl && aiCtl.abort();
+$('aiClear').onclick = () => { if (aiBusy) return; aiTurns.length = 0; aiLog.textContent = ''; };
+document.querySelectorAll('#aiChips .chip').forEach(c => c.onclick = () => { if (aiMode === 'copy') { aiInput.value = c.textContent; copyPrompt(c.textContent); } else ask(c.textContent); });
+
 /* ================= telemetry ================= */
 const MODE = { stand: ['ยืนทรงตัว', 'ok'], shift: ['ถ่ายน้ำหนัก', 'ok'], walk: ['เดิน', 'ok'], crouch: ['ย่อตัวเตรียมกระโดด', 'warn'], air: ['ลอยตัว', 'warn'],
-  land: ['ลงพื้น · ซับแรงกระแทก', 'warn'], fall: ['เสียสมดุล · กำลังล้ม', 'bad'], fallen: ['ล้ม · เตรียมลุก', 'bad'], getup: ['กำลังลุกขึ้นยืน', 'warn'] };
+  land: ['ลงพื้น · ซับแรงกระแทก', 'warn'], fall: ['เสียสมดุล · กำลังล้ม', 'bad'], fallen: ['ล้ม · เตรียมลุก', 'bad'], getup: ['ลุกขึ้น', 'warn'] };
 let telTick = 0;
 function deg(r) { return (r * 180 / Math.PI).toFixed(1) + '°'; }
 function telemetry(p) {
   if (++telTick % 5) return;
+  imuText();
   const q = p.pts, v = p.vec;
   let [label, tone] = MODE[S.mode];
   if ((S.mode === 'fall' || S.mode === 'fallen') && S.fallReason === 'servo') label = 'เข่าทรุด · Kp ข้อต่อต่ำเกินไป';
+  else if (S.mode === 'getup' && S.getup && S.getup.phase) label = 'ลุกขึ้น · ' + S.getup.phase;
   else if (S.mode === 'walk' && S.recover > 0) { label = 'ก้าวกู้สมดุล'; tone = 'warn'; }
   else if (S.mode === 'walk' && !wantsMove()) label = 'กำลังหยุด';
   $('mode').textContent = label; $('status').dataset.tone = tone;
@@ -1770,6 +2069,7 @@ function loop(now) {
     S.errT = stErr > 0.12 * LS && S.mode !== 'air' ? S.errT + dt : 0;
     if (S.errT > 0.25) { S.errT = 0; startFall(); S.fallReason = 'servo'; }
   }
+  updImu(p, dt); drawAtt(T);
   render3D(p, T); render2D(p, T); telemetry(p);
   requestAnimationFrame(loop);
 }
