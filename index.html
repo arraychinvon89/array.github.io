@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>array_simulator · จำลองขาหุ่นยนต์สองขาเดินด้วยฟิสิกส์ 3D และ 2D</title>
-<meta name="description" content="array_simulator จำลองขาหุ่นยนต์สองขาเดินได้แบบ 3D และ 2D ด้วยฟิสิกส์จริง ทรงตัวด้วยแบบจำลองลูกตุ้มกลับหัว (LIPM) และ capture point เดินบนพื้นขรุขระ ปรับค่า Kp Kd ของมอเตอร์ได้ ผลักได้ กระโดดได้ ล้มได้ เล่นบนเบราว์เซอร์ได้ทันที">
-<meta name="keywords" content="array_simulator, หุ่นยนต์สองขา, ขาหุ่นยนต์, biped robot, จำลองหุ่นยนต์, PD controller, Kp Kd, ฟิสิกส์, LIPM, capture point, 3D">
+<meta name="description" content="array_simulator จำลองขาหุ่นยนต์สองขาเดินได้แบบ 3D และ 2D ด้วยฟิสิกส์จริง ทรงตัวด้วยแบบจำลองลูกตุ้มกลับหัว (LIPM) และ capture point เดินบนพื้นขรุขระ ปรับขนาดและน้ำหนักหุ่นได้ ปรับค่า Kp Kd ของมอเตอร์ได้ ล้มแล้วลุกเอง พร้อมโค้ด C++ สำหรับหุ่นยนต์จริง (ESP32 / Arduino) ผลักได้ กระโดดได้ ล้มได้ เล่นบนเบราว์เซอร์ได้ทันที">
+<meta name="keywords" content="array_simulator, หุ่นยนต์สองขา, โค้ดหุ่นยนต์ C++, ESP32 หุ่นยนต์เดิน, ขาหุ่นยนต์, biped robot, จำลองหุ่นยนต์, PD controller, Kp Kd, ฟิสิกส์, LIPM, capture point, 3D">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://arraychinvon89.github.io/array.github.io/">
 <meta property="og:type" content="website">
@@ -123,8 +123,20 @@ input[type=range] { width: 100%; accent-color: var(--robot); }
 .telemetry div:nth-child(even) { padding-left: 14px; border-left: 1px solid var(--line); }
 .telemetry dt { color: var(--muted); font-size: 14px; }
 .telemetry dd { margin: 0; font-family: var(--f-mono); font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; }
+.sliders.four { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+@media (max-width: 860px) { .sliders.four { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 480px) { .sliders.four { grid-template-columns: minmax(0, 1fr); } }
 .pdinfo { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; font-family: var(--f-mono); font-size: 13px; font-variant-numeric: tabular-nums; }
 .pdinfo button { margin-left: auto; min-height: 36px; padding: 6px 12px; font-size: 14px; }
+.codebar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.codebar .seg { flex-wrap: wrap; }
+.codebar .seg button { font-family: var(--f-mono); font-size: 13px; }
+.btnlink { font: 600 14px var(--f-body); color: var(--ink); border: 1px solid var(--grid-strong); border-radius: 4px; padding: 8px 12px; min-height: 40px; display: inline-flex; align-items: center; text-decoration: none; }
+.btnlink:hover { border-color: var(--ink); }
+.btnlink:focus-visible { outline: 2px solid var(--glow); outline-offset: 2px; }
+pre.code { margin: 0; max-height: 460px; overflow: auto; background: var(--paper); border: 1px solid var(--line); border-radius: 4px; padding: 12px 14px; font: 12.5px/1.55 var(--f-mono); color: var(--ink); tab-size: 2; }
+.codeintro { max-width: 100ch; }
+.codeintro b { color: var(--ink); font-weight: 600; }
 .hint { font-size: 13px; color: var(--muted); margin: 0; }
 .notes { font-size: 14px; color: var(--muted); margin: 0; max-width: 90ch; }
 .notes b { color: var(--ink); font-weight: 600; }
@@ -187,8 +199,8 @@ input[type=range] { width: 100%; accent-color: var(--robot); }
           <input id="speed" type="range" min="0.2" max="1.6" step="0.1" value="0.9">
         </div>
         <div class="slider">
-          <label for="force">แรงผลัก (Δv) <output id="forceOut">0.8 m/s</output></label>
-          <input id="force" type="range" min="0.2" max="2.4" step="0.1" value="0.8">
+          <label for="force">แรงดลที่ผลัก <output id="forceOut">40 N·s</output></label>
+          <input id="force" type="range" min="5" max="120" step="5" value="40">
         </div>
         <div class="slider">
           <label for="rough">ความขรุขระของพื้น <output id="roughOut">±6 cm</output></label>
@@ -198,30 +210,31 @@ input[type=range] { width: 100%; accent-color: var(--robot); }
       <div class="group"><span>ตั้งค่า PD</span>
         <div class="sliders">
           <div class="slider">
-            <label for="kp">มอเตอร์ข้อต่อ Kp <output id="kpOut">2500</output></label>
-            <input id="kp" type="range" min="50" max="6000" step="50" value="2500">
+            <label for="kp">มอเตอร์ข้อต่อ Kp <output id="kpOut">3000 N·m/rad</output></label>
+            <input id="kp" type="range" min="50" max="8000" step="50" value="3000">
           </div>
           <div class="slider">
-            <label for="kd">มอเตอร์ข้อต่อ Kd <output id="kdOut">100</output></label>
-            <input id="kd" type="range" min="0" max="250" step="1" value="100">
+            <label for="kd">มอเตอร์ข้อต่อ Kd <output id="kdOut">170 N·m·s/rad</output></label>
+            <input id="kd" type="range" min="0" max="600" step="5" value="170">
           </div>
           <div class="slider">
-            <label for="kpb">ทรงตัว CoM Kp <output id="kpbOut">34</output></label>
-            <input id="kpb" type="range" min="5" max="120" step="1" value="34">
+            <label for="kpb">ทรงตัว CoM Kp <output id="kpbOut">1600 N/m</output></label>
+            <input id="kpb" type="range" min="100" max="6000" step="50" value="1600">
           </div>
           <div class="slider">
-            <label for="kdb">ทรงตัว CoM Kd <output id="kdbOut">11.6</output></label>
-            <input id="kdb" type="range" min="0" max="30" step="0.2" value="11.6">
+            <label for="kdb">ทรงตัว CoM Kd <output id="kdbOut">545 N·s/m</output></label>
+            <input id="kdb" type="range" min="0" max="1500" step="5" value="545">
           </div>
         </div>
         <div class="pdinfo">
-          <span id="pdJ">ข้อต่อ ζ = 1.00 · พอดี</span>
-          <span id="pdB">ทรงตัว ζ = 0.99 · พอดี</span>
+          <span id="pdJ">เข่าขายืน ζ = 0.76</span>
+          <span id="pdJ2">สะโพกขาเหวี่ยง ζ = 1.07</span>
+          <span id="pdB">ทรงตัว ζ = 0.99</span>
           <button id="pdReset">คืนค่าเริ่มต้น</button>
         </div>
-        <p class="hint">แรงบิดมอเตอร์ = Kp × (มุมเป้าหมาย − มุมจริง) − Kd × ความเร็วเชิงมุม · ζ = Kd ÷ (2√Kp) ถ้าต่ำกว่า 1 ข้อต่อจะแกว่งเกินเป้า ถ้าสูงกว่า 1 จะตอบสนองช้า · Kp ข้อต่อต่ำมากๆ เข่าจะรับน้ำหนักตัวไม่ไหวจนทรุดแล้วล้ม · Kp ทรงตัวต่ำ หุ่นจะดึงตัวกลับไม่ทันแล้วต้องก้าวเท้า</p>
+        <p class="hint">แรงบิดมอเตอร์ = Kp × (มุมเป้าหมาย − มุมจริง) − Kd × ความเร็วเชิงมุม · ζ = Kd ÷ (2√(Kp × ความเฉื่อย)) ขึ้นกับน้ำหนักหุ่น ถ้าต่ำกว่า 1 ข้อต่อจะแกว่งเกินเป้า ถ้าสูงกว่า 1 จะตอบสนองช้า · Kp ข้อต่อต่ำมากๆ เข่าจะรับน้ำหนักตัวไม่ไหวจนทรุดแล้วล้ม · Kp ทรงตัวต่ำ หุ่นจะดึงตัวกลับไม่ทันแล้วต้องก้าวเท้า</p>
       </div>
-      <p class="hint">กดค้างปุ่มเลี้ยว หรือกด A / D (ลูกศรซ้าย/ขวา) ค้างไว้ · ลองผลักแรงน้อยๆ แล้วค่อยๆ เพิ่ม ตอนเดินอยู่ ผลักด้านข้างเกินราว 1.3 m/s หรือผลักด้านหลังเกินราว 1.9 m/s หุ่นจะก้าวรับไม่ทันแล้วล้ม</p>
+      <p class="hint">กดค้างปุ่มเลี้ยว หรือกด A / D (ลูกศรซ้าย/ขวา) ค้างไว้ · แรงดลหารด้วยน้ำหนักหุ่นคือความเร็วที่เพิ่มขึ้น หุ่นหนักจึงทนแรงผลักได้มากกว่า · ตอนเดินอยู่ ผลักด้านข้างเกินราว 60 N·s หรือด้านหลังเกินราว 90 N·s (ที่น้ำหนักเริ่มต้น 47 kg) หุ่นจะก้าวรับไม่ทันแล้วล้ม แล้วลุกขึ้นยืนเอง</p>
     </section>
 
     <section class="panel" aria-labelledby="tel-h">
@@ -246,9 +259,573 @@ input[type=range] { width: 100%; accent-color: var(--robot); }
     </section>
   </div>
 
-  <p class="notes"><b>ฟิสิกส์ที่ใช้:</b> แรงโน้มถ่วง 9.81 m/s² · CoM เคลื่อนตามสมการ ẍ = (g/h)(x − p) โดย p คือจุดศูนย์กลางแรงกด (CoP) ใต้ฝ่าเท้า · เท้าถัดไปวางที่ ξ = x + ẋ/ω ที่คาดว่าจะเป็นตอนจบก้าว · ความสูงสะโพกถูกจำกัดด้วยความยาวขาจริง (ต้นขา 0.44 m, หน้าแข้ง 0.44 m) จึงยุบขึ้นลงเองตามธรรมชาติ · เท้าลงด้วยส้นและถีบออกด้วยปลายเท้า · กระโดดเป็นวิถีโพรเจกไทล์ แล้วลงพื้นด้วยสปริง-แดมเปอร์ · ถ้าก้าวที่ต้องใช้ยาวเกิน 1 m หุ่นจะล้มแบบลูกตุ้มหมุนรอบเท้า</p>
+
+  <section class="panel" aria-labelledby="body-h">
+    <h2 id="body-h">ขนาดและน้ำหนัก</h2>
+    <div class="sliders four">
+      <div class="slider"><label for="bThigh">ต้นขา <output id="bThighOut">0.44 m</output></label><input id="bThigh" type="range" min="0.25" max="0.6" step="0.01" value="0.44"></div>
+      <div class="slider"><label for="bShin">หน้าแข้ง <output id="bShinOut">0.44 m</output></label><input id="bShin" type="range" min="0.25" max="0.6" step="0.01" value="0.44"></div>
+      <div class="slider"><label for="bTorsoH">ลำตัวสูง <output id="bTorsoHOut">0.44 m</output></label><input id="bTorsoH" type="range" min="0.2" max="0.7" step="0.01" value="0.44"></div>
+      <div class="slider"><label for="bTorsoW">ลำตัวกว้าง <output id="bTorsoWOut">0.36 m</output></label><input id="bTorsoW" type="range" min="0.2" max="0.5" step="0.01" value="0.36"></div>
+      <div class="slider"><label for="bArm">แขนยาว <output id="bArmOut">0.54 m</output></label><input id="bArm" type="range" min="0" max="0.8" step="0.01" value="0.54"></div>
+      <div class="slider"><label for="bMT">น้ำหนักลำตัว <output id="bMTOut">25 kg</output></label><input id="bMT" type="range" min="3" max="80" step="1" value="25"></div>
+      <div class="slider"><label for="bML">น้ำหนักขา (ต่อข้าง) <output id="bMLOut">8 kg</output></label><input id="bML" type="range" min="1" max="20" step="0.5" value="8"></div>
+      <div class="slider"><label for="bMA">น้ำหนักแขน (ต่อข้าง) <output id="bMAOut">3 kg</output></label><input id="bMA" type="range" min="0.5" max="10" step="0.5" value="3"></div>
+    </div>
+    <div class="pdinfo">
+      <span id="bTotal">น้ำหนักรวม 47 kg</span>
+      <span id="bHeight">สูง 1.45 m</span>
+      <span id="bCom">CoM สูง 0.98 m</span>
+      <span id="bFreq">ω = 3.16 rad/s</span>
+      <button id="bReset">คืนค่าเริ่มต้น</button>
+    </div>
+    <p class="hint">ตั้งแขนยาว 0 ถ้าไม่ต้องการแขน · ขายาวขึ้นก้าวได้ยาวขึ้นแต่จังหวะช้าลง · หุ่นหนักขึ้นต้องใช้ Kp ข้อต่อมากขึ้น ไม่อย่างนั้นเข่าจะทรุด · ลำตัวสูงหรือหนักทำให้ CoM สูงขึ้น ลูกตุ้มล้มช้าลง</p>
+  </section>
+
+  <section class="panel" aria-labelledby="code-h">
+    <h2 id="code-h">โค้ด C++ สำหรับหุ่นยนต์จริง</h2>
+    <p class="hint codeintro">ตัวควบคุมชุดเดียวกับที่หน้านี้ใช้ เขียนเป็น C++ ไฟล์เดียว ใช้ได้ทั้ง ESP32 / Teensy / STM32 (Arduino) และ Linux / ROS ไฟล์ <b>robot_config.h</b> สร้างจากค่าขนาด น้ำหนัก และ Kp Kd ที่ตั้งไว้บนหน้านี้ตอนนี้ · วิธีใช้: คัดลอกทั้ง 3 ไฟล์ลงโฟลเดอร์ sketch เดียวกัน ติดตั้งไลบรารี Adafruit PWM Servo Driver กับ Adafruit MPU6050 แก้ช่องสัญญาณ ทิศทาง และมุมศูนย์ของเซอร์โวในไฟล์ .ino แล้วทดสอบตอนแขวนหุ่นไว้ก่อนเสมอ</p>
+    <div class="codebar">
+      <div class="seg" role="group" aria-label="เลือกไฟล์">
+        <button id="fCfg" aria-pressed="true">robot_config.h</button>
+        <button id="fHpp" aria-pressed="false">array_biped.hpp</button>
+        <button id="fIno" aria-pressed="false">esp32_servo_example.ino</button>
+      </div>
+      <div class="row">
+        <a id="codeLink" class="btnlink" href="https://github.com/arraychinvon89/array.github.io/tree/main/cpp" target="_blank" rel="noopener">เปิดบน GitHub ↗</a>
+        <button id="copyCode">คัดลอก</button>
+      </div>
+    </div>
+    <pre class="code"><code id="codeView"></code></pre>
+  </section>
+
+  <p class="notes"><b>ฟิสิกส์ที่ใช้:</b> แรงโน้มถ่วง 9.81 m/s² · CoM เคลื่อนตามสมการ ẍ = (g/h)(x − p) โดย p คือจุดศูนย์กลางแรงกด (CoP) ใต้ฝ่าเท้า · เท้าถัดไปวางที่ ξ = x + ẋ/ω ที่คาดว่าจะเป็นตอนจบก้าว · ความสูงสะโพกถูกจำกัดด้วยความยาวขาจริง (ปรับได้ในแผงขนาด) จึงยุบขึ้นลงเองตามธรรมชาติ · เท้าลงด้วยส้นและถีบออกด้วยปลายเท้า · กระโดดเป็นวิถีโพรเจกไทล์ แล้วลงพื้นด้วยสปริง-แดมเปอร์ · ถ้าก้าวที่ต้องใช้ยาวเกินราว 1.3 เท่าของความยาวขา หุ่นจะล้มแบบลูกตุ้มหมุนรอบเท้า แล้วลุกขึ้นยืนเอง · มอเตอร์ข้อต่อจำลองเป็น J·θ̈ = Kp·e − Kd·θ̇ + แรงบิดจากน้ำหนักตัว</p>
 </div>
 
+<script type="text/plain" id="src-hpp">
+// =============================================================================
+//  array_biped.hpp  —  array_simulator biped walking controller (C++11, header-only)
+//
+//  Same gait engine as the array_simulator web page:
+//    * Linear Inverted Pendulum (LIPM) centre-of-mass model
+//    * capture-point foot placement, recomputed every control tick
+//    * heel-strike / toe-off swing trajectory
+//    * analytic 6-DOF leg inverse kinematics (hip yaw-roll-pitch, knee, ankle pitch-roll)
+//    * joint PD controller:  tau = Kp * (q_des - q) - Kd * dq
+//    * IMU tilt fall detection -> torque off (safe stop)
+//
+//  Works on Arduino-class boards (ESP32, Teensy, STM32) and on Linux/ROS.
+//  No dynamic memory, no STL.
+//
+//  Frames (Kajita convention): x = forward, y = left, z = up. Units: m, rad, s, kg, N·m.
+//  Joint order per leg: HIP_YAW, HIP_ROLL, HIP_PITCH, KNEE, ANKLE_PITCH, ANKLE_ROLL.
+//  Knee angle is 0 when the leg is straight and positive when bent.
+//
+//  SAFETY: this is a starting point, not a certified controller. Test with the robot
+//  hanging from a gantry or harness, start with low gains and a torque limit, and keep
+//  a hardware emergency stop within reach.
+// =============================================================================
+#pragma once
+#include <math.h>
+
+namespace arraysim {
+
+static const float kPi = 3.14159265358979f;
+static const float kG = 9.81f;
+
+inline float clampf(float v, float a, float b) { return v < a ? a : (v > b ? b : v); }
+inline float lerpf(float a, float b, float t) { return a + (b - a) * t; }
+inline float minJerk(float s) { s = clampf(s, 0.f, 1.f); return s * s * s * (10.f - 15.f * s + 6.f * s * s); }
+inline float wrapPi(float a) { while (a > kPi) a -= 2.f * kPi; while (a < -kPi) a += 2.f * kPi; return a; }
+
+// ----------------------------------------------------------------------------- math
+struct Vec3 {
+  float x, y, z;
+  Vec3(float x_ = 0, float y_ = 0, float z_ = 0) : x(x_), y(y_), z(z_) {}
+  Vec3 operator+(const Vec3& o) const { return Vec3(x + o.x, y + o.y, z + o.z); }
+  Vec3 operator-(const Vec3& o) const { return Vec3(x - o.x, y - o.y, z - o.z); }
+  Vec3 operator*(float s) const { return Vec3(x * s, y * s, z * s); }
+};
+inline float dot(const Vec3& a, const Vec3& b) { return a.x * b.x + a.y * b.y + a.z * b.z; }
+inline float norm(const Vec3& a) { return sqrtf(dot(a, a)); }
+
+struct Mat3 {
+  float m[3][3];
+  static Mat3 identity() { Mat3 r; for (int i = 0; i < 3; i++) for (int j = 0; j < 3; j++) r.m[i][j] = (i == j) ? 1.f : 0.f; return r; }
+  Vec3 operator*(const Vec3& v) const {
+    return Vec3(m[0][0] * v.x + m[0][1] * v.y + m[0][2] * v.z,
+                m[1][0] * v.x + m[1][1] * v.y + m[1][2] * v.z,
+                m[2][0] * v.x + m[2][1] * v.y + m[2][2] * v.z);
+  }
+  Mat3 operator*(const Mat3& b) const {
+    Mat3 r;
+    for (int i = 0; i < 3; i++) for (int j = 0; j < 3; j++)
+      r.m[i][j] = m[i][0] * b.m[0][j] + m[i][1] * b.m[1][j] + m[i][2] * b.m[2][j];
+    return r;
+  }
+  Mat3 T() const { Mat3 r; for (int i = 0; i < 3; i++) for (int j = 0; j < 3; j++) r.m[i][j] = m[j][i]; return r; }
+};
+inline Mat3 Rx(float a) { Mat3 r = Mat3::identity(); float c = cosf(a), s = sinf(a); r.m[1][1] = c; r.m[1][2] = -s; r.m[2][1] = s; r.m[2][2] = c; return r; }
+inline Mat3 Ry(float a) { Mat3 r = Mat3::identity(); float c = cosf(a), s = sinf(a); r.m[0][0] = c; r.m[0][2] = s; r.m[2][0] = -s; r.m[2][2] = c; return r; }
+inline Mat3 Rz(float a) { Mat3 r = Mat3::identity(); float c = cosf(a), s = sinf(a); r.m[0][0] = c; r.m[0][1] = -s; r.m[1][0] = s; r.m[1][1] = c; return r; }
+
+// ----------------------------------------------------------------------------- robot description
+enum Side { LEFT = 0, RIGHT = 1 };
+enum Joint { HIP_YAW = 0, HIP_ROLL, HIP_PITCH, KNEE, ANKLE_PITCH, ANKLE_ROLL, JOINTS_PER_LEG };
+
+struct RobotConfig {
+  // geometry (m)
+  float thigh = 0.44f;        // hip pitch axis -> knee axis
+  float shin = 0.44f;         // knee axis -> ankle axis
+  float ankleHeight = 0.075f; // ankle axis -> sole
+  float hipOffset = 0.095f;   // body centre -> hip joint, sideways
+  float toe = 0.17f;          // ankle -> toe tip
+  float heel = 0.07f;         // ankle -> heel
+  float torsoHeight = 0.44f;  // pelvis -> top of torso
+  float armLength = 0.54f;    // 0 = no arms
+  // mass (kg)
+  float massTorso = 25.f;     // torso + pelvis + electronics
+  float massLeg = 8.f;        // one leg
+  float massArm = 3.f;        // one arm
+  // gait
+  float stepWidth = 0.20f;    // nominal lateral distance between feet
+  float stepTimeMin = 0.42f;  // s, at top speed
+  float stepTimeMax = 0.60f;  // s, at walking start
+  float maxStep = 0.85f;      // longest step the leg can take
+  float swingHeight = 0.07f;  // foot clearance
+  float maxSpeed = 1.6f;      // m/s
+  // control
+  float kpJoint = 3000.f;     // N·m/rad
+  float kdJoint = 170.f;      // N·m·s/rad
+  float kpBalance = 1600.f;   // N/m   (CoM over the feet while standing)
+  float kdBalance = 545.f;    // N·s/m
+  float maxTorque = 150.f;    // N·m, per joint
+  float fallTilt = 0.70f;     // rad (~40°) body tilt that counts as a fall
+  float estimatorGain = 6.f;  // 1/s, how fast the model follows the measured CoM
+
+  float totalMass() const { return massTorso + 2.f * massLeg + 2.f * massArm; }
+  float legLength() const { return thigh + shin; }
+  // nominal pelvis height above the ground when standing
+  float pelvisHeight() const { return ankleHeight + 0.983f * legLength(); }
+  // centre-of-mass height above the pelvis, from the mass distribution
+  float comOffset() const {
+    float arms = armLength > 0.f ? 2.f * massArm * (torsoHeight - armLength * 0.5f) : 0.f;
+    return (massTorso * torsoHeight * 0.45f + arms - 2.f * massLeg * legLength() * 0.45f) / totalMass();
+  }
+  float comHeight() const { return pelvisHeight() + comOffset(); }
+};
+
+typedef float LegAngles[JOINTS_PER_LEG];
+
+struct Sensors {
+  LegAngles q[2];        // measured joint angles (rad)
+  LegAngles dq[2];       // measured joint velocities (rad/s)
+  float roll, pitch;     // body tilt from the IMU (rad)
+  float gyro[3];         // body angular rate (rad/s), optional
+  bool contact[2];       // foot switches / force sensors, optional
+  bool hasContact;       // set true if contact[] is real data
+};
+
+struct Commands {
+  LegAngles qDes[2];     // target joint angles -> position-controlled servos use these
+  LegAngles tau[2];      // PD torque -> torque/current-controlled motors use these
+  bool torqueEnable;     // false = robot fell, cut motor power
+};
+
+// ----------------------------------------------------------------------------- kinematics
+// Inverse kinematics (Kajita et al., "Introduction to Humanoid Robotics").
+// bodyP/bodyR: pelvis pose in world. ankleP/footR: ankle joint position and foot orientation in world.
+// Returns false if the target was out of reach (angles are still the closest solution).
+inline bool legIK(const RobotConfig& c, int side, const Vec3& bodyP, const Mat3& bodyR,
+                  const Vec3& ankleP, const Mat3& footR, LegAngles q) {
+  const float D = side == LEFT ? c.hipOffset : -c.hipOffset;
+  const float A = c.thigh, B = c.shin;
+  const Vec3 hip = bodyP + bodyR * Vec3(0, D, 0);
+  Vec3 r = footR.T() * (hip - ankleP);           // hip as seen from the ankle
+  float C = norm(r);
+  bool ok = true;
+  if (C > A + B - 1e-4f) { r = r * ((A + B - 1e-4f) / C); C = A + B - 1e-4f; ok = false; }
+  if (C < fabsf(A - B) + 1e-4f) { C = fabsf(A - B) + 1e-4f; ok = false; }
+  const float c5 = clampf((C * C - A * A - B * B) / (2.f * A * B), -1.f, 1.f);
+  const float knee = acosf(c5);
+  const float q6a = asinf(clampf((A / C) * sinf(kPi - knee), -1.f, 1.f));
+  float ankleRoll = atan2f(r.y, r.z);
+  if (ankleRoll > kPi / 2) ankleRoll -= kPi; else if (ankleRoll < -kPi / 2) ankleRoll += kPi;
+  const float anklePitch = -atan2f(r.x, (r.z >= 0 ? 1.f : -1.f) * sqrtf(r.y * r.y + r.z * r.z)) - q6a;
+  const Mat3 R = bodyR.T() * footR * Rx(-ankleRoll) * Ry(-anklePitch - knee);
+  const float hipYaw = atan2f(-R.m[0][1], R.m[1][1]);
+  const float cz = cosf(hipYaw), sz = sinf(hipYaw);
+  const float hipRoll = atan2f(R.m[2][1], -R.m[0][1] * sz + R.m[1][1] * cz);
+  const float hipPitch = atan2f(-R.m[2][0], R.m[2][2]);
+  q[HIP_YAW] = hipYaw; q[HIP_ROLL] = hipRoll; q[HIP_PITCH] = hipPitch;
+  q[KNEE] = knee; q[ANKLE_PITCH] = anklePitch; q[ANKLE_ROLL] = ankleRoll;
+  return ok;
+}
+
+// Forward kinematics: joint angles -> ankle position and foot orientation in world.
+inline void legFK(const RobotConfig& c, int side, const Vec3& bodyP, const Mat3& bodyR,
+                  const LegAngles q, Vec3& ankleP, Mat3& footR) {
+  const float D = side == LEFT ? c.hipOffset : -c.hipOffset;
+  const Vec3 hip = bodyP + bodyR * Vec3(0, D, 0);
+  Mat3 R = bodyR * Rz(q[HIP_YAW]) * Rx(q[HIP_ROLL]) * Ry(q[HIP_PITCH]);
+  const Vec3 knee = hip + R * Vec3(0, 0, -c.thigh);
+  R = R * Ry(q[KNEE]);
+  ankleP = knee + R * Vec3(0, 0, -c.shin);
+  footR = R * Ry(q[ANKLE_PITCH]) * Rx(q[ANKLE_ROLL]);
+}
+
+// ----------------------------------------------------------------------------- controller
+class BipedController {
+ public:
+  enum Mode { STAND, SHIFT, WALK, FALLEN };
+
+  explicit BipedController(const RobotConfig& cfg) : c_(cfg) { reset(0.f, 0.f, 0.f); }
+
+  void setConfig(const RobotConfig& cfg) { c_ = cfg; }
+  const RobotConfig& config() const { return c_; }
+
+  // Walking command. vForward in m/s (0 = stand still), yawRate in rad/s.
+  void setCommand(float vForward, float yawRate) {
+    vCmd_ = clampf(vForward, 0.f, c_.maxSpeed);
+    yawCmd_ = clampf(yawRate, -1.5f, 1.5f);
+  }
+
+  // Put the robot back in the standing state, e.g. after it was lifted up following a fall.
+  void reset(float x, float y, float yaw) {
+    x_ = x; y_ = y; vx_ = vy_ = 0; th_ = yaw; mode_ = STAND; t_ = 0; tm_ = 0; stance_ = RIGHT;
+    const float lx = -sinf(yaw), ly = cosf(yaw);
+    for (int i = 0; i < 2; i++) {
+      const float s = i == LEFT ? 0.5f : -0.5f;
+      Foot& f = feet_[i];
+      f.x = x + lx * s * c_.stepWidth; f.y = y + ly * s * c_.stepWidth; f.yaw = yaw;
+      f.lift = 0; f.pitch = 0; f.sx = f.x; f.sy = f.y; f.syaw = yaw; f.spitch = 0; f.tx = f.x; f.ty = f.y;
+    }
+    z_ = c_.pelvisHeight() - 0.01f; zs_ = z_;
+    hasPrevMeas_ = false;
+  }
+
+  Mode mode() const { return mode_; }
+  float comX() const { return x_; }
+  float comY() const { return y_; }
+  float speed() const { return sqrtf(vx_ * vx_ + vy_ * vy_); }
+
+  // Call at a fixed rate (200–1000 Hz recommended).
+  void update(const Sensors& s, float dt, Commands& out) {
+    out.torqueEnable = true;
+    if (mode_ == FALLEN || fabsf(s.roll) > c_.fallTilt || fabsf(s.pitch) > c_.fallTilt) {
+      mode_ = FALLEN;
+      out.torqueEnable = false;
+      for (int i = 0; i < 2; i++) for (int j = 0; j < JOINTS_PER_LEG; j++) { out.qDes[i][j] = s.q[i][j]; out.tau[i][j] = 0; }
+      return;
+    }
+    estimate(s, dt);
+    step(dt);
+    writeCommands(s, out);
+  }
+
+ private:
+  struct Foot { float x, y, yaw, lift, pitch, sx, sy, syaw, spitch, tx, ty, slift; };
+
+  float omega() const { return sqrtf(kG / c_.comHeight()); }
+
+  // Correct the model CoM with the CoM measured from the stance leg kinematics + IMU tilt.
+  void estimate(const Sensors& s, float dt) {
+    if (!commanded_) return;
+    const Mat3 bodyR = Rz(bodyYaw()) * Ry(s.pitch) * Rx(s.roll);
+    const int leg = (mode_ == WALK) ? stance_ : -1;
+    float mx = 0, my = 0; int n = 0;
+    for (int i = 0; i < 2; i++) {
+      if (leg >= 0 && i != leg) continue;
+      Vec3 a; Mat3 fr;
+      legFK(c_, i, Vec3(0, 0, 0), bodyR, s.q[i], a, fr);
+      // pelvis is at -a relative to this ankle; the ankle is at the foot's world position
+      mx += feet_[i].x - a.x; my += feet_[i].y - a.y; n++;
+    }
+    mx /= n; my /= n;
+    // CoM sits above the pelvis; tilt moves it forward/sideways
+    const float h = c_.comOffset();
+    mx += h * sinf(s.pitch) * cosf(th_); my += h * sinf(s.pitch) * sinf(th_) - h * sinf(s.roll);
+    if (hasPrevMeas_) {
+      const float k = clampf(c_.estimatorGain * dt, 0.f, 1.f);
+      const float mvx = (mx - pmx_) / dt, mvy = (my - pmy_) / dt;
+      x_ += (mx - x_) * k; y_ += (my - y_) * k;
+      vx_ += (mvx - vx_) * k * 0.5f; vy_ += (mvy - vy_) * k * 0.5f;
+    }
+    pmx_ = mx; pmy_ = my; hasPrevMeas_ = true;
+  }
+
+  bool wantsMove() const { return vCmd_ > 0.05f || fabsf(yawCmd_) > 0.05f; }
+  float midX() const { return 0.5f * (feet_[0].x + feet_[1].x); }
+  float midY() const { return 0.5f * (feet_[0].y + feet_[1].y); }
+
+  void beginStep() {
+    const float v = vCmd_ / c_.maxSpeed;
+    T_ = lerpf(c_.stepTimeMax, c_.stepTimeMin, clampf(v, 0.f, 1.f)) * sqrtf(c_.legLength() / 0.88f);
+    t_ = 0; ts_ = 0; quick_ = false; mode_ = WALK;
+    Foot& sw = feet_[1 - stance_];
+    sw.sx = sw.x; sw.sy = sw.y; sw.syaw = sw.yaw; sw.spitch = sw.pitch; sw.tx = sw.x; sw.ty = sw.y; sw.slift = 0;
+    feet_[stance_].spitch = feet_[stance_].pitch;
+  }
+  void quickTouchdown(float left) {
+    Foot& sw = feet_[1 - stance_];
+    sw.sx = sw.x; sw.sy = sw.y; sw.syaw = sw.yaw; sw.spitch = sw.pitch; sw.slift = sw.lift;
+    ts_ = t_; T_ = t_ + left; quick_ = true;
+  }
+
+  void step(float dt) {
+    const float w = omega(), w2 = w * w, M = c_.totalMass();
+    const float fx = cosf(th_), fy = sinf(th_), lx = -sinf(th_), ly = cosf(th_);
+    tm_ += dt;
+    if (mode_ == STAND || mode_ == SHIFT) {
+      float tx = midX(), ty = midY();
+      if (mode_ == SHIFT) { tx = lerpf(tx, feet_[stance_].x, 0.55f); ty = lerpf(ty, feet_[stance_].y, 0.55f); }
+      const float ax = (c_.kpBalance * (tx - x_) - c_.kdBalance * vx_) / M;
+      const float ay = (c_.kpBalance * (ty - y_) - c_.kdBalance * vy_) / M;
+      vx_ += ax * dt; vy_ += ay * dt; x_ += vx_ * dt; y_ += vy_ * dt;
+      for (int i = 0; i < 2; i++) { feet_[i].pitch *= fmaxf(0.f, 1.f - dt * 10.f); feet_[i].lift = 0; }
+      zs_ += (c_.pelvisHeight() - 0.01f - zs_) * clampf(dt * 5.f, 0.f, 1.f);
+      // capture point outside the support area -> take a step
+      const float ex = x_ + vx_ / w - midX(), ey = y_ + vy_ / w - midY();
+      const float df = ex * fx + ey * fy, dl = ex * lx + ey * ly;
+      const float out = (df / 0.16f) * (df / 0.16f) + (dl / 0.17f) * (dl / 0.17f);
+      if (out > 1.f) { stance_ = dl > 0 ? RIGHT : LEFT; beginStep(); }
+      else if (mode_ == STAND && wantsMove()) { stance_ = 1 - lastSwing_; lastSwing_ = 1 - stance_; mode_ = SHIFT; tm_ = 0; }
+      else if (mode_ == SHIFT && tm_ > 0.28f) beginStep();
+    } else if (mode_ == WALK) {
+      th_ = wrapPi(th_ + yawCmd_ * dt);
+      Foot& st = feet_[stance_]; Foot& sw = feet_[1 - stance_];
+      const float vf = vx_ * fx + vy_ * fy;
+      const float cop = clampf((vCmd_ > 0.05f ? 0.03f : 0.f) - 0.14f * (vCmd_ - vf), -c_.heel + 0.015f, c_.toe - 0.03f);
+      const float px = st.x + cosf(st.yaw) * cop, py = st.y + sinf(st.yaw) * cop;
+      vx_ += w2 * (x_ - px) * dt; vy_ += w2 * (y_ - py) * dt; x_ += vx_ * dt; y_ += vy_ * dt;
+      t_ += dt;
+      const float s = fminf(1.f, t_ / T_);
+      // capture point predicted at touchdown
+      const float e = expf(w * fmaxf(0.f, T_ - t_));
+      const float ex = px + (x_ + vx_ / w - px) * e, ey = py + (y_ + vy_ / w - py) * e;
+      const float eT = expf(w * T_);
+      const float b = vCmd_ * T_ / (eT - 1.f), cw = c_.stepWidth / (1.f + eT);
+      const float side = stance_ == RIGHT ? 1.f : -1.f;    // swing foot is on this side
+      float rx = ex - fx * b + lx * side * cw - st.x, ry = ey - fy * b + ly * side * cw - st.y;
+      const float lat = (rx * lx + ry * ly) * side;
+      if (lat < 0.02f && s > 0.25f && !quick_ && T_ - t_ > 0.08f) quickTouchdown(0.08f);
+      if (lat < 0.1f) { rx += lx * side * (0.1f - lat); ry += ly * side * (0.1f - lat); }
+      const float d = sqrtf(rx * rx + ry * ry);
+      if (d > c_.maxStep) { rx *= c_.maxStep / d; ry *= c_.maxStep / d; }
+      const float u = clampf((t_ - ts_) / (T_ - ts_), 0.f, 1.f);
+      if (u < 0.8f) { sw.tx = st.x + rx; sw.ty = st.y + ry; }
+      const float mv = clampf(speed() / 0.5f, 0.f, 1.f);
+      const float sh = quick_ ? u : clampf((u - 0.08f) / 0.92f, 0.f, 1.f), e5 = minJerk(sh);
+      sw.x = lerpf(sw.sx, sw.tx, e5); sw.y = lerpf(sw.sy, sw.ty, e5);
+      sw.yaw = sw.syaw + wrapPi(th_ - sw.syaw) * e5;
+      const float hs = c_.swingHeight * (0.6f + 0.4f * mv);
+      if (!quick_) {
+        sw.lift = u < 0.08f ? 0.f : hs * sinf(kPi * sh);
+        if (u < 0.12f) sw.pitch = lerpf(sw.spitch, 0.55f * mv, u / 0.12f);
+        else if (u < 0.88f) sw.pitch = lerpf(0.55f, -0.22f, minJerk((u - 0.12f) / 0.76f)) * mv;
+        else sw.pitch = -0.22f * mv;
+      } else {
+        sw.lift = sw.slift * (1.f - e5) + 0.4f * hs * sinf(kPi * sh);
+        sw.pitch = lerpf(sw.spitch, -0.12f * mv, e5);
+      }
+      if (s < 0.12f) st.pitch = lerpf(st.spitch, 0.f, s / 0.12f);
+      else if (s > 0.62f) st.pitch = 0.32f * mv * (s - 0.62f) / 0.38f;
+      else st.pitch = 0.f;
+      st.lift = 0;
+      zs_ += (c_.pelvisHeight() - 0.025f * mv - zs_) * clampf(dt * 6.f, 0.f, 1.f);
+      if (t_ >= T_) {
+        sw.x = sw.tx; sw.y = sw.ty; sw.lift = 0; sw.yaw = th_;
+        const float fl = (sw.x - st.x) * fx + (sw.y - st.y) * fy;
+        stance_ = 1 - stance_; lastSwing_ = 1 - stance_;
+        if (!wantsMove() && fabsf(vx_ * fx + vy_ * fy) < 0.2f && fabsf(fl) < 0.2f) { mode_ = STAND; tm_ = 0; }
+        else beginStep();
+      }
+    }
+    limitHeight();
+  }
+
+  float bodyYaw() const { return feet_[0].yaw + 0.5f * wrapPi(feet_[1].yaw - feet_[0].yaw); }
+
+  float ankleRise(const Foot& f) const { return f.pitch > 0 ? sinf(f.pitch) * c_.toe : sinf(-f.pitch) * c_.heel; }
+
+  // the pelvis can never be higher than the legs can reach
+  void limitHeight() {
+    const float reach = 0.985f * c_.legLength();
+    const float lx = -sinf(th_), ly = cosf(th_);
+    float lim = 10.f;
+    for (int i = 0; i < 2; i++) {
+      if (mode_ == WALK && i != stance_ && t_ / T_ < 0.7f) continue;
+      const float sd = i == LEFT ? 1.f : -1.f;
+      const float hx = x_ + lx * sd * c_.hipOffset, hy = y_ + ly * sd * c_.hipOffset;
+      const float dh = sqrtf((feet_[i].x - hx) * (feet_[i].x - hx) + (feet_[i].y - hy) * (feet_[i].y - hy));
+      const float az = c_.ankleHeight + feet_[i].lift + ankleRise(feet_[i]);
+      lim = fminf(lim, az + sqrtf(fmaxf(0.f, reach * reach - dh * dh)));
+    }
+    z_ = fminf(zs_, lim);
+  }
+
+  void writeCommands(const Sensors& s, Commands& out) {
+    const Mat3 bodyR = Rz(bodyYaw());
+    commanded_ = true;
+    const Vec3 bodyP(x_, y_, z_);
+    for (int i = 0; i < 2; i++) {
+      const Foot& f = feet_[i];
+      const Vec3 ankle(f.x, f.y, c_.ankleHeight + f.lift + ankleRise(f));
+      const Mat3 footR = Rz(f.yaw) * Ry(f.pitch);
+      legIK(c_, i, bodyP, bodyR, ankle, footR, out.qDes[i]);
+      for (int j = 0; j < JOINTS_PER_LEG; j++) {
+        const float tau = c_.kpJoint * (out.qDes[i][j] - s.q[i][j]) - c_.kdJoint * s.dq[i][j];
+        out.tau[i][j] = clampf(tau, -c_.maxTorque, c_.maxTorque);
+      }
+    }
+  }
+
+  RobotConfig c_;
+  Mode mode_;
+  float x_, y_, vx_, vy_, z_, zs_, th_;
+  float t_, T_, ts_, tm_;
+  bool quick_ = false;
+  int stance_, lastSwing_ = RIGHT;
+  float vCmd_ = 0, yawCmd_ = 0;
+  Foot feet_[2];
+  float pmx_ = 0, pmy_ = 0;
+  bool hasPrevMeas_ = false;
+  bool commanded_ = false;
+};
+
+}  // namespace arraysim
+</script>
+<script type="text/plain" id="src-ino">
+// =============================================================================
+//  esp32_servo_example.ino — array_simulator controller on a real robot
+//
+//  Hardware this sketch assumes (change to match yours):
+//    * ESP32 dev board
+//    * PCA9685 16-channel servo driver on I2C (SDA 21, SCL 22), address 0x40
+//    * 12 position-controlled servos, 6 per leg, 500–2500 µs = 0–180°
+//    * MPU6050 IMU on the same I2C bus, mounted flat on the pelvis, X forward, Y left
+//
+//  Libraries (Arduino Library Manager):
+//    Adafruit PWM Servo Driver Library, Adafruit MPU6050
+//
+//  Put array_biped.hpp and robot_config.h in the same folder as this .ino file.
+//
+//  Serial commands (115200 baud):  w = walk  s = stop  a = turn left  d = turn right
+//                                  x = straight  r = re-arm after a fall
+//
+//  Hobby servos only take a target angle, so this sketch uses Commands::qDes and
+//  ignores Commands::tau. With torque/current-controlled motors (ODrive, Dynamixel in
+//  current mode, CubeMars, ...), send Commands::tau instead and fill Sensors::q / dq from
+//  the motor encoders.
+//
+//  FIRST RUN: hang the robot so the feet are off the ground, check every joint moves in
+//  the right direction (fix kDir) and that the standing pose is straight (fix kOffsetDeg).
+// =============================================================================
+#include <Wire.h>
+#include <Adafruit_PWMServoDriver.h>
+#include <Adafruit_MPU6050.h>
+#include "robot_config.h"
+
+using namespace arraysim;
+
+Adafruit_PWMServoDriver pwm(0x40);
+Adafruit_MPU6050 imu;
+BipedController* ctl;
+Sensors sensors;
+Commands cmd;
+
+// PCA9685 channel for each joint: [leg][HIP_YAW, HIP_ROLL, HIP_PITCH, KNEE, ANKLE_PITCH, ANKLE_ROLL]
+const uint8_t kChannel[2][6] = { { 0, 1, 2, 3, 4, 5 }, { 8, 9, 10, 11, 12, 13 } };
+// +1 or -1: flip if a joint moves the wrong way
+const int8_t kDir[2][6] = { { 1, 1, 1, 1, 1, 1 }, { 1, -1, -1, -1, -1, -1 } };
+// servo angle (deg) when the joint angle is 0 (leg straight, foot flat)
+const float kOffsetDeg[2][6] = { { 90, 90, 90, 90, 90, 90 }, { 90, 90, 90, 90, 90, 90 } };
+
+const float kLoopHz = 200.f;
+float roll = 0, pitch = 0;
+float vCmd = 0, yawCmd = 0;
+uint32_t lastUs = 0;
+
+void writeServo(int leg, int j, float rad) {
+  float deg = kOffsetDeg[leg][j] + kDir[leg][j] * rad * 57.29578f;
+  deg = constrain(deg, 0.f, 180.f);
+  const float us = 500.f + deg / 180.f * 2000.f;
+  pwm.writeMicroseconds(kChannel[leg][j], (uint16_t)us);
+}
+
+void readImu(float dt) {
+  sensors_event_t a, g, t;
+  imu.getEvent(&a, &g, &t);
+  // complementary filter: gyro for fast motion, accelerometer for the long-term level
+  const float accRoll = atan2f(a.acceleration.y, a.acceleration.z);
+  const float accPitch = atan2f(-a.acceleration.x, sqrtf(a.acceleration.y * a.acceleration.y + a.acceleration.z * a.acceleration.z));
+  roll = 0.98f * (roll + g.gyro.x * dt) + 0.02f * accRoll;
+  pitch = 0.98f * (pitch + g.gyro.y * dt) + 0.02f * accPitch;
+  sensors.roll = roll; sensors.pitch = pitch;
+  sensors.gyro[0] = g.gyro.x; sensors.gyro[1] = g.gyro.y; sensors.gyro[2] = g.gyro.z;
+}
+
+void readSerial() {
+  while (Serial.available()) {
+    switch (Serial.read()) {
+      case 'w': vCmd = 0.3f; break;           // start slow on a real robot
+      case 's': vCmd = 0.f; break;
+      case 'a': yawCmd = 0.4f; break;
+      case 'd': yawCmd = -0.4f; break;
+      case 'x': yawCmd = 0.f; break;
+      case 'r': ctl->reset(0, 0, 0); Serial.println("re-armed"); break;
+    }
+  }
+  ctl->setCommand(vCmd, yawCmd);
+}
+
+void setup() {
+  Serial.begin(115200);
+  Wire.begin(21, 22);
+  Wire.setClock(400000);
+  pwm.begin();
+  pwm.setOscillatorFrequency(27000000);
+  pwm.setPWMFreq(50);
+  if (!imu.begin()) { Serial.println("MPU6050 not found"); while (true) delay(100); }
+  imu.setGyroRange(MPU6050_RANGE_500_DEG);
+  imu.setFilterBandwidth(MPU6050_BAND_44_HZ);
+
+  static BipedController controller(makeRobotConfig());
+  ctl = &controller;
+  memset(&sensors, 0, sizeof(sensors));
+  // hobby servos report nothing: start from the standing pose the controller asks for
+  ctl->update(sensors, 1.f / kLoopHz, cmd);
+  for (int i = 0; i < 2; i++) for (int j = 0; j < 6; j++) { sensors.q[i][j] = cmd.qDes[i][j]; writeServo(i, j, cmd.qDes[i][j]); }
+  delay(1500);
+  lastUs = micros();
+  Serial.println("ready: w=walk s=stop a/d=turn x=straight r=re-arm");
+}
+
+void loop() {
+  const uint32_t periodUs = (uint32_t)(1e6f / kLoopHz);
+  if (micros() - lastUs < periodUs) return;
+  const float dt = (micros() - lastUs) * 1e-6f;
+  lastUs = micros();
+
+  readSerial();
+  readImu(dt);
+  ctl->update(sensors, dt, cmd);
+
+  if (!cmd.torqueEnable) {
+    // fell over: stop driving the servos (0 = no pulse, servo goes limp)
+    for (int i = 0; i < 2; i++) for (int j = 0; j < 6; j++) pwm.setPWM(kChannel[i][j], 0, 0);
+    static uint32_t lastMsg = 0;
+    if (millis() - lastMsg > 1000) { Serial.println("FALL detected - stand the robot up, then send r"); lastMsg = millis(); }
+    return;
+  }
+  for (int i = 0; i < 2; i++) for (int j = 0; j < 6; j++) {
+    // open loop: assume each servo reached its last target
+    sensors.dq[i][j] = (cmd.qDes[i][j] - sensors.q[i][j]) / dt;
+    sensors.q[i][j] = cmd.qDes[i][j];
+    writeServo(i, j, cmd.qDes[i][j]);
+  }
+}
+</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 <script>
@@ -257,9 +834,20 @@ input[type=range] { width: 100%; accent-color: var(--robot); }
 const $ = id => document.getElementById(id);
 
 /* ================= physics constants ================= */
-const G = 9.81, H0 = 0.94, OM = Math.sqrt(G / H0);
-const L1 = 0.44, L2 = 0.44, AH = 0.075, HW = 0.095, STEPW = 0.2, TOE = 0.17, HEEL = 0.07;
-const REACH = 0.985 * (L1 + L2), MAXSTEP = 0.85, FALLSTEP = 1.15;
+const G = 9.81, AH = 0.075, HW = 0.095, STEPW = 0.2, TOE = 0.17, HEEL = 0.07, JR = 0.4;   // JR: reflected motor rotor inertia (kg·m²)
+// robot body: sizes (m) and weights (kg), changed from the "ขนาดและน้ำหนัก" panel
+const BODY = { thigh: 0.44, shin: 0.44, torsoH: 0.44, torsoW: 0.36, arm: 0.54, mT: 25, mL: 8, mA: 3 };
+let L1, L2, LS, H0, OM, REACH, MAXSTEP, FALLSTEP, MTOT, COMOFF;
+function applyBody() {
+  L1 = BODY.thigh; L2 = BODY.shin; const L = L1 + L2; LS = L / 0.88;
+  H0 = AH + 0.983 * L;
+  const arms = BODY.arm > 0.05;
+  MTOT = BODY.mT + 2 * BODY.mL + (arms ? 2 * BODY.mA : 0);
+  COMOFF = (BODY.mT * BODY.torsoH * 0.45 + (arms ? 2 * BODY.mA * (BODY.torsoH - BODY.arm * 0.5) : 0) - 2 * BODY.mL * L * 0.45) / MTOT;
+  OM = Math.sqrt(G / Math.max(0.3, H0 + COMOFF));
+  REACH = 0.985 * L; MAXSTEP = 0.966 * L; FALLSTEP = 1.31 * L;
+}
+applyBody();
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const lerp = (a, b, t) => a + (b - a) * t;
 const mj = s => { s = clamp(s, 0, 1); return s * s * s * (10 - 15 * s + 6 * s * s); };
@@ -271,12 +859,13 @@ const terrain = (x, z) => TA === 0 ? 0 : TA * (0.45 * Math.sin(1.1 * x + 0.3) * 
 const slopeAt = (x, z, yaw) => { const c = Math.cos(yaw) * 0.08, s = Math.sin(yaw) * 0.08; return -Math.atan((terrain(x + c, z + s) - terrain(x - c, z - s)) / 0.16); };
 const ankleRise = ft => ft.pitch > 0 ? Math.sin(ft.pitch) * TOE : Math.sin(-ft.pitch) * HEEL;
 
-const S = { kp: 2500, kd: 100, kpB: 34, kdB: 11.6, sv: [{ h: 0, hv: 0, k: 0, kv: 0 }, { h: 0, hv: 0, k: 0, kv: 0 }], svInit: false, errT: 0, jointErr: 0, ankErr: [0, 0], lastPose: null,
+const S = { kp: 3000, kd: 170, kpB: 1600, kdB: 545, sv: [{ h: 0, hv: 0, k: 0, kv: 0 }, { h: 0, hv: 0, k: 0, kv: 0 }], svInit: false, errT: 0, jointErr: 0, ankErr: [0, 0], lastPose: null,
   walking: true, vdes: 0.9, turn: 0, steps: 0, stepLen: 0, odo: 0, path: 0, falls: 0,
   jumpReq: false, lastSwing: 1, arm: [0, 0], footprints: [], fpSeq: 0, recover: 0 };
 
 function newFoot(x, z, yaw) { return { x, z, yaw, gy: terrain(x, z), sgy: terrain(x, z), slope: slopeAt(x, z, yaw), lift: 0, pitch: 0, sx: x, sz: z, syaw: yaw, spitch: 0, tx: x, tz: z }; }
-function reset(x = 0, z = 0, th = 0, y = H0 - 0.01) {
+function reset(x = 0, z = 0, th = 0, y = null) {
+  if (y === null) y = H0 - 0.01;
   const n = leftOf(th);
   S.gref = terrain(x, z); y += S.gref;
   Object.assign(S, { x, z, vx: 0, vz: 0, ax: 0, az: 0, y, ys: y, vy: 0, th, mode: 'stand', t: 0, T: 0.55, si: 1, tm: 0, fall: null,
@@ -290,7 +879,7 @@ function wantsMove() { return (S.walking && S.vdes > 0.05) || S.turn !== 0; }
 
 function beginStep() {
   const vd = S.walking ? S.vdes : 0;
-  S.T = S.recover > 0 ? 0.32 : clamp(0.6 - 0.12 * vd, 0.42, 0.6);
+  S.T = (S.recover > 0 ? 0.32 : clamp(0.6 - 0.12 * vd, 0.42, 0.6)) * Math.sqrt(LS);
   S.t = 0; S.ts = 0; S.quick = false; S.mode = 'walk';
   const sw = S.feet[1 - S.si], st = S.feet[S.si];
   Object.assign(sw, { sx: sw.x, sz: sw.z, syaw: sw.yaw, spitch: sw.pitch, tx: sw.x, tz: sw.z, sgy: sw.gy });
@@ -314,9 +903,13 @@ function startFall() {
   S.fall = { px: piv.x, pz: piv.z, ux, uz, l, phi0, phi: phi0, dphi: Math.max(0.4, (S.vx * ux + S.vz * uz) / l), pose: S.lastPose || computePose(), th: S.th };
   S.mode = 'fall'; S.tm = 0; S.falls++; S.jumpReq = false; S.fallReason = '';
 }
+// self-righting: tuck the legs in, swing the body back over the feet, then stand up
 function getUp() {
   const F = S.fall;
-  reset(F.px + F.ux * 0.45, F.pz + F.uz * 0.45, F.th, 0.32);
+  F.lie = F.phi;
+  reset(F.px + F.ux * 0.12, F.pz + F.uz * 0.12, F.th, 0.55 * H0);
+  S.getup = { F, crouch: computePose() };
+  S.mode = 'getup'; S.tm = 0; S.svInit = false;
 }
 
 function updGround(dt) {
@@ -359,22 +952,22 @@ function step(dt) {
     const m = mid();
     let tx = m.x, tz = m.z;
     if (S.mode === 'shift') { const st = S.feet[S.si]; tx = lerp(m.x, st.x, 0.55); tz = lerp(m.z, st.z, 0.55); }
-    const ax = S.kpB * (tx - S.x) - S.kdB * S.vx, az = S.kpB * (tz - S.z) - S.kdB * S.vz;
+    const ax = (S.kpB * (tx - S.x) - S.kdB * S.vx) / MTOT, az = (S.kpB * (tz - S.z) - S.kdB * S.vz) / MTOT;
     S.vx += ax * dt; S.vz += az * dt; S.x += S.vx * dt; S.z += S.vz * dt; S.ax = ax; S.az = az;
     S.copx = S.x - ax / (OM * OM); S.copz = S.z - az / (OM * OM);
     S.feet.forEach(ft => { ft.pitch *= Math.max(0, 1 - dt * 10); ft.lift = 0; });
     if (S.mode === 'land') {
       const ay = 170 * (S.gref + H0 - 0.02 - S.y) - 15 * S.vy;
-      S.vy += ay * dt; S.y = Math.max(S.gref + 0.42, S.y + S.vy * dt); S.ys = S.y;
+      S.vy += ay * dt; S.y = Math.max(S.gref + 0.45 * H0, S.y + S.vy * dt); S.ys = S.y;
     } else {
-      const yt = S.gref + (S.mode === 'crouch' ? 0.7 : H0 - 0.01);
+      const yt = S.gref + (S.mode === 'crouch' ? 0.745 * H0 : H0 - 0.01);
       S.ys += (yt - S.ys) * Math.min(1, dt * (S.mode === 'crouch' ? 16 : 5));
     }
     const xx = S.x + S.vx / OM - m.x, xz = S.z + S.vz / OM - m.z;
     const df = xx * f[0] + xz * f[1], dl = xx * n[0] + xz * n[1];
     const out = (df / 0.16) ** 2 + (dl / 0.17) ** 2 > 1;
     if (S.mode === 'crouch') {
-      if (S.tm > 0.2) { S.mode = 'air'; S.vy = 3.1; S.y = S.ys; S.tm = 0; return; }
+      if (S.tm > 0.2) { S.mode = 'air'; S.vy = 3.1 * Math.sqrt(LS); S.y = S.ys; S.tm = 0; return; }
     } else if (out) {
       const sw = chooseSwing(dl); S.si = 1 - sw; S.lastSwing = sw; S.recover = 1.2; beginStep();
     } else if (S.jumpReq && (S.mode === 'stand' || S.mode === 'shift')) {
@@ -391,7 +984,7 @@ function step(dt) {
     const st = S.feet[S.si], sw = S.feet[1 - S.si];
     const sf = fwdOf(st.yaw);
     const vf = S.vx * f[0] + S.vz * f[1];
-    const cop = clamp(0.03 - 0.14 * (vd - vf), -HEEL + 0.015, TOE - 0.03);
+    const cop = clamp((vd > 0.05 ? 0.03 : 0) - 0.14 * (vd - vf), -HEEL + 0.015, TOE - 0.03);
     const px = st.x + sf[0] * cop, pz = st.z + sf[1] * cop;
     S.copx = px; S.copz = pz;
     const ax = OM * OM * (S.x - px), az = OM * OM * (S.z - pz);
@@ -419,7 +1012,7 @@ function step(dt) {
     const sh = normal ? clamp((u - 0.08) / 0.92, 0, 1) : u, e5 = mj(sh);
     sw.x = lerp(sw.sx, sw.tx, e5); sw.z = lerp(sw.sz, sw.tz, e5);
     sw.yaw = lerpAng(sw.syaw, S.th, e5);
-    const hs = 0.045 + 0.05 * mv;
+    const hs = (0.045 + 0.05 * mv) * LS;
     if (normal) {
       sw.lift = u < 0.08 ? 0 : hs * Math.sin(Math.PI * sh);
       if (u < 0.12) sw.pitch = lerp(sw.spitch, 0.55 * mv, u / 0.12);
@@ -443,14 +1036,14 @@ function step(dt) {
       S.si = 1 - S.si;
       const sp = Math.hypot(S.vx, S.vz);
       if (S.jumpReq) { S.jumpReq = false; S.mode = 'crouch'; S.tm = 0; }
-      else if (!wants && sp < 0.22 && Math.abs(fl) < 0.2 && S.recover <= 0) { S.mode = 'stand'; S.tm = 0; }
+      else if (!wants && Math.abs(S.vx * f[0] + S.vz * f[1]) < 0.2 && Math.abs(fl) < 0.2 && S.recover <= 0) { S.mode = 'stand'; S.tm = 0; }
       else beginStep();
     }
   } else if (S.mode === 'air') {
     S.vy -= G * dt; S.y += S.vy * dt; S.x += S.vx * dt; S.z += S.vz * dt; S.ys = S.y; S.ax = 0; S.az = 0;
     S.copx = S.x; S.copz = S.z;
-    const k = clamp(S.tm / 0.63, 0, 1);
-    const ext = 0.86 - 0.3 * Math.sin(Math.PI * k);
+    const k = clamp(S.tm / (2 * 3.1 * Math.sqrt(LS) / G), 0, 1);
+    const ext = 0.977 * (L1 + L2) - 0.34 * (L1 + L2) * Math.sin(Math.PI * k);
     S.feet.forEach((ft, i) => {
       const sd = i === 0 ? 1 : -1;
       const txx = S.x + S.vx * 0.12 + n[0] * sd * 0.1, tzz = S.z + S.vz * 0.12 + n[1] * sd * 0.1;
@@ -473,7 +1066,10 @@ function step(dt) {
     }
     return;
   } else if (S.mode === 'fallen') {
-    if (S.tm > 2.4) getUp();
+    if (S.tm > 1.0) getUp();
+    return;
+  } else if (S.mode === 'getup') {
+    if (S.tm > 1.5) { S.mode = 'stand'; S.tm = 0; S.getup = null; S.svInit = false; }
     return;
   }
   updGround(dt);
@@ -540,22 +1136,23 @@ function computePose() {
   if (S.mode === 'air') lean -= 0.05;
   const up = norm([F[0] * Math.sin(lean), Math.cos(lean), F[2] * Math.sin(lean)]);
   const tF = norm(cross(up, cross(F, up)));
-  const chest = add(P, mul(up, 0.48));
+  const chest = add(P, mul(up, 0.04 + BODY.torsoH));
   const tw = clamp((dOff(S.feet[0]) - dOff(S.feet[1])) / 0.6, -1, 1);
-  const sh = [add(add(chest, mul(N, 0.2)), mul(F, -0.035 * tw)), add(add(chest, mul(N, -0.2)), mul(F, 0.035 * tw))];
+  const shw = BODY.torsoW / 2 + 0.03;
+  const sh = [add(add(chest, mul(N, shw)), mul(F, -0.035 * tw)), add(add(chest, mul(N, -shw)), mul(F, 0.035 * tw))];
   sh.forEach(s => { s[1] -= 0.03; });
   const el = [], hd = [];
   const bend = 0.3 + 0.45 * Math.min(1, sp);
   [0, 1].forEach(i => {
     const sd = i === 0 ? 1 : -1;
     let a = -clamp(dOff(S.feet[i]), -0.4, 0.4) * 1.25;
-    if (S.mode === 'air') a = 2.4; else if (S.mode === 'crouch') a = -0.8; else if (S.mode === 'land') a = 0.7 + (H0 - S.y);
+    if (S.mode === 'air') a = 2.4; else if (S.mode === 'crouch') a = -0.8; else if (S.mode === 'land') a = 0.7 + (S.gref + H0 - S.y);
     if (S.recover > 0) a += 0.5 * Math.min(1, S.recover);
     S.arm[i] += (a - S.arm[i]) * Math.min(1, frameDt * 12);
     const A = S.arm[i];
     const d1 = norm(add(add(mul(tF, Math.sin(A)), mul(up, -Math.cos(A))), mul(N, sd * (0.12 + 0.25 * Math.max(0, S.recover)))));
     const d2 = norm(add(add(mul(tF, Math.sin(A + bend)), mul(up, -Math.cos(A + bend))), mul(N, sd * 0.04)));
-    el[i] = add(sh[i], mul(d1, 0.28)); hd[i] = add(el[i], mul(d2, 0.26));
+    el[i] = add(sh[i], mul(d1, BODY.arm * 0.52)); hd[i] = add(el[i], mul(d2, BODY.arm * 0.48));
   });
   return {
     pts: { P, hipL: hips[0], hipR: hips[1], kneeL: kn[0].K, kneeR: kn[1].K, ankL: kn[0].A, ankR: kn[1].A,
@@ -569,7 +1166,22 @@ function rotateAbout(p, k, ang, piv) {
   const r = add(add(mul(v, c), mul(cross(k, v), s)), mul(k, dot(k, v) * (1 - c)));
   return piv ? add(r, piv) : r;
 }
+const ease = t => { t = clamp(t, 0, 1); return t * t * (3 - 2 * t); };
+function getupPose() {
+  const g = S.getup, F = g.F, a = F.pose, b = g.crouch, kb = ease(S.tm / 0.7);
+  const out = { pts: {}, vec: {} };
+  for (const key in b.pts) out.pts[key] = a.pts[key] ? add(mul(a.pts[key], 1 - kb), mul(b.pts[key], kb)) : b.pts[key];
+  for (const key in b.vec) out.vec[key] = a.vec[key] ? norm(add(mul(a.vec[key], 1 - kb), mul(b.vec[key], kb))) : b.vec[key];
+  const f2 = fwdOf(F.th), kf = [f2[0], 0, f2[1]];
+  [['hipL', 'kneeL', 'ankL'], ['hipR', 'kneeR', 'ankR']].forEach(L => { const k = solveKnee(out.pts[L[0]], out.pts[L[2]], kf); out.pts[L[1]] = k.K; out.pts[L[2]] = k.A; });
+  const k = [F.uz, 0, -F.ux], piv = [F.px, terrain(F.px, F.pz), F.pz];
+  const ang = (F.lie - F.phi0) * (1 - ease((S.tm - 0.25) / 1.1));
+  for (const key in out.pts) out.pts[key] = rotateAbout(out.pts[key], k, ang, piv);
+  for (const key in out.vec) out.vec[key] = rotateAbout(out.vec[key], k, ang, null);
+  return out;
+}
 function pose() {
+  if (S.mode === 'getup') return getupPose();
   if (S.mode !== 'fall' && S.mode !== 'fallen') return computePose();
   const F = S.fall, k = [F.uz, 0, -F.ux], piv = [F.px, terrain(F.px, F.pz), F.pz], ang = F.phi - F.phi0;
   const out = { pts: {}, vec: {} };
@@ -593,11 +1205,16 @@ function servo(p, n, h) {
     const bt = Math.asin(clamp(dot(t, N), -1, 1)), bs = Math.asin(clamp(dot(sh, N), -1, 1));
     const s = S.sv[i];
     if (!S.svInit || !isFinite(s.h + s.k + s.hv + s.kv)) { s.h = dh; s.k = dk; s.hv = 0; s.kv = 0; }
-    // body weight acting on a supporting leg bends its knee; the servo must push back
-    const load = S.mode === 'air' ? 0 : S.mode === 'walk' ? (i === S.si ? 140 : 0) : 75;
+    // joint inertia (kg·m²) and the body weight a supporting leg carries
+    const mTh = 0.6 * BODY.mL, mSh = 0.4 * BODY.mL;
+    const sup = S.mode === 'air' ? 0 : S.mode === 'walk' ? (i === S.si ? MTOT - BODY.mL : 0) : (MTOT - 2 * BODY.mL) / 2;
+    const Jh = sup > 0 ? JR + sup * 0.09 : JR + mTh * L1 * L1 / 3 + mSh * (L1 + L2 / 2) ** 2;
+    const Jk = sup > 0 ? JR + sup * L1 * L1 * 0.5 : JR + mSh * L2 * L2 / 3;
+    const C = Math.max(0.05, len(sub(Ad, H)));
     for (let j = 0; j < n; j++) {
-      s.hv += (S.kp * (dh - s.h) - S.kd * s.hv) * h; s.h += s.hv * h;
-      s.kv += (S.kp * (dk - s.k) - S.kd * s.kv + load) * h; s.k += s.kv * h;
+      const load = sup * G * L1 * L2 * Math.sin(Math.max(0, s.k)) / C;        // N·m bending the knee
+      s.hv = (s.hv + h * S.kp * (dh - s.h) / Jh) / (1 + h * S.kd / Jh); s.h += s.hv * h;
+      s.kv = (s.kv + h * (S.kp * (dk - s.k) + load) / Jk) / (1 + h * S.kd / Jk); s.k += s.kv * h;
       if (s.k < 0) { s.k = 0; if (s.kv < 0) s.kv = 0; }        // knee hard stop: no hyperextension
       if (s.k > 2.6) { s.k = 2.6; if (s.kv > 0) s.kv = 0; }
     }
@@ -619,8 +1236,8 @@ function setWalking(v) {
 function setSpeed(v) { S.vdes = clamp(Math.round(v * 10) / 10, 0.2, 1.6); $('speed').value = S.vdes; $('speedOut').textContent = S.vdes.toFixed(1) + ' m/s'; }
 function jump() { if (S.mode === 'stand' || S.mode === 'shift' || S.mode === 'walk') S.jumpReq = true; }
 function push(kind) {
-  if (S.mode === 'fall' || S.mode === 'fallen') return;
-  const str = +$('force').value, f = fwdOf(S.th), n = leftOf(S.th);
+  if (S.mode === 'fall' || S.mode === 'fallen' || S.mode === 'getup') return;
+  const str = +$('force').value / MTOT, f = fwdOf(S.th), n = leftOf(S.th);
   let d = kind === 'back' ? f : kind === 'front' ? [-f[0], -f[1]] : [-n[0], -n[1]];
   S.vx += d[0] * str; S.vz += d[1] * str; S.recover = 1.2;
   if (S.mode === 'walk' && S.T - S.t > 0.12) quickTouchdown(0.12);
@@ -640,19 +1257,22 @@ $('pushB').onclick = () => push('back');
 $('pushS').onclick = () => push('side');
 $('pushF').onclick = () => push('front');
 $('reset').onclick = () => { reset(S.x, S.z, S.th); S.svInit = false; };
-const PD0 = { kp: 2500, kd: 100, kpb: 34, kdb: 11.6 };
-function zeta(kp, kd) { const z = kd / (2 * Math.sqrt(kp)); return 'ζ = ' + z.toFixed(2) + ' · ' + (z < 0.7 ? 'แกว่ง' : z > 1.4 ? 'หน่วงช้า' : 'พอดี'); }
+const PD0 = { kp: 3000, kd: 170, kpb: 1600, kdb: 545 };
+function zeta(kp, kd, J) { const z = kd / (2 * Math.sqrt(kp * J)); return 'ζ = ' + z.toFixed(2) + ' · ' + (z < 0.7 ? 'แกว่ง' : z > 1.4 ? 'หน่วงช้า' : 'พอดี'); }
 function updPD() {
   S.kp = +$('kp').value; S.kd = +$('kd').value; S.kpB = +$('kpb').value; S.kdB = +$('kdb').value;
-  $('kpOut').textContent = S.kp; $('kdOut').textContent = S.kd; $('kpbOut').textContent = S.kpB; $('kdbOut').textContent = S.kdB.toFixed(1);
-  $('pdJ').textContent = 'ข้อต่อ ' + zeta(S.kp, S.kd); $('pdB').textContent = 'ทรงตัว ' + zeta(S.kpB, S.kdB);
+  $('kpOut').textContent = S.kp + ' N·m/rad'; $('kdOut').textContent = S.kd + ' N·m·s/rad'; $('kpbOut').textContent = S.kpB + ' N/m'; $('kdbOut').textContent = S.kdB + ' N·s/m';
+  const Jst = JR + (MTOT - BODY.mL) * L1 * L1 * 0.5, Jsw = JR + 0.6 * BODY.mL * L1 * L1 / 3 + 0.4 * BODY.mL * (L1 + L2 / 2) ** 2;
+  $('pdJ').textContent = 'เข่าขายืน ' + zeta(S.kp, S.kd, Jst); $('pdJ2').textContent = 'สะโพกขาเหวี่ยง ' + zeta(S.kp, S.kd, Jsw);
+  $('pdB').textContent = 'ทรงตัว ' + zeta(S.kpB, S.kdB, MTOT);
+  if (window.refreshCode) refreshCode();
 }
 ['kp', 'kd', 'kpb', 'kdb'].forEach(id => $(id).addEventListener('input', updPD));
 $('pdReset').onclick = () => { for (const k in PD0) $(k).value = PD0[k]; updPD(); };
 updPD();
 $('speed').oninput = e => setSpeed(+e.target.value);
 $('rough').oninput = e => { TA = +e.target.value / 100; $('roughOut').textContent = TA === 0 ? 'เรียบ' : '±' + Math.round(TA * 100) + ' cm'; };
-$('force').oninput = e => { $('forceOut').textContent = (+e.target.value).toFixed(1) + ' m/s'; };
+$('force').oninput = e => { $('forceOut').textContent = (+e.target.value) + ' N·s'; };
 window.addEventListener('keydown', e => {
   const tag = e.target.tagName;
   if (tag === 'INPUT' && e.key.startsWith('Arrow')) return;
@@ -793,7 +1413,7 @@ function init3D() {
   const fpMat = new THREE.MeshBasicMaterial({ color: 0x1b2a3a, transparent: true, opacity: 0.14, depthWrite: false });
   const fps = []; for (let i = 0; i < 36; i++) { const m = new THREE.Mesh(fpGeo, fpMat); m.visible = false; m.position.y = 0.002; scene.add(m); fps.push(m); }
 
-  [head, parts.uaL, parts.uaR, parts.faL, parts.faR, parts.jShL, parts.jShR, parts.jElL, parts.jElR, parts.hdL, parts.hdR].forEach(m => { m.visible = false; });
+  head.visible = false;
   return { renderer, scene, cam, controls, sun, groundMat, ground, terrainMesh, TN, TS, grid, gridFine, parts, pelvis, torso, head, footG, phys, comM, cpM, copM, comBall, pend, arrow, fps, fpMat, antTip,
     mats: { comM: comM.material, cpM: cpM.material, copM: copM.material, comBall: comBall.material, pend: pend.material } };
 }
@@ -843,13 +1463,16 @@ function render3D(p, T) {
   let X = norm(cross(v.tUp, Zr)); const Yp = cross(Zr, X);
   orient(r.pelvis, q.P, X, Yp);
   orient(r.torso, q.P, v.tF, v.tUp);
+  r.torso.scale.set(1, BODY.torsoH / 0.44, BODY.torsoW / 0.36);
+  const armsOn = BODY.arm > 0.05;
+  ['uaL', 'uaR', 'faL', 'faR', 'jShL', 'jShR', 'jElL', 'jElR', 'hdL', 'hdR'].forEach(k => { pr[k].visible = armsOn; });
   orient(r.head, q.head, v.tF, v.tUp);
   orient(r.footG[0], q.ankL, v.fFL, v.fUL);
   orient(r.footG[1], q.ankR, v.fFR, v.fUR);
   r.antTip.material.emissiveIntensity = 0.8 + 0.6 * Math.sin(performance.now() / 160);
 
   // camera follow
-  const tgt = [q.P[0], Math.max(0.4, Math.min(0.85, q.P[1] * 0.8)), q.P[2]];
+  const tgt = [q.P[0], clamp(q.P[1] * 0.85, 0.3, 1.6), q.P[2]];
   if (!lastTarget) lastTarget = tgt;
   const sm = Math.min(1, frameDt * 4);
   const nt = [lerp(lastTarget[0], tgt[0], sm), lerp(lastTarget[1], tgt[1], sm), lerp(lastTarget[2], tgt[2], sm)];
@@ -885,7 +1508,7 @@ function render3D(p, T) {
   for (let i = S.footprints.length; i < r.fps.length; i++) r.fps[i].visible = false;
 
   // physics markers
-  const show = physChk.checked && S.mode !== 'fall' && S.mode !== 'fallen';
+  const show = physChk.checked && S.mode !== 'fall' && S.mode !== 'fallen' && S.mode !== 'getup';
   r.phys.visible = show;
   if (show) {
     r.comM.position.set(S.x, terrain(S.x, S.z) + 0.01, S.z);
@@ -916,7 +1539,7 @@ function render2D(p, T) {
   if (views.dataset.view === '3d' || W2 === 0) return;
   const q = p.pts, v = p.vec, ctx = c2;
   ctx.clearRect(0, 0, W2, H2);
-  const gy = H2 - Math.max(40, H2 * 0.12), sc = Math.min((gy - 50) / 1.5, W2 / 2.2), cx = W2 / 2;
+  const gy = H2 - Math.max(40, H2 * 0.12), sc = Math.min((gy - 50) / (H0 + BODY.torsoH + 0.15), W2 / 2.2), cx = W2 / 2;
   const th = S.fall ? S.fall.th : S.th; const fx = Math.cos(th), fz = Math.sin(th);
   const ox = S.fall && (S.mode === 'fall' || S.mode === 'fallen') ? S.fall.px : S.x, oz = S.fall && (S.mode === 'fall' || S.mode === 'fallen') ? S.fall.pz : S.z;
   const X = a => cx + ((a[0] - ox) * fx + (a[2] - oz) * fz) * sc;
@@ -976,24 +1599,27 @@ function render2D(p, T) {
     poly([pt(f0, u0), pt(f1, u0), pt(f1, u1), pt(f0, u1)], col);
   };
   const lw = sc * 0.1;
+  const armsOn = BODY.arm > 0.05, tk = BODY.torsoH / 0.44;
   // far side (right limbs)
+  if (armsOn) { line(q.shR, q.elR, lw * 0.75, T['grid-strong']); line(q.elR, q.hdR, lw * 0.65, T['robot-dark']); disc(q.hdR, lw * 0.45, T.joint); }
   line(q.hipR, q.kneeR, lw * 1.05, T['grid-strong']); line(q.kneeR, q.ankR, lw * 0.85, T['robot-dark']);
   disc(q.kneeR, lw * 0.55, T.joint); foot(q.ankR, v.fFR, v.fUR, T.joint);
   // body
   box(q.P, v.tF, v.tUp, -0.08, 0.08, -0.055, 0.055, T.ink);
   box(q.P, v.tF, v.tUp, -0.045, 0.045, 0.04, 0.12, T.joint);
-  box(q.P, v.tF, v.tUp, -0.11, 0.11, 0.1, 0.44, T.robot);
-  box(q.P, v.tF, v.tUp, -0.112, 0.112, 0.18, 0.22, T['robot-dark']);
-  box(q.P, v.tF, v.tUp, 0.06, 0.115, 0.29, 0.39, T.ink);
-  box(q.P, v.tF, v.tUp, 0.106, 0.118, 0.33, 0.35, T.glow);
-  box(q.P, v.tF, v.tUp, -0.1, 0.1, 0.44, 0.465, T.ink);
+  box(q.P, v.tF, v.tUp, -0.11, 0.11, 0.1 * tk, 0.44 * tk, T.robot);
+  box(q.P, v.tF, v.tUp, -0.112, 0.112, 0.18 * tk, 0.22 * tk, T['robot-dark']);
+  box(q.P, v.tF, v.tUp, 0.06, 0.115, 0.29 * tk, 0.39 * tk, T.ink);
+  box(q.P, v.tF, v.tUp, 0.106, 0.118, 0.33 * tk, 0.35 * tk, T.glow);
+  box(q.P, v.tF, v.tUp, -0.1, 0.1, 0.44 * tk, 0.44 * tk + 0.025, T.ink);
   // near side (left limbs)
   line(q.hipL, q.kneeL, lw * 1.1, T.joint); line(q.kneeL, q.ankL, lw * 0.9, T.robot);
   disc(q.kneeL, lw * 0.6, T.ink); foot(q.ankL, v.fFL, v.fUL, T.ink);
   disc(q.hipL, lw * 0.65, T.ink); disc(q.hipL, lw * 0.25, T.robot);
+  if (armsOn) { line(q.shL, q.elL, lw * 0.8, T.joint); line(q.elL, q.hdL, lw * 0.7, T.robot); disc(q.elL, lw * 0.4, T.ink); disc(q.hdL, lw * 0.45, T.ink); disc(q.shL, lw * 0.55, T.ink); }
 
   // physics overlay
-  if (physChk.checked && S.mode !== 'fall' && S.mode !== 'fallen') {
+  if (physChk.checked && S.mode !== 'fall' && S.mode !== 'fallen' && S.mode !== 'getup') {
     const com = [S.x, S.y, S.z], cop = [S.copx, 0, S.copz], xi = [S.x + S.vx / OM, 0, S.z + S.vz / OM];
     ctx.setLineDash([4, 4]); ctx.lineWidth = 1; ctx.strokeStyle = T.com;
     ctx.beginPath(); ctx.moveTo(X(com), Yv(com)); ctx.lineTo(X(com), Yg(com)); ctx.stroke(); ctx.setLineDash([]);
@@ -1023,9 +1649,78 @@ function render2D(p, T) {
   }
 }
 
+
+/* ================= body size & weight ================= */
+const BDEF = { ...BODY };
+const BMAP = { bThigh: ['thigh', ' m', 2], bShin: ['shin', ' m', 2], bTorsoH: ['torsoH', ' m', 2], bTorsoW: ['torsoW', ' m', 2], bArm: ['arm', ' m', 2], bMT: ['mT', ' kg', 0], bML: ['mL', ' kg', 1], bMA: ['mA', ' kg', 1] };
+function updBody(e) {
+  const prevLeg = BODY.thigh + BODY.shin;
+  for (const id in BMAP) { const [k, u, d] = BMAP[id]; BODY[k] = +$(id).value; $(id + 'Out').textContent = (BODY[k] === 0 && k === 'arm') ? 'ไม่มีแขน' : BODY[k].toFixed(d) + u; }
+  applyBody();
+  if (Math.abs(BODY.thigh + BODY.shin - prevLeg) > 1e-6 && S.mode !== 'fall' && S.mode !== 'fallen' && S.mode !== 'getup') { reset(S.x, S.z, S.th); S.svInit = false; }
+  $('bTotal').textContent = 'น้ำหนักรวม ' + MTOT.toFixed(1) + ' kg';
+  $('bHeight').textContent = 'สูง ' + (H0 + BODY.torsoH + 0.065).toFixed(2) + ' m';
+  $('bCom').textContent = 'CoM สูง ' + (H0 + COMOFF).toFixed(2) + ' m';
+  $('bFreq').textContent = 'ω = ' + OM.toFixed(2) + ' rad/s';
+  updPD();
+}
+Object.keys(BMAP).forEach(id => $(id).addEventListener('input', updBody));
+$('bReset').onclick = () => { for (const id in BMAP) $(id).value = BDEF[BMAP[id][0]]; updBody(); };
+
+/* ================= C++ code panel ================= */
+const SRC = { hpp: $('src-hpp').textContent.replace(/^\n/, ''), ino: $('src-ino').textContent.replace(/^\n/, '') };
+const GH = 'https://github.com/arraychinvon89/array.github.io/blob/main/cpp/';
+const f = (v, d = 3) => (+v).toFixed(d) + 'f';
+function configSrc() {
+  return `// robot_config.h — generated by array_simulator (https://arraychinvon89.github.io/array.github.io/)
+// Values taken from the sliders on the page. Total mass ${MTOT.toFixed(1)} kg, standing height ${(H0 + BODY.torsoH + 0.065).toFixed(2)} m.
+#pragma once
+#include "array_biped.hpp"
+
+inline arraysim::RobotConfig makeRobotConfig() {
+  arraysim::RobotConfig c;
+  // size (m)
+  c.thigh = ${f(BODY.thigh)};
+  c.shin = ${f(BODY.shin)};
+  c.torsoHeight = ${f(BODY.torsoH)};
+  c.armLength = ${f(BODY.arm)};
+  // weight (kg)
+  c.massTorso = ${f(BODY.mT, 1)};
+  c.massLeg = ${f(BODY.mL, 1)};
+  c.massArm = ${f(BODY.mA, 1)};
+  // joint motor PD
+  c.kpJoint = ${f(S.kp, 1)};   // N·m/rad
+  c.kdJoint = ${f(S.kd, 1)};    // N·m·s/rad
+  // standing balance PD
+  c.kpBalance = ${f(S.kpB, 1)}; // N/m
+  c.kdBalance = ${f(S.kdB, 1)};  // N·s/m
+  // derived from leg length
+  c.maxStep = 0.966f * (c.thigh + c.shin);
+  c.swingHeight = 0.08f * (c.thigh + c.shin);
+  return c;
+}
+`;
+}
+let curFile = 'cfg';
+const FILES = { cfg: ['fCfg', 'robot_config.h'], hpp: ['fHpp', 'array_biped.hpp'], ino: ['fIno', 'esp32_servo_example/esp32_servo_example.ino'] };
+function codeText() { return curFile === 'cfg' ? configSrc() : SRC[curFile]; }
+window.refreshCode = function () {
+  $('codeView').textContent = codeText();
+  for (const k in FILES) $(FILES[k][0]).setAttribute('aria-pressed', String(k === curFile));
+  $('codeLink').href = GH + FILES[curFile][1];
+};
+for (const k in FILES) $(FILES[k][0]).onclick = () => { curFile = k; refreshCode(); };
+$('copyCode').onclick = async () => {
+  const b = $('copyCode');
+  try { await navigator.clipboard.writeText(codeText()); b.textContent = 'คัดลอกแล้ว ✓'; }
+  catch (err) { const r = document.createRange(); r.selectNodeContents($('codeView')); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); b.textContent = 'เลือกข้อความแล้ว กด Ctrl+C'; }
+  setTimeout(() => { b.textContent = 'คัดลอก'; }, 2000);
+};
+updBody();
+
 /* ================= telemetry ================= */
 const MODE = { stand: ['ยืนทรงตัว', 'ok'], shift: ['ถ่ายน้ำหนัก', 'ok'], walk: ['เดิน', 'ok'], crouch: ['ย่อตัวเตรียมกระโดด', 'warn'], air: ['ลอยตัว', 'warn'],
-  land: ['ลงพื้น · ซับแรงกระแทก', 'warn'], fall: ['เสียสมดุล · กำลังล้ม', 'bad'], fallen: ['ล้ม · กำลังลุกขึ้น', 'bad'] };
+  land: ['ลงพื้น · ซับแรงกระแทก', 'warn'], fall: ['เสียสมดุล · กำลังล้ม', 'bad'], fallen: ['ล้ม · เตรียมลุก', 'bad'], getup: ['กำลังลุกขึ้นยืน', 'warn'] };
 let telTick = 0;
 function deg(r) { return (r * 180 / Math.PI).toFixed(1) + '°'; }
 function telemetry(p) {
@@ -1038,7 +1733,7 @@ function telemetry(p) {
   $('mode').textContent = label; $('status').dataset.tone = tone;
   const sp = Math.hypot(S.vx, S.vz);
   $('tVel').textContent = sp.toFixed(2) + ' m/s';
-  $('tH').textContent = (q.P[1] - S.gref).toFixed(3) + ' m';
+  $('tH').textContent = (q.P[1] - S.gref + COMOFF).toFixed(3) + ' m';
   $('tStep').textContent = S.stepLen.toFixed(2) + ' m';
   $('tCad').textContent = (S.mode === 'walk' ? Math.round(60 / S.T) : 0) + ' ก้าว/นาที';
   const flex = (hip, knee, ank) => {
@@ -1068,11 +1763,11 @@ function loop(now) {
   let n = 0;
   while (acc >= H) { step(H); acc -= H; n++; }
   const p = pose(), T = tokens();
-  if (S.mode !== 'fall' && S.mode !== 'fallen') {
+  if (S.mode !== 'fall' && S.mode !== 'fallen' && S.mode !== 'getup') {
     servo(p, n, H);
     S.lastPose = p;
     const stErr = S.mode === 'walk' ? S.ankErr[S.si] : Math.max(S.ankErr[0], S.ankErr[1]);
-    S.errT = stErr > 0.12 && S.mode !== 'air' ? S.errT + dt : 0;
+    S.errT = stErr > 0.12 * LS && S.mode !== 'air' ? S.errT + dt : 0;
     if (S.errT > 0.25) { S.errT = 0; startFall(); S.fallReason = 'servo'; }
   }
   render3D(p, T); render2D(p, T); telemetry(p);
