@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>array_simulator · จำลองขาหุ่นยนต์สองขาเดินด้วยฟิสิกส์ 3D และ 2D</title>
-<meta name="description" content="array_simulator จำลองขาหุ่นยนต์สองขาเดินได้แบบ 3D และ 2D ด้วยฟิสิกส์จริง ทรงตัวด้วยแบบจำลองลูกตุ้มกลับหัว (LIPM) และ capture point ปรับค่า Kp Kd ของมอเตอร์ได้ ผลักได้ กระโดดได้ ล้มได้ เล่นบนเบราว์เซอร์ได้ทันที">
+<meta name="description" content="array_simulator จำลองขาหุ่นยนต์สองขาเดินได้แบบ 3D และ 2D ด้วยฟิสิกส์จริง ทรงตัวด้วยแบบจำลองลูกตุ้มกลับหัว (LIPM) และ capture point เดินบนพื้นขรุขระ ปรับค่า Kp Kd ของมอเตอร์ได้ ผลักได้ กระโดดได้ ล้มได้ เล่นบนเบราว์เซอร์ได้ทันที">
 <meta name="keywords" content="array_simulator, หุ่นยนต์สองขา, ขาหุ่นยนต์, biped robot, จำลองหุ่นยนต์, PD controller, Kp Kd, ฟิสิกส์, LIPM, capture point, 3D">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://arraychinvon89.github.io/array.github.io/">
@@ -190,6 +190,10 @@ input[type=range] { width: 100%; accent-color: var(--robot); }
           <label for="force">แรงผลัก (Δv) <output id="forceOut">0.8 m/s</output></label>
           <input id="force" type="range" min="0.2" max="2.4" step="0.1" value="0.8">
         </div>
+        <div class="slider">
+          <label for="rough">ความขรุขระของพื้น <output id="roughOut">±6 cm</output></label>
+          <input id="rough" type="range" min="0" max="10" step="1" value="6">
+        </div>
       </div>
       <div class="group"><span>ตั้งค่า PD</span>
         <div class="sliders">
@@ -262,15 +266,19 @@ const mj = s => { s = clamp(s, 0, 1); return s * s * s * (10 - 15 * s + 6 * s * 
 const fwdOf = th => [Math.cos(th), Math.sin(th)];
 const leftOf = th => [Math.sin(th), -Math.cos(th)];
 const lerpAng = (a, b, t) => { const d = ((b - a + Math.PI) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI) - Math.PI; return a + d * t; };
+let TA = 0.06;   // terrain amplitude (m)
+const terrain = (x, z) => TA === 0 ? 0 : TA * (0.45 * Math.sin(1.1 * x + 0.3) * Math.cos(0.8 * z + 1.1) + 0.3 * Math.sin(2.3 * x - 1.7 * z + 0.5) + 0.25 * Math.sin(3.7 * x + 2.9 * z + 2.1));
+const slopeAt = (x, z, yaw) => { const c = Math.cos(yaw) * 0.08, s = Math.sin(yaw) * 0.08; return -Math.atan((terrain(x + c, z + s) - terrain(x - c, z - s)) / 0.16); };
 const ankleRise = ft => ft.pitch > 0 ? Math.sin(ft.pitch) * TOE : Math.sin(-ft.pitch) * HEEL;
 
 const S = { kp: 2500, kd: 100, kpB: 34, kdB: 11.6, sv: [{ h: 0, hv: 0, k: 0, kv: 0 }, { h: 0, hv: 0, k: 0, kv: 0 }], svInit: false, errT: 0, jointErr: 0, ankErr: [0, 0], lastPose: null,
   walking: true, vdes: 0.9, turn: 0, steps: 0, stepLen: 0, odo: 0, path: 0, falls: 0,
   jumpReq: false, lastSwing: 1, arm: [0, 0], footprints: [], fpSeq: 0, recover: 0 };
 
-function newFoot(x, z, yaw) { return { x, z, yaw, lift: 0, pitch: 0, sx: x, sz: z, syaw: yaw, spitch: 0, tx: x, tz: z }; }
+function newFoot(x, z, yaw) { return { x, z, yaw, gy: terrain(x, z), sgy: terrain(x, z), slope: slopeAt(x, z, yaw), lift: 0, pitch: 0, sx: x, sz: z, syaw: yaw, spitch: 0, tx: x, tz: z }; }
 function reset(x = 0, z = 0, th = 0, y = H0 - 0.01) {
   const n = leftOf(th);
+  S.gref = terrain(x, z); y += S.gref;
   Object.assign(S, { x, z, vx: 0, vz: 0, ax: 0, az: 0, y, ys: y, vy: 0, th, mode: 'stand', t: 0, T: 0.55, si: 1, tm: 0, fall: null,
     copx: x, copz: z, jumpReq: false });
   S.feet = [newFoot(x + n[0] * STEPW / 2, z + n[1] * STEPW / 2, th), newFoot(x - n[0] * STEPW / 2, z - n[1] * STEPW / 2, th)];
@@ -285,12 +293,12 @@ function beginStep() {
   S.T = S.recover > 0 ? 0.32 : clamp(0.6 - 0.12 * vd, 0.42, 0.6);
   S.t = 0; S.ts = 0; S.quick = false; S.mode = 'walk';
   const sw = S.feet[1 - S.si], st = S.feet[S.si];
-  Object.assign(sw, { sx: sw.x, sz: sw.z, syaw: sw.yaw, spitch: sw.pitch, tx: sw.x, tz: sw.z });
+  Object.assign(sw, { sx: sw.x, sz: sw.z, syaw: sw.yaw, spitch: sw.pitch, tx: sw.x, tz: sw.z, sgy: sw.gy });
   st.spitch = st.pitch;
 }
 function quickTouchdown(left) {
   const sw = S.feet[1 - S.si];
-  Object.assign(sw, { sx: sw.x, sz: sw.z, syaw: sw.yaw, spitch: sw.pitch, slift: sw.lift });
+  Object.assign(sw, { sx: sw.x, sz: sw.z, syaw: sw.yaw, spitch: sw.pitch, slift: sw.lift, sgy: sw.gy });
   S.ts = S.t; S.T = S.t + left; S.quick = true;
 }
 function chooseSwing(dl) { return dl > 0.02 ? 0 : dl < -0.02 ? 1 : (S.lastSwing === 0 ? 1 : 0); }
@@ -311,6 +319,22 @@ function getUp() {
   reset(F.px + F.ux * 0.45, F.pz + F.uz * 0.45, F.th, 0.32);
 }
 
+function updGround(dt) {
+  S.feet.forEach((ft, i) => {
+    const swinging = S.mode === 'walk' && i !== S.si;
+    const g = terrain(ft.x, ft.z);
+    if (swinging) {
+      const u = clamp((S.t - S.ts) / (S.T - S.ts), 0, 1);
+      ft.gy = Math.max(lerp(ft.sgy, terrain(ft.tx, ft.tz), mj(u)), g);
+    } else ft.gy = g;
+    ft.slope = lerpAng(ft.slope || 0, slopeAt(ft.x, ft.z, ft.yaw), swinging ? Math.min(1, dt * 10) : 1);
+  });
+  let g;
+  if (S.mode === 'walk') { const st = S.feet[S.si], sw = S.feet[1 - S.si]; g = 0.65 * st.gy + 0.35 * terrain(sw.tx, sw.tz); }
+  else if (S.mode === 'air') g = terrain(S.x, S.z);
+  else g = (S.feet[0].gy + S.feet[1].gy) / 2;
+  S.gref += (g - S.gref) * Math.min(1, dt * 8);
+}
 function limitHeight() {
   const n = leftOf(S.th);
   let lim = 2;
@@ -319,7 +343,7 @@ function limitHeight() {
     const sd = i === 0 ? 1 : -1;
     const hx = S.x + n[0] * sd * HW, hz = S.z + n[1] * sd * HW;
     const dh = Math.hypot(ft.x - hx, ft.z - hz);
-    const ay = AH + ft.lift + ankleRise(ft);
+    const ay = ft.gy + AH + ft.lift + ankleRise(ft);
     lim = Math.min(lim, ay + Math.sqrt(Math.max(0, REACH * REACH - dh * dh)));
   });
   S.y = Math.min(S.ys, lim);
@@ -340,10 +364,10 @@ function step(dt) {
     S.copx = S.x - ax / (OM * OM); S.copz = S.z - az / (OM * OM);
     S.feet.forEach(ft => { ft.pitch *= Math.max(0, 1 - dt * 10); ft.lift = 0; });
     if (S.mode === 'land') {
-      const ay = 170 * (H0 - 0.02 - S.y) - 15 * S.vy;
-      S.vy += ay * dt; S.y = Math.max(0.42, S.y + S.vy * dt); S.ys = S.y;
+      const ay = 170 * (S.gref + H0 - 0.02 - S.y) - 15 * S.vy;
+      S.vy += ay * dt; S.y = Math.max(S.gref + 0.42, S.y + S.vy * dt); S.ys = S.y;
     } else {
-      const yt = S.mode === 'crouch' ? 0.7 : H0 - 0.01;
+      const yt = S.gref + (S.mode === 'crouch' ? 0.7 : H0 - 0.01);
       S.ys += (yt - S.ys) * Math.min(1, dt * (S.mode === 'crouch' ? 16 : 5));
     }
     const xx = S.x + S.vx / OM - m.x, xz = S.z + S.vz / OM - m.z;
@@ -409,7 +433,7 @@ function step(dt) {
     else if (s > 0.62) st.pitch = 0.32 * mv * (s - 0.62) / 0.38;
     else st.pitch = 0;
     st.lift = 0;
-    S.ys += (H0 - 0.025 * mv - S.ys) * Math.min(1, dt * 6);
+    S.ys += (S.gref + H0 - 0.025 * mv - S.ys) * Math.min(1, dt * 6);
 
     if (S.t >= S.T) {
       sw.x = sw.tx; sw.z = sw.tz; sw.lift = 0; sw.yaw = S.th;
@@ -432,11 +456,11 @@ function step(dt) {
       const txx = S.x + S.vx * 0.12 + n[0] * sd * 0.1, tzz = S.z + S.vz * 0.12 + n[1] * sd * 0.1;
       ft.x += (txx - ft.x) * Math.min(1, dt * 12); ft.z += (tzz - ft.z) * Math.min(1, dt * 12);
       ft.yaw = lerpAng(ft.yaw, S.th, Math.min(1, dt * 6));
-      ft.lift = Math.max(0, S.y - ext - AH); ft.pitch *= Math.max(0, 1 - dt * 6);
+      ft.gy = terrain(ft.x, ft.z); ft.lift = Math.max(0, S.y - ext - AH - ft.gy); ft.pitch *= Math.max(0, 1 - dt * 6);
     });
-    if (S.vy < 0 && S.y - ext - AH <= 0) {
+    if (S.vy < 0 && S.y - ext - AH <= terrain(S.x, S.z)) {
       S.feet.forEach(ft => { ft.lift = 0; addFootprint(ft); });
-      S.mode = 'land'; S.tm = 0;
+      S.mode = 'land'; S.tm = 0; S.gref = terrain(S.x, S.z);
     }
     return;
   } else if (S.mode === 'fall') {
@@ -452,6 +476,7 @@ function step(dt) {
     if (S.tm > 2.4) getUp();
     return;
   }
+  updGround(dt);
   limitHeight();
   const vfw = S.vx * f[0] + S.vz * f[1];
   S.odo += vfw * dt; S.path += Math.hypot(S.vx, S.vz) * dt;
@@ -498,9 +523,10 @@ function computePose() {
   });
   const feetF = [], feetU = [];
   const ankles = S.feet.map((ft, i) => {
-    const c = Math.cos(ft.yaw), s = Math.sin(ft.yaw), cp = Math.cos(ft.pitch), sp = Math.sin(ft.pitch);
+    const pt = ft.pitch + (ft.slope || 0);
+    const c = Math.cos(ft.yaw), s = Math.sin(ft.yaw), cp = Math.cos(pt), sp = Math.sin(pt);
     feetF[i] = [c * cp, -sp, s * cp]; feetU[i] = [c * sp, cp, s * sp];
-    return [ft.x, AH + ft.lift + ankleRise(ft), ft.z];
+    return [ft.x, ft.gy + AH + ft.lift + ankleRise(ft), ft.z];
   });
   const kn = [0, 1].map(i => {
     const ff = norm([Math.cos(S.feet[i].yaw) + F[0], 0.05, Math.sin(S.feet[i].yaw) + F[2]]);
@@ -510,7 +536,7 @@ function computePose() {
   const accF = (S.ax || 0) * F[0] + (S.az || 0) * F[2];
   let lean = clamp(0.04 + 0.06 * sp + 0.01 * accF, -0.12, 0.32);
   if (S.mode === 'crouch') lean += 0.28;
-  if (S.mode === 'land') lean += clamp((H0 - S.y) * 1.4, 0, 0.4);
+  if (S.mode === 'land') lean += clamp((S.gref + H0 - S.y) * 1.4, 0, 0.4);
   if (S.mode === 'air') lean -= 0.05;
   const up = norm([F[0] * Math.sin(lean), Math.cos(lean), F[2] * Math.sin(lean)]);
   const tF = norm(cross(up, cross(F, up)));
@@ -545,7 +571,7 @@ function rotateAbout(p, k, ang, piv) {
 }
 function pose() {
   if (S.mode !== 'fall' && S.mode !== 'fallen') return computePose();
-  const F = S.fall, k = [F.uz, 0, -F.ux], piv = [F.px, 0, F.pz], ang = F.phi - F.phi0;
+  const F = S.fall, k = [F.uz, 0, -F.ux], piv = [F.px, terrain(F.px, F.pz), F.pz], ang = F.phi - F.phi0;
   const out = { pts: {}, vec: {} };
   for (const key in F.pose.pts) out.pts[key] = rotateAbout(F.pose.pts[key], k, ang, piv);
   for (const key in F.pose.vec) out.vec[key] = rotateAbout(F.pose.vec[key], k, ang, null);
@@ -625,6 +651,7 @@ function updPD() {
 $('pdReset').onclick = () => { for (const k in PD0) $(k).value = PD0[k]; updPD(); };
 updPD();
 $('speed').oninput = e => setSpeed(+e.target.value);
+$('rough').oninput = e => { TA = +e.target.value / 100; $('roughOut').textContent = TA === 0 ? 'เรียบ' : '±' + Math.round(TA * 100) + ' cm'; };
 $('force').oninput = e => { $('forceOut').textContent = (+e.target.value).toFixed(1) + ' m/s'; };
 window.addEventListener('keydown', e => {
   const tag = e.target.tagName;
@@ -697,6 +724,15 @@ function init3D() {
   const groundMat = new THREE.MeshStandardMaterial({ color: 0xdde5ec, roughness: 0.95 });
   const ground = new THREE.Mesh(new THREE.PlaneGeometry(80, 80), groundMat);
   ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
+  const TN = 120, TS = 24;
+  const tGeo = new THREE.BufferGeometry();
+  tGeo.setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array((TN + 1) * (TN + 1) * 3), 3));
+  tGeo.setAttribute('color', new THREE.Float32BufferAttribute(new Float32Array((TN + 1) * (TN + 1) * 3), 3));
+  const idx = [];
+  for (let i = 0; i < TN; i++) for (let j = 0; j < TN; j++) { const a = i * (TN + 1) + j, b = a + 1, c = a + TN + 1, d = c + 1; idx.push(a, c, b, b, c, d); }
+  tGeo.setIndex(idx);
+  const terrainMesh = new THREE.Mesh(tGeo, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.95, color: 0xb8b8b8 }));
+  terrainMesh.receiveShadow = true; scene.add(terrainMesh);
   let grid = new THREE.GridHelper(40, 40, 0xb9c6d3, 0xb9c6d3); grid.position.y = 0.001; scene.add(grid);
   let gridFine = new THREE.GridHelper(10, 40, 0xb9c6d3, 0xb9c6d3); gridFine.position.y = 0.0008;
   gridFine.material.transparent = true; gridFine.material.opacity = 0.35; scene.add(gridFine);
@@ -758,7 +794,7 @@ function init3D() {
   const fps = []; for (let i = 0; i < 36; i++) { const m = new THREE.Mesh(fpGeo, fpMat); m.visible = false; m.position.y = 0.002; scene.add(m); fps.push(m); }
 
   [head, parts.uaL, parts.uaR, parts.faL, parts.faR, parts.jShL, parts.jShR, parts.jElL, parts.jElR, parts.hdL, parts.hdR].forEach(m => { m.visible = false; });
-  return { renderer, scene, cam, controls, sun, groundMat, ground, grid, gridFine, parts, pelvis, torso, head, footG, phys, comM, cpM, copM, comBall, pend, arrow, fps, fpMat, antTip,
+  return { renderer, scene, cam, controls, sun, groundMat, ground, terrainMesh, TN, TS, grid, gridFine, parts, pelvis, torso, head, footG, phys, comM, cpM, copM, comBall, pend, arrow, fps, fpMat, antTip,
     mats: { comM: comM.material, cpM: cpM.material, copM: copM.material, comBall: comBall.material, pend: pend.material } };
 }
 try { R3 = init3D(); } catch (err) {
@@ -823,21 +859,38 @@ function render3D(p, T) {
   r.controls.update();
   r.sun.position.set(q.P[0] + 2.5, 5, q.P[2] + 1.8); r.sun.target.position.set(q.P[0], 0, q.P[2]);
   r.ground.position.set(Math.round(q.P[0]), 0, Math.round(q.P[2]));
+  const rough = TA > 0;
+  r.ground.visible = r.grid.visible = r.gridFine.visible = !rough; r.terrainMesh.visible = rough;
+  const tcx = Math.round(q.P[0] / 4) * 4, tcz = Math.round(q.P[2] / 4) * 4, key = tcx + ',' + tcz + '|' + TA + '|' + tokKey;
+  if (rough && r.tKey !== key) {
+    r.tKey = key;
+    const pos = r.terrainMesh.geometry.attributes.position.array, col = r.terrainMesh.geometry.attributes.color.array;
+    const c0 = new THREE.Color(T['grid-strong']).convertSRGBToLinear(), c1 = new THREE.Color(T.ground3d).convertSRGBToLinear(), cc = new THREE.Color();
+    for (let i = 0, k = 0; i <= r.TN; i++) for (let j = 0; j <= r.TN; j++, k += 3) {
+      const x = tcx - r.TS / 2 + j * r.TS / r.TN, z = tcz - r.TS / 2 + i * r.TS / r.TN, h = terrain(x, z);
+      pos[k] = x; pos[k + 1] = h; pos[k + 2] = z;
+      const chk = ((Math.floor(x) + Math.floor(z)) & 1) ? 0.18 : 0;
+      cc.copy(c0).lerp(c1, clamp(0.1 + 0.8 * (h / TA + 1) / 2 - chk, 0, 1));
+      col[k] = cc.r; col[k + 1] = cc.g; col[k + 2] = cc.b;
+    }
+    r.terrainMesh.geometry.attributes.position.needsUpdate = true; r.terrainMesh.geometry.attributes.color.needsUpdate = true;
+    r.terrainMesh.geometry.computeVertexNormals(); r.terrainMesh.geometry.computeBoundingSphere();
+  }
   r.grid.position.set(Math.round(q.P[0]), 0.001, Math.round(q.P[2]));
   r.gridFine.position.set(Math.round(q.P[0]), 0.0008, Math.round(q.P[2]));
 
   // footprints
   S.footprints.forEach((fp, i) => { const m = r.fps[i]; m.visible = true; const c = Math.cos(fp.yaw), s = Math.sin(fp.yaw);
-    m.position.set(fp.x + c * 0.05, 0.002, fp.z + s * 0.05); m.rotation.set(0, -fp.yaw, 0); });
+    m.position.set(fp.x + c * 0.05, terrain(fp.x + c * 0.05, fp.z + s * 0.05) + 0.006, fp.z + s * 0.05); m.rotation.set(0, -fp.yaw, 0); });
   for (let i = S.footprints.length; i < r.fps.length; i++) r.fps[i].visible = false;
 
   // physics markers
   const show = physChk.checked && S.mode !== 'fall' && S.mode !== 'fallen';
   r.phys.visible = show;
   if (show) {
-    r.comM.position.set(S.x, 0.004, S.z);
-    r.cpM.position.set(S.x + S.vx / OM, 0.005, S.z + S.vz / OM);
-    r.copM.position.set(S.copx, 0.006, S.copz);
+    r.comM.position.set(S.x, terrain(S.x, S.z) + 0.01, S.z);
+    r.cpM.position.set(S.x + S.vx / OM, terrain(S.x + S.vx / OM, S.z + S.vz / OM) + 0.012, S.z + S.vz / OM);
+    r.copM.position.set(S.copx, terrain(S.copx, S.copz) + 0.014, S.copz);
     r.comBall.position.set(S.x, S.y, S.z);
     const a = r.pend.geometry.attributes.position.array; a.set([S.copx, 0.006, S.copz, S.x, S.y, S.z]); r.pend.geometry.attributes.position.needsUpdate = true;
     const spd = Math.hypot(S.vx, S.vz, S.mode === 'air' || S.mode === 'land' ? S.vy : 0);
@@ -890,18 +943,25 @@ function render2D(p, T) {
   ctx.fillStyle = T.muted; ctx.font = '10px "JetBrains Mono", monospace'; ctx.textAlign = 'right';
   for (let m = 0.5; gy - m * sc > 20; m += 0.5) ctx.fillText(m.toFixed(1) + ' m', W2 - 8, gy - m * sc - 3);
   // ground
-  ctx.fillStyle = T.grid; ctx.fillRect(0, gy, W2, H2 - gy);
-  ctx.strokeStyle = T.ink; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W2, gy); ctx.stroke();
+  const gAt = xs => { const w = (xs - cx) / sc; return gy - terrain(ox + fx * w, oz + fz * w) * sc; };
+  const Yg = a => gy - terrain(a[0], a[2]) * sc;
+  ctx.fillStyle = T.grid; ctx.beginPath(); ctx.moveTo(0, H2);
+  for (let xs = 0; xs <= W2 + 4; xs += 4) ctx.lineTo(xs, gAt(xs));
+  ctx.lineTo(W2 + 4, H2); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = T.ink; ctx.lineWidth = 2; ctx.beginPath();
+  for (let xs = 0; xs <= W2 + 4; xs += 4) xs ? ctx.lineTo(xs, gAt(xs)) : ctx.moveTo(xs, gAt(xs));
+  ctx.stroke();
   ctx.textAlign = 'center';
   for (let m = Math.floor(left); m <= right; m++) {
     const x = cx + (m - odo) * sc;
-    ctx.strokeStyle = T.ink; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x, gy); ctx.lineTo(x, gy + 8); ctx.stroke();
-    ctx.fillStyle = T.muted; ctx.fillText(m + ' m', x, gy + 22);
+    const yy = gAt(x);
+    ctx.strokeStyle = T.ink; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x, yy); ctx.lineTo(x, yy + 8); ctx.stroke();
+    ctx.fillStyle = T.muted; ctx.fillText(m + ' m', x, Math.min(H2 - 4, yy + 22));
   }
 
   // footprints
   ctx.fillStyle = T.ink; ctx.globalAlpha = 0.18;
-  S.footprints.forEach(fp => { const a = [fp.x, 0, fp.z]; const x = X(a); ctx.fillRect(x - HEEL * sc * Math.abs(Math.cos(fp.yaw - th)), gy - 2, (TOE + HEEL) * sc * Math.abs(Math.cos(fp.yaw - th)), 3); });
+  S.footprints.forEach(fp => { const a = [fp.x, 0, fp.z]; const x = X(a); ctx.fillRect(x - HEEL * sc * Math.abs(Math.cos(fp.yaw - th)), Yg(a) - 2, (TOE + HEEL) * sc * Math.abs(Math.cos(fp.yaw - th)), 3); });
   ctx.globalAlpha = 1;
 
   const line = (a, b, w, col) => { ctx.strokeStyle = col; ctx.lineWidth = w; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(...P(a)); ctx.lineTo(...P(b)); ctx.stroke(); };
@@ -936,10 +996,11 @@ function render2D(p, T) {
   if (physChk.checked && S.mode !== 'fall' && S.mode !== 'fallen') {
     const com = [S.x, S.y, S.z], cop = [S.copx, 0, S.copz], xi = [S.x + S.vx / OM, 0, S.z + S.vz / OM];
     ctx.setLineDash([4, 4]); ctx.lineWidth = 1; ctx.strokeStyle = T.com;
-    ctx.beginPath(); ctx.moveTo(X(com), Yv(com)); ctx.lineTo(X(com), gy); ctx.stroke(); ctx.setLineDash([]);
-    if (S.mode !== 'air') { ctx.strokeStyle = T.cop; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(X(cop), gy); ctx.lineTo(X(com), Yv(com)); ctx.stroke(); }
-    ctx.fillStyle = T.cop; ctx.beginPath(); ctx.moveTo(X(cop), gy); ctx.lineTo(X(cop) - 6, gy + 9); ctx.lineTo(X(cop) + 6, gy + 9); ctx.closePath(); ctx.fill();
-    ctx.strokeStyle = T.cp; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(X(xi), gy, 7, Math.PI, 0); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(X(com), Yv(com)); ctx.lineTo(X(com), Yg(com)); ctx.stroke(); ctx.setLineDash([]);
+    const cy = Yg(cop), xy = Yg(xi);
+    if (S.mode !== 'air') { ctx.strokeStyle = T.cop; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(X(cop), cy); ctx.lineTo(X(com), Yv(com)); ctx.stroke(); }
+    ctx.fillStyle = T.cop; ctx.beginPath(); ctx.moveTo(X(cop), cy); ctx.lineTo(X(cop) - 6, cy + 9); ctx.lineTo(X(cop) + 6, cy + 9); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = T.cp; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(X(xi), xy, 7, Math.PI, 0); ctx.stroke();
     // CoM symbol
     const cx0 = X(com), cy0 = Yv(com), rr = 8;
     ctx.fillStyle = T.sheet; ctx.beginPath(); ctx.arc(cx0, cy0, rr, 0, Math.PI * 2); ctx.fill();
@@ -977,7 +1038,7 @@ function telemetry(p) {
   $('mode').textContent = label; $('status').dataset.tone = tone;
   const sp = Math.hypot(S.vx, S.vz);
   $('tVel').textContent = sp.toFixed(2) + ' m/s';
-  $('tH').textContent = q.P[1].toFixed(3) + ' m';
+  $('tH').textContent = (q.P[1] - S.gref).toFixed(3) + ' m';
   $('tStep').textContent = S.stepLen.toFixed(2) + ' m';
   $('tCad').textContent = (S.mode === 'walk' ? Math.round(60 / S.T) : 0) + ' ก้าว/นาที';
   const flex = (hip, knee, ank) => {
