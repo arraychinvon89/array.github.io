@@ -45,6 +45,7 @@
 * { box-sizing: border-box; }
 html, body { margin: 0; }
 img { max-width: 100%; }
+[hidden] { display: none !important; }
 body { background: var(--paper); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.6; }
 .wrap {
   max-width: 1280px; margin: 0 auto; display: grid; gap: 16px;
@@ -52,7 +53,7 @@ body { background: var(--paper); color: var(--ink); font-family: var(--f-body); 
   padding-right: max(16px, env(safe-area-inset-right, 0px));
   padding-block: 24px 40px;
 }
-header { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 8px 24px; }
+header { position: relative; z-index: 30; display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 8px 24px; }
 .eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
 h1 { font-family: var(--f-display); font-weight: 700; font-size: clamp(28px, 5vw, 42px); line-height: 1.1; margin: 4px 0 0; text-wrap: balance; }
 header h1 span { color: var(--robot); }
@@ -212,6 +213,7 @@ pre.code { margin: 0; max-height: 460px; overflow: auto; background: var(--paper
 .sp-btn:hover span { transform: translateX(4px); }
 .sp-btn:active { transform: scale(.97); }
 .sp-meta { animation: riseIn .7s ease 1.45s both; }
+.sp-hint { font-size: 13px; color: #8b96a3; animation: riseIn .7s ease 1.35s both; }
 .sp-grid { position: absolute; left: -10%; right: -10%; bottom: -10%; height: 55%; pointer-events: none; opacity: .35;
   background-image: linear-gradient(rgba(95,224,242,.22) 1px, transparent 1px), linear-gradient(90deg, rgba(95,224,242,.22) 1px, transparent 1px);
   background-size: 64px 64px; transform: perspective(420px) rotateX(62deg); transform-origin: 50% 100%;
@@ -252,6 +254,41 @@ input[type=range] { transition: filter .15s; } input[type=range]:hover { filter:
   *, *::before, *::after { animation: none !important; transition: none !important; }
   .sp-particles, .sp-sweep { display: none; }
 }
+
+.workspace { display: grid; grid-template-columns: minmax(300px, 380px) minmax(0, 1fr); gap: 16px; align-items: start; }
+.workspace.right { grid-template-columns: minmax(0, 1fr) minmax(300px, 380px); }
+.workspace.right .sidebar { order: 2; }
+.sidebar { position: sticky; top: max(12px, env(safe-area-inset-top, 0px)); max-height: calc(100vh - 24px); overflow-y: auto; overscroll-behavior: contain; display: grid; gap: 16px; align-content: start; scrollbar-width: thin; scrollbar-color: var(--grid-strong) transparent; border-radius: 6px; }
+.sidebar .sliders { grid-template-columns: minmax(0, 1fr); }
+.sidebar .sliders.four { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.sidebar .pdinfo button { margin-left: 0; }
+.mainc { display: grid; gap: 12px; min-width: 0; }
+.mainc .views { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); }
+.mainc .views[data-view="3d"], .mainc .views[data-view="2d"] { grid-template-columns: minmax(0, 1fr); }
+@media (max-width: 1180px) { .mainc .views { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 960px) {
+  .workspace, .workspace.right { grid-template-columns: minmax(0, 1fr); }
+  .sidebar { position: static; max-height: none; overflow: visible; order: 2; }
+  .workspace.right .sidebar { order: 2; }
+}
+.hdr-right { display: flex; align-items: flex-start; gap: 16px; flex-wrap: wrap; justify-content: flex-end; }
+.settings { position: relative; }
+.setpanel { position: absolute; right: 0; top: calc(100% + 8px); z-index: 20; width: min(320px, calc(100vw - 32px)); background: var(--sheet); border: 1px solid var(--grid-strong); border-radius: 8px; padding: 14px; display: grid; gap: 10px; box-shadow: 0 18px 50px rgba(0,0,0,.45); animation: msgIn .2s ease both; }
+.set-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; font-size: 14px; }
+@keyframes slideInL { from { opacity: 0; transform: translateX(-48px); filter: blur(6px); } to { opacity: 1; transform: none; filter: none; } }
+@keyframes slideInR { from { opacity: 0; transform: translateX(48px); filter: blur(6px); } to { opacity: 1; transform: none; filter: none; } }
+@keyframes zoomIn { from { opacity: 0; transform: scale(.94); filter: blur(10px); } to { opacity: 1; transform: none; filter: none; } }
+body.entered .sidebar { animation: slideInL .8s cubic-bezier(.2,.8,.2,1) .25s both; }
+body.entered .workspace.right .sidebar { animation-name: slideInR; }
+body.entered .mainc > * { animation: riseIn .7s cubic-bezier(.2,.8,.2,1) both; }
+body.entered .mainc > :nth-child(1) { animation-delay: .35s; }
+body.entered .mainc > .views { animation: zoomIn .9s cubic-bezier(.2,.8,.2,1) .2s both; }
+body.entered .mainc > :nth-child(3) { animation-delay: .55s; }
+body.entered .workspace { animation: none; }
+.splash.reveal { clip-path: circle(0% at var(--rx, 50%) var(--ry, 50%)); transition: clip-path .8s cubic-bezier(.7,0,.3,1), opacity .3s .6s; }
+.splash { clip-path: circle(150% at var(--rx, 50%) var(--ry, 50%)); }
+.ai-claude { display: inline-flex; align-items: center; gap: 8px; text-decoration: none; font-weight: 600; color: #1b1206; background: var(--robot); border-radius: 6px; padding: 10px 16px; min-height: 44px; width: fit-content; }
+.ai-claude:focus-visible { outline: 2px solid var(--glow); outline-offset: 2px; }
 .hint { font-size: 13px; color: var(--muted); margin: 0; }
 .notes { font-size: 14px; color: var(--muted); margin: 0; max-width: 90ch; }
 .notes b { color: var(--ink); font-weight: 600; }
@@ -270,6 +307,7 @@ input[type=range] { transition: filter .15s; } input[type=range]:hover { filter:
     <h1 class="sp-title" id="spTitle">array_<span>simulator</span></h1>
     <p class="sp-sub">จำลองหุ่นยนต์สองขาด้วยฟิสิกส์จริง ทั้ง 3D และ 2D ปรับ Kp Kd ขนาด และน้ำหนักได้ พร้อมโค้ด C++ สำหรับหุ่นยนต์จริง</p>
     <button id="spStart" class="sp-btn">เริ่ม simulator <span aria-hidden="true">→</span></button>
+    <div class="sp-hint">ขยับเมาส์ หุ่นยนต์ด้านหลังจะเดินตามจุดที่ชี้</div>
     <div class="sp-meta"><span>g = 9.81 m/s²</span><span>LIPM + capture point</span><span>ESP32 · C++</span></div>
   </div></div>
 </div>
@@ -279,149 +317,164 @@ input[type=range] { transition: filter .15s; } input[type=range]:hover { filter:
       <div class="eyebrow">หุ่นยนต์สองขา B-02 · Biped · LIPM gait</div>
       <h1>array_<span>simulator</span></h1>
     </div>
-    <p class="lede">หุ่นยนต์สองขาทรงตัวด้วยแบบจำลองลูกตุ้มกลับหัว (LIPM) เลือกจุดวางเท้าจาก capture point ทุกเฟรม ถ้าโดนผลักจะก้าวกู้สมดุลเอง ถ้าผลักแรงเกินไปก็ล้มได้</p>
+    <div class="hdr-right">
+      <p class="lede">หุ่นยนต์สองขาทรงตัวด้วยแบบจำลองลูกตุ้มกลับหัว (LIPM) เลือกจุดวางเท้าจาก capture point ทุกเฟรม ถ้าโดนผลักจะก้าวกู้สมดุลเอง ถ้าผลักแรงเกินไปก็ล้มได้</p>
+      <div class="settings">
+        <button id="setBtn" aria-expanded="false" aria-controls="setPanel"><span aria-hidden="true">⚙</span> ตั้งค่า</button>
+        <div id="setPanel" class="setpanel" hidden>
+          <div class="set-row"><span>แผงควบคุมอยู่ด้าน</span>
+            <div class="seg" role="group" aria-label="ตำแหน่งแผงควบคุม"><button id="sideL" aria-pressed="true">ซ้าย</button><button id="sideR" aria-pressed="false">ขวา</button></div>
+          </div>
+          <p class="hint">ถนัดมือไหนก็ย้ายแผงควบคุมไปด้านนั้น ค่านี้จำไว้ในเบราว์เซอร์นี้</p>
+        </div>
+      </div>
+    </div>
   </header>
 
-  <div class="viewbar">
-    <div class="seg" role="group" aria-label="มุมมอง">
-      <button id="vBoth" aria-pressed="true">ทั้งสองแบบ</button>
-      <button id="v3" aria-pressed="false">3D</button>
-      <button id="v2" aria-pressed="false">2D</button>
-    </div>
-    <label class="check"><input id="showPhys" type="checkbox" checked> แสดงเวกเตอร์ฟิสิกส์</label>
-  </div>
 
-  <div class="views" id="views" data-view="both">
-    <div class="vp" id="v3d">
-      <div class="chip">3D · ลากเพื่อหมุนกล้อง · ล้อเมาส์ซูม</div>
-      <div class="legend" id="leg3"><span><i style="background:var(--com)"></i>CoM</span><span><i style="background:var(--cp)"></i>Capture point ξ</span><span><i style="background:var(--cop)"></i>CoP</span></div>
-    </div>
-    <div class="vp" id="v2d">
-      <canvas id="cv2" aria-label="มุมมองด้านข้างของหุ่นยนต์"></canvas>
-      <div class="chip">2D · มุมมองด้านข้าง (sagittal)</div>
-      <div class="legend" id="leg2"><span><i style="background:var(--com)"></i>CoM</span><span><i style="background:var(--cp)"></i>ξ</span><span><i style="background:var(--cop)"></i>CoP / ขาลูกตุ้ม</span></div>
-    </div>
-  </div>
 
-  <div class="bench">
-    <section class="panel" aria-labelledby="ctl-h">
-      <h2 id="ctl-h">ควบคุม</h2>
-      <div class="group"><span>การเดิน</span>
-        <div class="row">
-          <button id="walk" class="primary" aria-pressed="true">หยุด <kbd>W</kbd></button>
-          <button id="tl">↺ เลี้ยวซ้าย <kbd>A</kbd></button>
-          <button id="tr">เลี้ยวขวา ↻ <kbd>D</kbd></button>
-          <button id="jump">กระโดด <kbd>Space</kbd></button>
+
+
+
+  <div class="workspace" id="workspace">
+    <aside class="sidebar" id="sidebar" aria-label="แผงควบคุม">
+      <section class="panel" aria-labelledby="ctl-h">
+        <h2 id="ctl-h">ควบคุม</h2>
+        <div class="group"><span>การเดิน</span>
+          <div class="row">
+            <button id="walk" class="primary" aria-pressed="true">หยุด <kbd>W</kbd></button>
+            <button id="tl">↺ เลี้ยวซ้าย <kbd>A</kbd></button>
+            <button id="tr">เลี้ยวขวา ↻ <kbd>D</kbd></button>
+            <button id="jump">กระโดด <kbd>Space</kbd></button>
+          </div>
         </div>
-      </div>
-      <div class="group"><span>ทดสอบการทรงตัว</span>
-        <div class="row">
-          <button id="pushB">ผลักจากด้านหลัง <kbd>P</kbd></button>
-          <button id="pushS">ผลักจากด้านข้าง <kbd>O</kbd></button>
-          <button id="pushF">ผลักจากด้านหน้า</button>
-          <button id="reset">ตั้งหุ่นใหม่ <kbd>R</kbd></button>
+        <div class="group"><span>ทดสอบการทรงตัว</span>
+          <div class="row">
+            <button id="pushB">ผลักจากด้านหลัง <kbd>P</kbd></button>
+            <button id="pushS">ผลักจากด้านข้าง <kbd>O</kbd></button>
+            <button id="pushF">ผลักจากด้านหน้า</button>
+            <button id="reset">ตั้งหุ่นใหม่ <kbd>R</kbd></button>
+          </div>
         </div>
-      </div>
-      <div class="sliders">
-        <div class="slider">
-          <label for="speed">ความเร็วเป้าหมาย <output id="speedOut">0.9 m/s</output></label>
-          <input id="speed" type="range" min="0.2" max="1.6" step="0.1" value="0.9">
-        </div>
-        <div class="slider">
-          <label for="force">แรงดลที่ผลัก <output id="forceOut">40 N·s</output></label>
-          <input id="force" type="range" min="5" max="120" step="5" value="40">
-        </div>
-        <div class="slider">
-          <label for="rough">ความขรุขระของพื้น <output id="roughOut">±6 cm</output></label>
-          <input id="rough" type="range" min="0" max="10" step="1" value="6">
-        </div>
-      </div>
-      <div class="group"><span>ตั้งค่า PD</span>
         <div class="sliders">
           <div class="slider">
-            <label for="kp">มอเตอร์ข้อต่อ Kp <output id="kpOut">3000 N·m/rad</output></label>
-            <input id="kp" type="range" min="50" max="8000" step="50" value="3000">
+            <label for="speed">ความเร็วเป้าหมาย <output id="speedOut">0.9 m/s</output></label>
+            <input id="speed" type="range" min="0.2" max="1.6" step="0.1" value="0.9">
           </div>
           <div class="slider">
-            <label for="kd">มอเตอร์ข้อต่อ Kd <output id="kdOut">170 N·m·s/rad</output></label>
-            <input id="kd" type="range" min="0" max="600" step="5" value="170">
+            <label for="force">แรงดลที่ผลัก <output id="forceOut">40 N·s</output></label>
+            <input id="force" type="range" min="5" max="120" step="5" value="40">
           </div>
           <div class="slider">
-            <label for="kpb">ทรงตัว CoM Kp <output id="kpbOut">1600 N/m</output></label>
-            <input id="kpb" type="range" min="100" max="6000" step="50" value="1600">
+            <label for="rough">ความขรุขระของพื้น <output id="roughOut">±6 cm</output></label>
+            <input id="rough" type="range" min="0" max="10" step="1" value="6">
           </div>
-          <div class="slider">
-            <label for="kdb">ทรงตัว CoM Kd <output id="kdbOut">545 N·s/m</output></label>
-            <input id="kdb" type="range" min="0" max="1500" step="5" value="545">
+        </div>
+        <div class="group"><span>ตั้งค่า PD</span>
+          <div class="sliders">
+            <div class="slider">
+              <label for="kp">มอเตอร์ข้อต่อ Kp <output id="kpOut">3000 N·m/rad</output></label>
+              <input id="kp" type="range" min="50" max="8000" step="50" value="3000">
+            </div>
+            <div class="slider">
+              <label for="kd">มอเตอร์ข้อต่อ Kd <output id="kdOut">170 N·m·s/rad</output></label>
+              <input id="kd" type="range" min="0" max="600" step="5" value="170">
+            </div>
+            <div class="slider">
+              <label for="kpb">ทรงตัว CoM Kp <output id="kpbOut">1600 N/m</output></label>
+              <input id="kpb" type="range" min="100" max="6000" step="50" value="1600">
+            </div>
+            <div class="slider">
+              <label for="kdb">ทรงตัว CoM Kd <output id="kdbOut">545 N·s/m</output></label>
+              <input id="kdb" type="range" min="0" max="1500" step="5" value="545">
+            </div>
           </div>
+          <div class="pdinfo">
+            <span id="pdJ">เข่าขายืน ζ = 0.76</span>
+            <span id="pdJ2">สะโพกขาเหวี่ยง ζ = 1.07</span>
+            <span id="pdB">ทรงตัว ζ = 0.99</span>
+            <button id="pdReset">คืนค่าเริ่มต้น</button>
+          </div>
+          <p class="hint">แรงบิดมอเตอร์ = Kp × (มุมเป้าหมาย − มุมจริง) − Kd × ความเร็วเชิงมุม · ζ = Kd ÷ (2√(Kp × ความเฉื่อย)) ขึ้นกับน้ำหนักหุ่น ถ้าต่ำกว่า 1 ข้อต่อจะแกว่งเกินเป้า ถ้าสูงกว่า 1 จะตอบสนองช้า · Kp ข้อต่อต่ำมากๆ เข่าจะรับน้ำหนักตัวไม่ไหวจนทรุดแล้วล้ม · Kp ทรงตัวต่ำ หุ่นจะดึงตัวกลับไม่ทันแล้วต้องก้าวเท้า</p>
+        </div>
+        <p class="hint">กดค้างปุ่มเลี้ยว หรือกด A / D (ลูกศรซ้าย/ขวา) ค้างไว้ · แรงดลหารด้วยน้ำหนักหุ่นคือความเร็วที่เพิ่มขึ้น หุ่นหนักจึงทนแรงผลักได้มากกว่า · ตอนเดินอยู่ ผลักด้านข้างเกินราว 60 N·s หรือด้านหลังเกินราว 90 N·s (ที่น้ำหนักเริ่มต้น 47 kg) หุ่นจะก้าวรับไม่ทันแล้วล้ม แล้วลุกขึ้นยืนเอง</p>
+      </section>
+      <section class="panel" aria-labelledby="body-h">
+        <h2 id="body-h">ขนาดและน้ำหนัก</h2>
+        <div class="sliders four">
+          <div class="slider"><label for="bThigh">ต้นขา <output id="bThighOut">0.44 m</output></label><input id="bThigh" type="range" min="0.25" max="0.6" step="0.01" value="0.44"></div>
+          <div class="slider"><label for="bShin">หน้าแข้ง <output id="bShinOut">0.44 m</output></label><input id="bShin" type="range" min="0.25" max="0.6" step="0.01" value="0.44"></div>
+          <div class="slider"><label for="bTorsoH">ลำตัวสูง <output id="bTorsoHOut">0.44 m</output></label><input id="bTorsoH" type="range" min="0.2" max="0.7" step="0.01" value="0.44"></div>
+          <div class="slider"><label for="bTorsoW">ลำตัวกว้าง <output id="bTorsoWOut">0.36 m</output></label><input id="bTorsoW" type="range" min="0.2" max="0.5" step="0.01" value="0.36"></div>
+          <div class="slider"><label for="bArm">แขนยาว <output id="bArmOut">0.54 m</output></label><input id="bArm" type="range" min="0" max="0.8" step="0.01" value="0.54"></div>
+          <div class="slider"><label for="bMT">น้ำหนักลำตัว <output id="bMTOut">25 kg</output></label><input id="bMT" type="range" min="3" max="80" step="1" value="25"></div>
+          <div class="slider"><label for="bML">น้ำหนักขา (ต่อข้าง) <output id="bMLOut">8 kg</output></label><input id="bML" type="range" min="1" max="20" step="0.5" value="8"></div>
+          <div class="slider"><label for="bMA">น้ำหนักแขน (ต่อข้าง) <output id="bMAOut">3 kg</output></label><input id="bMA" type="range" min="0.5" max="10" step="0.5" value="3"></div>
         </div>
         <div class="pdinfo">
-          <span id="pdJ">เข่าขายืน ζ = 0.76</span>
-          <span id="pdJ2">สะโพกขาเหวี่ยง ζ = 1.07</span>
-          <span id="pdB">ทรงตัว ζ = 0.99</span>
-          <button id="pdReset">คืนค่าเริ่มต้น</button>
+          <span id="bTotal">น้ำหนักรวม 47 kg</span>
+          <span id="bHeight">สูง 1.45 m</span>
+          <span id="bCom">CoM สูง 0.98 m</span>
+          <span id="bFreq">ω = 3.16 rad/s</span>
+          <button id="bReset">คืนค่าเริ่มต้น</button>
         </div>
-        <p class="hint">แรงบิดมอเตอร์ = Kp × (มุมเป้าหมาย − มุมจริง) − Kd × ความเร็วเชิงมุม · ζ = Kd ÷ (2√(Kp × ความเฉื่อย)) ขึ้นกับน้ำหนักหุ่น ถ้าต่ำกว่า 1 ข้อต่อจะแกว่งเกินเป้า ถ้าสูงกว่า 1 จะตอบสนองช้า · Kp ข้อต่อต่ำมากๆ เข่าจะรับน้ำหนักตัวไม่ไหวจนทรุดแล้วล้ม · Kp ทรงตัวต่ำ หุ่นจะดึงตัวกลับไม่ทันแล้วต้องก้าวเท้า</p>
+        <p class="hint">ตั้งแขนยาว 0 ถ้าไม่ต้องการแขน · ขายาวขึ้นก้าวได้ยาวขึ้นแต่จังหวะช้าลง · หุ่นหนักขึ้นต้องใช้ Kp ข้อต่อมากขึ้น ไม่อย่างนั้นเข่าจะทรุด · ลำตัวสูงหรือหนักทำให้ CoM สูงขึ้น ลูกตุ้มล้มช้าลง</p>
+      </section>
+    </aside>
+    <div class="mainc">
+      <div class="viewbar">
+        <div class="seg" role="group" aria-label="มุมมอง">
+          <button id="vBoth" aria-pressed="true">ทั้งสองแบบ</button>
+          <button id="v3" aria-pressed="false">3D</button>
+          <button id="v2" aria-pressed="false">2D</button>
+        </div>
+        <label class="check"><input id="showPhys" type="checkbox" checked> แสดงเวกเตอร์ฟิสิกส์</label>
       </div>
-      <p class="hint">กดค้างปุ่มเลี้ยว หรือกด A / D (ลูกศรซ้าย/ขวา) ค้างไว้ · แรงดลหารด้วยน้ำหนักหุ่นคือความเร็วที่เพิ่มขึ้น หุ่นหนักจึงทนแรงผลักได้มากกว่า · ตอนเดินอยู่ ผลักด้านข้างเกินราว 60 N·s หรือด้านหลังเกินราว 90 N·s (ที่น้ำหนักเริ่มต้น 47 kg) หุ่นจะก้าวรับไม่ทันแล้วล้ม แล้วลุกขึ้นยืนเอง</p>
-    </section>
-
-    <section class="panel" aria-labelledby="tel-h">
-      <h2 id="tel-h">ค่าจากเซนเซอร์</h2>
-      <div class="status" id="status" data-tone="ok"><span class="dot"></span><span id="mode">ยืนทรงตัว</span></div>
-      <div class="imu">
-        <canvas id="att" width="132" height="132" aria-label="มาตรวัดท่าทางจากไจโร"></canvas>
-        <div class="imu-data">
-          <div class="imu-title">ไจโร / IMU · กลางลำตัว</div>
-          <dl class="imu-grid">
-            <dt>Roll</dt><dd id="iRoll">0.0°</dd><dd id="iGRoll">0 °/s</dd>
-            <dt>Pitch</dt><dd id="iPitch">0.0°</dd><dd id="iGPitch">0 °/s</dd>
-            <dt>Yaw</dt><dd id="iYaw">0.0°</dd><dd id="iGYaw">0 °/s</dd>
-          </dl>
-          <div class="imu-note">Roll + = เอียงขวา · Pitch + = ก้มไปข้างหน้า</div>
+      <div class="views" id="views" data-view="both">
+        <div class="vp" id="v3d">
+          <div class="chip">3D · ลากเพื่อหมุนกล้อง · ล้อเมาส์ซูม</div>
+          <div class="legend" id="leg3"><span><i style="background:var(--com)"></i>CoM</span><span><i style="background:var(--cp)"></i>Capture point ξ</span><span><i style="background:var(--cop)"></i>CoP</span></div>
+        </div>
+        <div class="vp" id="v2d">
+          <canvas id="cv2" aria-label="มุมมองด้านข้างของหุ่นยนต์"></canvas>
+          <div class="chip">2D · มุมมองด้านข้าง (sagittal)</div>
+          <div class="legend" id="leg2"><span><i style="background:var(--com)"></i>CoM</span><span><i style="background:var(--cp)"></i>ξ</span><span><i style="background:var(--cop)"></i>CoP / ขาลูกตุ้ม</span></div>
         </div>
       </div>
-      <dl class="telemetry">
-        <div><dt>ความเร็ว</dt><dd id="tVel">0.00 m/s</dd></div>
-        <div><dt>ความสูง CoM</dt><dd id="tH">0.86 m</dd></div>
-        <div><dt>ความยาวก้าว</dt><dd id="tStep">0.00 m</dd></div>
-        <div><dt>จังหวะก้าว</dt><dd id="tCad">0 ก้าว/นาที</dd></div>
-        <div><dt>สะโพกซ้าย</dt><dd id="hL">0°</dd></div>
-        <div><dt>สะโพกขวา</dt><dd id="hR">0°</dd></div>
-        <div><dt>เข่าซ้าย</dt><dd id="kL">0°</dd></div>
-        <div><dt>เข่าขวา</dt><dd id="kR">0°</dd></div>
-        <div><dt>ξ ห่างเท้ายืน</dt><dd id="tXi">0.00 m</dd></div>
-        <div><dt>เส้นทาง</dt><dd id="tDist">0.0 m</dd></div>
-        <div><dt>ก้าวทั้งหมด</dt><dd id="tSteps">0</dd></div>
-        <div><dt>ล้มไปแล้ว</dt><dd id="tFalls">0 ครั้ง</dd></div>
-        <div><dt>ข้อต่อคลาดเคลื่อน</dt><dd id="tErr">0.0°</dd></div>
-        <div><dt>ลำตัวทรุด / เท้าคลาด</dt><dd id="tAErr">0 mm</dd></div>
-      </dl>
-    </section>
+      <section class="panel" aria-labelledby="tel-h">
+        <h2 id="tel-h">ค่าจากเซนเซอร์</h2>
+        <div class="status" id="status" data-tone="ok"><span class="dot"></span><span id="mode">ยืนทรงตัว</span></div>
+        <div class="imu">
+          <canvas id="att" width="132" height="132" aria-label="มาตรวัดท่าทางจากไจโร"></canvas>
+          <div class="imu-data">
+            <div class="imu-title">ไจโร / IMU · กลางลำตัว</div>
+            <dl class="imu-grid">
+              <dt>Roll</dt><dd id="iRoll">0.0°</dd><dd id="iGRoll">0 °/s</dd>
+              <dt>Pitch</dt><dd id="iPitch">0.0°</dd><dd id="iGPitch">0 °/s</dd>
+              <dt>Yaw</dt><dd id="iYaw">0.0°</dd><dd id="iGYaw">0 °/s</dd>
+            </dl>
+            <div class="imu-note">Roll + = เอียงขวา · Pitch + = ก้มไปข้างหน้า</div>
+          </div>
+        </div>
+        <dl class="telemetry">
+          <div><dt>ความเร็ว</dt><dd id="tVel">0.00 m/s</dd></div>
+          <div><dt>ความสูง CoM</dt><dd id="tH">0.86 m</dd></div>
+          <div><dt>ความยาวก้าว</dt><dd id="tStep">0.00 m</dd></div>
+          <div><dt>จังหวะก้าว</dt><dd id="tCad">0 ก้าว/นาที</dd></div>
+          <div><dt>สะโพกซ้าย</dt><dd id="hL">0°</dd></div>
+          <div><dt>สะโพกขวา</dt><dd id="hR">0°</dd></div>
+          <div><dt>เข่าซ้าย</dt><dd id="kL">0°</dd></div>
+          <div><dt>เข่าขวา</dt><dd id="kR">0°</dd></div>
+          <div><dt>ξ ห่างเท้ายืน</dt><dd id="tXi">0.00 m</dd></div>
+          <div><dt>เส้นทาง</dt><dd id="tDist">0.0 m</dd></div>
+          <div><dt>ก้าวทั้งหมด</dt><dd id="tSteps">0</dd></div>
+          <div><dt>ล้มไปแล้ว</dt><dd id="tFalls">0 ครั้ง</dd></div>
+          <div><dt>ข้อต่อคลาดเคลื่อน</dt><dd id="tErr">0.0°</dd></div>
+          <div><dt>ลำตัวทรุด / เท้าคลาด</dt><dd id="tAErr">0 mm</dd></div>
+        </dl>
+      </section>
+    </div>
   </div>
-
-
-  <section class="panel" aria-labelledby="body-h">
-    <h2 id="body-h">ขนาดและน้ำหนัก</h2>
-    <div class="sliders four">
-      <div class="slider"><label for="bThigh">ต้นขา <output id="bThighOut">0.44 m</output></label><input id="bThigh" type="range" min="0.25" max="0.6" step="0.01" value="0.44"></div>
-      <div class="slider"><label for="bShin">หน้าแข้ง <output id="bShinOut">0.44 m</output></label><input id="bShin" type="range" min="0.25" max="0.6" step="0.01" value="0.44"></div>
-      <div class="slider"><label for="bTorsoH">ลำตัวสูง <output id="bTorsoHOut">0.44 m</output></label><input id="bTorsoH" type="range" min="0.2" max="0.7" step="0.01" value="0.44"></div>
-      <div class="slider"><label for="bTorsoW">ลำตัวกว้าง <output id="bTorsoWOut">0.36 m</output></label><input id="bTorsoW" type="range" min="0.2" max="0.5" step="0.01" value="0.36"></div>
-      <div class="slider"><label for="bArm">แขนยาว <output id="bArmOut">0.54 m</output></label><input id="bArm" type="range" min="0" max="0.8" step="0.01" value="0.54"></div>
-      <div class="slider"><label for="bMT">น้ำหนักลำตัว <output id="bMTOut">25 kg</output></label><input id="bMT" type="range" min="3" max="80" step="1" value="25"></div>
-      <div class="slider"><label for="bML">น้ำหนักขา (ต่อข้าง) <output id="bMLOut">8 kg</output></label><input id="bML" type="range" min="1" max="20" step="0.5" value="8"></div>
-      <div class="slider"><label for="bMA">น้ำหนักแขน (ต่อข้าง) <output id="bMAOut">3 kg</output></label><input id="bMA" type="range" min="0.5" max="10" step="0.5" value="3"></div>
-    </div>
-    <div class="pdinfo">
-      <span id="bTotal">น้ำหนักรวม 47 kg</span>
-      <span id="bHeight">สูง 1.45 m</span>
-      <span id="bCom">CoM สูง 0.98 m</span>
-      <span id="bFreq">ω = 3.16 rad/s</span>
-      <button id="bReset">คืนค่าเริ่มต้น</button>
-    </div>
-    <p class="hint">ตั้งแขนยาว 0 ถ้าไม่ต้องการแขน · ขายาวขึ้นก้าวได้ยาวขึ้นแต่จังหวะช้าลง · หุ่นหนักขึ้นต้องใช้ Kp ข้อต่อมากขึ้น ไม่อย่างนั้นเข่าจะทรุด · ลำตัวสูงหรือหนักทำให้ CoM สูงขึ้น ลูกตุ้มล้มช้าลง</p>
-  </section>
 
   <section class="panel" aria-labelledby="code-h">
     <h2 id="code-h">โค้ด C++ สำหรับหุ่นยนต์จริง</h2>
@@ -461,7 +514,9 @@ input[type=range] { transition: filter .15s; } input[type=range]:hover { filter:
     </form>
     <p class="hint" id="aiNote" hidden></p>
     <div class="aikey" id="aiKeyBox" hidden>
-      <label for="aiKey">ใช้ผู้ช่วยบนเว็บนี้ด้วย Anthropic API key ของคุณ</label>
+      <span class="set-title"><b>ไม่ต้องใช้ key:</b> เปิดหน้านี้ผ่าน Claude แล้วผู้ช่วยจะใช้บัญชี Claude ของคุณ (บัญชีฟรีก็ใช้ได้)</span>
+      <a class="ai-claude" href="https://claude.ai/artifact/HR9fQQstTWxvs4iT7WyWX2" target="_blank" rel="noopener">คุยกับผู้ช่วยผ่าน Claude ↗</a>
+      <label for="aiKey">หรือใช้บนเว็บนี้เลยด้วย Anthropic API key ของคุณ</label>
       <div class="row">
         <input id="aiKey" type="password" autocomplete="off" spellcheck="false" placeholder="sk-ant-...">
         <button type="button" id="aiKeySave">บันทึก key</button>
@@ -1642,7 +1697,7 @@ $('rough').oninput = e => { TA = +e.target.value / 100; $('roughOut').textConten
 $('force').oninput = e => { $('forceOut').textContent = (+e.target.value) + ' N·s'; };
 window.addEventListener('keydown', e => {
   const tag = e.target.tagName;
-  if (tag === 'TEXTAREA' || spOn) return;
+  if (tag === 'TEXTAREA' || (spOn && !spLeaving)) return;
   if (tag === 'INPUT' && e.key.startsWith('Arrow')) return;
   const k = e.key.toLowerCase();
   if (k === 'a' || e.key === 'ArrowLeft') { keyTurn.l = 1; updTurn(); e.preventDefault(); }
@@ -2341,6 +2396,30 @@ try {
 function spResize() { if (!spR) return; const r = spBg.getBoundingClientRect(); spR.setSize(r.width, r.height, false); spCam.aspect = r.width / Math.max(1, r.height); spCam.updateProjectionMatrix(); }
 window.addEventListener('resize', spResize); spResize();
 window.addEventListener('pointermove', e => { mx = e.clientX / innerWidth * 2 - 1; my = e.clientY / innerHeight * 2 - 1; });
+// On the welcome screen the robot walks toward the point on the ground under the mouse.
+let spHasMouse = false, spLeaving = false, spLeaveT = 0, spTarget = null, spRing = null;
+const spRay = R3 ? new THREE.Raycaster() : null, spNdc = R3 ? new THREE.Vector2() : null;
+if (R3) {
+  spRing = new THREE.Mesh(new THREE.RingGeometry(0.16, 0.22, 40).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0xf39a3d, transparent: true, opacity: 0.9, depthWrite: false }));
+  spRing.visible = false; R3.scene.add(spRing);
+}
+window.addEventListener('pointermove', () => { spHasMouse = true; }, { once: true });
+function spSteer() {
+  if (!spR || !spHasMouse || spLeaving || S.mode === 'fall' || S.mode === 'fallen' || S.mode === 'getup') return;
+  spNdc.set(mx, -my); spRay.setFromCamera(spNdc, spCam);
+  const o = spRay.ray.origin, d = spRay.ray.direction, gy = S.gref || 0;
+  if (d.y > -0.02) return;                                   // pointing at the sky
+  const t = (gy - o.y) / d.y;
+  spTarget = [o.x + d.x * t, gy, o.z + d.z * t];
+  const dx = spTarget[0] - S.x, dz = spTarget[2] - S.z, dist = Math.hypot(dx, dz);
+  const err = Math.atan2(Math.sin(Math.atan2(dz, dx) - S.th), Math.cos(Math.atan2(dz, dx) - S.th));
+  S.turn = dist > 0.35 ? clamp(err * 1.4, -0.8, 0.8) : 0;
+  S.walking = dist > 0.55;
+  S.vdes = clamp(0.3 + dist * 0.25, 0.3, 0.8) * (0.55 + 0.45 * Math.max(0, Math.cos(err)));   // slow down to turn
+  spRing.visible = true;
+  spRing.position.set(spTarget[0], terrain(spTarget[0], spTarget[2]) + 0.01, spTarget[2]);
+  spRing.scale.setScalar(1 + 0.15 * Math.sin(performance.now() / 180));
+}
 function spFrame(p) {
   if (!spOn) return;
   const k = reducedMotion ? 0 : 1;
@@ -2349,10 +2428,15 @@ function spFrame(p) {
   $('spParticles').style.transform = `translate(${smx * 34 * k}px, ${smy * 24 * k}px)`;
   spCard.style.transform = `perspective(900px) rotateY(${smx * 5 * k}deg) rotateX(${-smy * 4 * k}deg) translate(${smx * 8 * k}px, ${smy * 6 * k}px)`;
   if (!spR || !p) return;
-  const P = p.pts.P, f2 = fwdOf(S.th), n2 = leftOf(S.th);
-  const ang = 0.9 + smx * 0.7 * k, dist = 2.6, side = [f2[0] * Math.cos(ang) + n2[0] * Math.sin(ang), f2[1] * Math.cos(ang) + n2[1] * Math.sin(ang)];
-  spCam.position.set(P[0] + side[0] * dist, 0.75 + smy * 0.45 * k + P[1] * 0.3, P[2] + side[1] * dist);
-  spCam.lookAt(P[0], P[1] * 0.75, P[2]);
+  const P = p.pts.P;
+  // camera: a fixed side-on angle that trails the robot; on leaving it dollies in to the robot's chest
+  const lt = spLeaving ? clamp((performance.now() - spLeaveT) / 900, 0, 1) : 0, z = 1 - 0.7 * lt * lt * (3 - 2 * lt);
+  const off = [2.3 * z + smx * 0.25 * k, (1.15 + smy * 0.3 * k) * z + 0.25 * lt, 2.7 * z];
+  const cx = spCam.userData.cx ?? P[0], cz = spCam.userData.cz ?? P[2];
+  spCam.userData.cx = cx + (P[0] - cx) * 0.05; spCam.userData.cz = cz + (P[2] - cz) * 0.05;
+  spCam.position.set(spCam.userData.cx + off[0], (S.gref || 0) + off[1], spCam.userData.cz + off[2]);
+  spCam.lookAt(spCam.userData.cx, P[1] * (0.7 + 0.3 * lt), spCam.userData.cz);
+  spSteer();
   const physWas = R3.phys.visible, imuWas = R3.imuG.visible;
   R3.phys.visible = false; R3.imuG.visible = false;
   spR.render(R3.scene, spCam);
@@ -2375,18 +2459,42 @@ function spFrame(p) {
   }
 })();
 function startSim() {
-  if (!spOn) return;
-  spOn = false;
+  if (!spOn || spLeaving) return;
+  spLeaving = true; spLeaveT = performance.now();
+  // hand the robot back to the normal controls
+  keyTurn.l = keyTurn.r = 0; btnTurn.l = btnTurn.r = 0; updTurn(); setWalking(true); setSpeed(+$('speed').value);
+  if (spRing) spRing.visible = false;
+  const b = $('spStart').getBoundingClientRect();
+  splash.style.setProperty('--rx', ((b.left + b.width / 2) / innerWidth * 100).toFixed(1) + '%');
+  splash.style.setProperty('--ry', ((b.top + b.height / 2) / innerHeight * 100).toFixed(1) + '%');
   splash.classList.add('leaving');
-  setTimeout(() => splash.classList.add('out'), 280);
-  setTimeout(() => { splash.hidden = true; if (spR) { spR.dispose(); spR = null; } }, 950);
   document.body.classList.add('entered');
   requestAnimationFrame(resizeAll);
-  $('walk').focus({ preventScroll: true });
-}
-$('spStart').onclick = startSim;
+  const fast = reducedMotion ? 0 : 1;
+  setTimeout(() => splash.classList.add('reveal'), 520 * fast);
+  setTimeout(() => {
+    spOn = false; splash.hidden = true;
+    if (spR) { spR.dispose(); spR = null; }
+    $('walk').focus({ preventScroll: true });
+  }, 1400 * fast + 20);
+}$('spStart').onclick = startSim;
 splash.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); startSim(); } e.stopPropagation(); });
 setTimeout(() => { try { $('spStart').focus({ preventScroll: true }); } catch (e) {} }, 50);
+
+
+/* ================= settings: control panel side ================= */
+const SIDE_LS = 'array_sim_panel_side';
+function setSide(side) {
+  $('workspace').classList.toggle('right', side === 'right');
+  $('sideL').setAttribute('aria-pressed', String(side !== 'right')); $('sideR').setAttribute('aria-pressed', String(side === 'right'));
+  try { localStorage.setItem(SIDE_LS, side); } catch (e) {}
+  requestAnimationFrame(resizeAll);
+}
+try { setSide(localStorage.getItem(SIDE_LS) === 'right' ? 'right' : 'left'); } catch (e) { setSide('left'); }
+$('sideL').onclick = () => setSide('left'); $('sideR').onclick = () => setSide('right');
+$('setBtn').onclick = e => { const p = $('setPanel'); p.hidden = !p.hidden; $('setBtn').setAttribute('aria-expanded', String(!p.hidden)); e.stopPropagation(); };
+document.addEventListener('click', e => { const p = $('setPanel'); if (!p.hidden && !p.contains(e.target)) { p.hidden = true; $('setBtn').setAttribute('aria-expanded', 'false'); } });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { $('setPanel').hidden = true; $('setBtn').setAttribute('aria-expanded', 'false'); } });
 
 /* ================= telemetry ================= */
 const MODE = { stand: ['ยืนทรงตัว', 'ok'], shift: ['ถ่ายน้ำหนัก', 'ok'], walk: ['เดิน', 'ok'], crouch: ['ย่อตัวเตรียมกระโดด', 'warn'], air: ['ลอยตัว', 'warn'],
@@ -2443,7 +2551,7 @@ function loop(now) {
     if (S.errT > 0.25) { S.errT = 0; startFall(); S.fallReason = 'servo'; }
   }
   updImu(p, dt); drawAtt(T);
-  if (spOn) { render3D(p, T, true); spFrame(p); } else { render3D(p, T); render2D(p, T); }
+  if (spOn && !spLeaving) { render3D(p, T, true); spFrame(p); } else { render3D(p, T); render2D(p, T); if (spOn) spFrame(p); }
   telemetry(p);
   requestAnimationFrame(loop);
 }
