@@ -327,12 +327,12 @@ body.entered .workspace { animation: none; }
   -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
 .sp-ghost:hover { border-color: rgba(95,224,242,.8); background: rgba(95,224,242,.12); }
 .sp-ghost:focus-visible { outline: 2px solid #5fe0f2; outline-offset: 3px; }
-.sp-focusable { transition: transform .6s cubic-bezier(.22,1,.36,1), box-shadow .6s cubic-bezier(.22,1,.36,1), background-color .45s ease, border-color .45s ease, opacity .5s ease !important; }
-.sp-dim { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 50%, rgba(3,4,6,.55), rgba(3,4,6,.92)); opacity: 0; pointer-events: none; transition: opacity .6s cubic-bezier(.22,1,.36,1); z-index: 1; }
+.sp-focusable { transition: transform .9s cubic-bezier(.22,1,.36,1), box-shadow .9s cubic-bezier(.22,1,.36,1), background-color .7s ease, border-color .7s ease, opacity .8s ease, filter .8s ease !important; }
+.sp-dim { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 50%, rgba(3,4,6,.55), rgba(3,4,6,.92)); opacity: 0; pointer-events: none; transition: opacity 1.2s cubic-bezier(.4,0,.2,1); z-index: 1; }
 .splash.focusing .sp-dim { opacity: 1; }
 .sp-tilt { z-index: 2; }
-.sp-card > *, .sp-actions > * { transition: opacity .55s cubic-bezier(.22,1,.36,1); }
-.sp-card { transition: background-color .55s ease, border-color .55s ease, box-shadow .55s ease; }
+.sp-card > *, .sp-actions > * { transition: opacity 1s cubic-bezier(.4,0,.2,1); }
+.sp-card { transition: background-color 1s ease, border-color 1s ease, box-shadow 1s ease; }
 .splash.focusing .sp-card { background: rgba(8,10,13,.3); box-shadow: 0 30px 80px rgba(0,0,0,.15); border-color: rgba(255,255,255,.04); }
 .splash.focusing .sp-card > :not(.sp-actions) { opacity: .2; }
 .splash.focusing .sp-actions > :not(.is-focus) { opacity: .3; transform: scale(.96); }
@@ -349,7 +349,7 @@ body.entered .workspace { animation: none; }
   -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
   top: 0; left: 0; will-change: transform; animation: tourIn .5s cubic-bezier(.22,1,.36,1) both; }
 @keyframes tourIn { from { opacity: 0; } to { opacity: 1; } }
-.tour-say { transition: opacity .35s cubic-bezier(.22,1,.36,1), transform .35s cubic-bezier(.22,1,.36,1); }
+.tour-say { transition: opacity .5s cubic-bezier(.4,0,.2,1), transform .5s cubic-bezier(.4,0,.2,1); }
 .tour-say.swap { opacity: 0; transform: translateY(6px); }
 .tour { animation: tourIn .45s ease both; }
 .tour-box img { width: 96px; height: auto; display: block; -webkit-mask-image: linear-gradient(to bottom, #000 80%, transparent); mask-image: linear-gradient(to bottom, #000 80%, transparent); transform-origin: 50% 90%; animation: tourBob 2.8s ease-in-out infinite; }
@@ -2738,11 +2738,17 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') { $('setPane
 
 
 /* ================= welcome: spotlight the button under the pointer ================= */
+// spotlight a welcome button only when the person points at it or tabs to it — not for the automatic focus on load
+let spKeyNav = false;
+window.addEventListener('keydown', e => { if (e.key === 'Tab') spKeyNav = true; }, true);
+window.addEventListener('pointerdown', () => { spKeyNav = false; }, true);
 document.querySelectorAll('.sp-focusable').forEach(btn => {
   const on = () => { clearTimeout(window.__spOff); splash.classList.add('focusing'); document.querySelectorAll('.sp-focusable').forEach(b => b.classList.toggle('is-focus', b === btn)); };
-  const off = () => { btn.classList.remove('is-focus'); clearTimeout(window.__spOff); window.__spOff = setTimeout(() => { if (!document.querySelector('.sp-focusable.is-focus')) splash.classList.remove('focusing'); }, 140); };
-  btn.addEventListener('pointerenter', on); btn.addEventListener('pointerleave', off);
-  btn.addEventListener('focus', on); btn.addEventListener('blur', off);
+  const off = () => { btn.classList.remove('is-focus'); clearTimeout(window.__spOff); window.__spOff = setTimeout(() => { if (!document.querySelector('.sp-focusable.is-focus')) splash.classList.remove('focusing'); }, 160); };
+  btn.addEventListener('pointerenter', on);
+  btn.addEventListener('pointerleave', () => { if (!(spKeyNav && document.activeElement === btn)) off(); });
+  btn.addEventListener('focus', () => { if (spKeyNav) on(); });
+  btn.addEventListener('blur', off);
 });
 
 /* ================= guided tour: the robot mascot shows how to use the page ================= */
@@ -2807,7 +2813,7 @@ function tourTick(now) {
   if (tourI < 0) { tourRAF = 0; return; }
   const dt = Math.min(0.05, (now - (tourLast || now)) / 1000); tourLast = now;
   tourPlace();
-  const a = reducedMotion ? 1 : 1 - Math.exp(-dt * 9);          // smooth, no overshoot, frame-rate independent
+  const a = reducedMotion ? 1 : 1 - Math.exp(-dt * 4);          // slow glide, no overshoot, frame-rate independent
   for (const k in TC) TC[k] += (TG[k] - TC[k]) * a;
   hole.style.transform = `translate3d(${TC.hx.toFixed(1)}px, ${TC.hy.toFixed(1)}px, 0)`;
   hole.style.width = TC.hw.toFixed(1) + 'px'; hole.style.height = TC.hh.toFixed(1) + 'px';
@@ -2831,14 +2837,33 @@ function tourTick(now) {
   }
   tourRAF = requestAnimationFrame(tourTick);
 }
+// slow eased scroll so the page drifts to the next thing the robot explains (window and the control sidebar)
+let glideRAF = 0;
+function glideTo(el) {
+  cancelAnimationFrame(glideRAF);
+  const side = $('sidebar'), inSide = side.contains(el) && getComputedStyle(side).overflowY === 'auto';
+  const r = el.getBoundingClientRect();
+  const wy0 = scrollY, wy1 = Math.max(0, Math.min(document.documentElement.scrollHeight - innerHeight, scrollY + r.top + r.height / 2 - innerHeight / 2));
+  let sy0 = 0, sy1 = 0;
+  if (inSide) { const sr = side.getBoundingClientRect(); sy0 = side.scrollTop; sy1 = Math.max(0, Math.min(side.scrollHeight - side.clientHeight, side.scrollTop + r.top - sr.top + r.height / 2 - side.clientHeight / 2)); }
+  if (reducedMotion) { scrollTo(0, wy1); if (inSide) side.scrollTop = sy1; return; }
+  const t0 = performance.now(), dur = 1100, ease = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  const step = now => {
+    const k = ease(Math.min(1, (now - t0) / dur));
+    scrollTo(0, wy0 + (wy1 - wy0) * k);
+    if (inSide) side.scrollTop = sy0 + (sy1 - sy0) * k;
+    if (k < 1) glideRAF = requestAnimationFrame(step);
+  };
+  glideRAF = requestAnimationFrame(step);
+}
 function tourGo(i) {
   if (i < 0) i = 0;
   if (i >= TOUR.length) return tourEnd();
   tourI = i;
   const el = tourTarget(i);
-  if (el) el.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'center', inline: 'nearest' });
+  if (el) glideTo(el);
   const say = $('tourSay'); say.classList.add('swap');
-  setTimeout(() => { say.innerHTML = TOUR[i].say; say.classList.remove('swap'); }, reducedMotion ? 0 : 180);
+  setTimeout(() => { say.innerHTML = TOUR[i].say; say.classList.remove('swap'); }, reducedMotion ? 0 : 320);
   $('tourStep').textContent = (i + 1) + ' / ' + TOUR.length;
   $('tourDots').innerHTML = TOUR.map((_, k) => '<i class="' + (k === i ? 'on' : '') + '"></i>').join('');
   $('tourPrev').disabled = i === 0;
