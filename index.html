@@ -545,7 +545,8 @@ body.entered .workspace { animation: none; }
 .pl-btn:disabled { opacity: .55; cursor: default; filter: saturate(.5); box-shadow: none; }
 .pl-ribbon { position: absolute; top: -11px; right: 14px; font: 700 11px var(--f-body); padding: 3px 10px; border-radius: 999px; color: #fff; background: linear-gradient(120deg, #8b5cf6, #f39a3d); box-shadow: 0 6px 18px rgba(139,92,246,.4); }
 .pl-pay { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: center; font-size: 14px; color: var(--muted); }
-.pl-pay .seg button { min-height: 40px; font-size: 13px; }
+.pl-cards { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+.pl-cards b { font: 700 12px var(--f-body); padding: 5px 10px; border-radius: 6px; color: var(--ink); background: var(--paper); border: 1px solid var(--grid-strong); }
 .pl-card .lg-msg { max-width: 640px; text-align: left; }
 .pl-card .lg-note { max-width: 70ch; color: var(--muted); }
 .pl-manage { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: center; font-size: 14px; }
@@ -1551,11 +1552,11 @@ void loop() {
       </article>
     </div>
     <div class="pl-pay">
-      <span>จ่ายด้วย</span>
-      <div class="seg" role="group" aria-label="วิธีจ่ายเงิน"><button type="button" id="payCard" aria-pressed="true">💳 บัตร · ต่ออายุอัตโนมัติ</button><button type="button" id="payPP" aria-pressed="false">📱 PromptPay · จ่ายครั้งเดียว</button></div>
+      <span>จ่ายด้วยบัตร</span>
+      <span class="pl-cards"><b>VISA</b><b>Mastercard</b><b>JCB</b><b>TrueMoney Mastercard</b></span>
     </div>
     <p class="lg-msg" id="plMsg" role="status" hidden></p>
-    <p class="lg-note" id="plNote">ชำระเงินอย่างปลอดภัยผ่าน Stripe เว็บนี้ไม่เห็นและไม่เก็บเลขบัตรของคุณ · จ่ายด้วยบัตรจะต่ออายุอัตโนมัติ ยกเลิกได้ทุกเมื่อ · PromptPay จ่ายครั้งเดียวใช้ได้ 1 เดือน (Pro) หรือ 1 ปี (Ultimate)</p>
+    <p class="lg-note" id="plNote">ชำระเงินอย่างปลอดภัยผ่าน Stripe เว็บนี้ไม่เห็นและไม่เก็บเลขบัตรของคุณ · ใช้ได้ทั้งบัตรเครดิต บัตรเดบิต และบัตร TrueMoney Mastercard (ต้องมีเงินในวอลเล็ตพอ) · ตัดเงินอัตโนมัติทุกเดือน (Pro) หรือทุกปี (Ultimate) ยกเลิกได้ทุกเมื่อ</p>
   </div>
 </div>
 <div class="toast" id="toast" role="status" hidden></div>
@@ -3666,14 +3667,13 @@ function renderPlans() {
     if (plan === 'free') { btn.textContent = t === 'guest' ? 'เข้าสู่ระบบ ใช้ฟรี' : cur ? 'แพ็กเกจปัจจุบัน' : 'รวมอยู่ในแพ็กเกจของคุณ'; btn.disabled = t !== 'guest'; }
     else if (cur) { btn.textContent = PLAN.sub ? 'จัดการ / ยกเลิกการสมัคร' : 'แพ็กเกจปัจจุบัน'; btn.disabled = !PLAN.sub; }
     else if (RANK[t] > RANK[plan]) { btn.textContent = 'รวมอยู่ใน ' + PLAN_NAME[t] + ' แล้ว'; btn.disabled = true; }
-    else btn.textContent = (plan === 'pro' ? 'สมัคร Pro' : 'สมัคร Ultimate') + (payMethod === 'promptpay' ? ' ด้วย PromptPay' : '');
+    else btn.textContent = (plan === 'pro' ? 'สมัคร Pro' : 'สมัคร Ultimate') ;
   });
   let sub = 'เริ่มฟรีได้เลย อัปเกรดเมื่ออยากออกแบบหุ่นของตัวเองและเอาไปสร้างจริง';
   if (PLAN.preview) sub = 'คุณกำลังดูในหน้า Claude ของเจ้าของเว็บ ทุกฟีเจอร์เปิดอยู่ สมัครจริงได้ที่เว็บ array_simulator';
   else if (PLAN.owner) sub = 'บัญชีเจ้าของเว็บ ใช้ได้ทุกฟีเจอร์โดยไม่ต้องจ่าย';
   else if (RANK[t] >= 2) sub = 'แพ็กเกจของคุณ: ' + PLAN_NAME[t] + (PLAN.until ? (PLAN.sub ? ' · ต่ออายุ ' : ' · ใช้ได้ถึง ') + new Date(PLAN.until).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' }) : '');
   $('plSub').textContent = sub;
-  $('payCard').setAttribute('aria-pressed', String(payMethod === 'card')); $('payPP').setAttribute('aria-pressed', String(payMethod === 'promptpay'));
 }
 function openPlans(focus) {
   const P = $('plans'); P.hidden = false; P.classList.remove('closing'); plSay(''); renderPlans();
@@ -3697,8 +3697,6 @@ async function manage() {
   try { const { url } = await api('/portal', {}); location.href = url; } catch (e) { plSay('เปิดหน้าจัดการไม่สำเร็จ: ' + e.message); }
 }
 document.querySelectorAll('.pl-btn').forEach(b => b.onclick = () => buy(b.dataset.buy));
-$('payCard').onclick = () => { payMethod = 'card'; renderPlans(); };
-$('payPP').onclick = () => { payMethod = 'promptpay'; renderPlans(); };
 $('plansBtn').onclick = () => openPlans();
 $('plClose').onclick = closePlans; $('plBackdrop').onclick = closePlans;
 $('plans').addEventListener('keydown', e => { if (e.key === 'Escape') closePlans(); e.stopPropagation(); });

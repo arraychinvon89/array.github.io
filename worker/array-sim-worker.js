@@ -138,7 +138,7 @@ async function customerFor(user, rec, env) {
 async function checkout(user, body, env) {
   const plan = PLANS[body.plan] ? body.plan : null;
   if (!plan) throw fail(400, 'unknown plan');
-  const method = body.method === 'promptpay' ? 'promptpay' : 'card';
+  const method = 'card';   // credit, debit and prepaid cards (incl. TrueMoney Mastercard); PromptPay is switched off
   const rec = await getRec(env, user.uid);
   // an active card subscription can only be upgraded (Pro -> Ultimate); the old one is then stopped by the webhook
   if (method === 'card' && rec.sub && rec.sub.id && tierOf(rec, user, env).tier !== 'free' && RANK[plan] <= RANK[rec.sub.plan]) throw fail(409, 'มีการสมัครแบบต่ออายุอัตโนมัติอยู่แล้ว จัดการได้ที่ปุ่มจัดการการสมัคร');

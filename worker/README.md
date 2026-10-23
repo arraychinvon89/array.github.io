@@ -5,7 +5,7 @@
 | ทำอะไร | รายละเอียด |
 |---|---|
 | ตรวจแพ็กเกจ | บอกเว็บว่าผู้ใช้เป็น Free / Pro / Ultimate โดยเช็กจากบัญชี Google ที่ล็อกอิน |
-| รับเงินผ่าน Stripe | Pro 99 บาท/เดือน, Ultimate 599 บาท/ปี จ่ายด้วยบัตร (ต่ออายุอัตโนมัติ) หรือ PromptPay (จ่ายครั้งเดียว) |
+| รับเงินผ่าน Stripe | Pro 99 บาท/เดือน, Ultimate 599 บาท/ปี จ่ายด้วยบัตรเครดิต เดบิต หรือ TrueMoney Mastercard (ต่ออายุอัตโนมัติ) |
 | ผู้ช่วย AI | สมาชิก Pro/Ultimate คุยกับ AI ได้โดยไม่ต้องมี key ใช้ API key ของเจ้าของเว็บ จำกัดจำนวนคำถามต่อวัน |
 
 เจ้าของเว็บ (OWNER_EMAIL) ได้ Ultimate เสมอโดยไม่ต้องจ่าย
@@ -34,7 +34,6 @@
    - URL: `https://array-sim.<ชื่อของคุณ>.workers.dev/webhook`
    - Events: `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.paid`
    - คัดลอก Signing secret (`whsec_...`) ไปใส่เป็น `STRIPE_WEBHOOK_SECRET`
-7. Stripe → **Settings → Payment methods** เปิด **PromptPay**
 8. Stripe → **Settings → Billing → Customer portal** กด Save ครั้งหนึ่ง (ปุ่ม "จัดการการสมัคร" ใช้หน้านี้)
 9. ใส่ URL ของ Worker ในหน้าเว็บ: `var WORKER_URL = 'https://array-sim.<ชื่อของคุณ>.workers.dev';`
 
