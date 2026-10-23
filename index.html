@@ -426,6 +426,8 @@ body.authed .lock { opacity: 0; visibility: hidden; pointer-events: none; }
 @keyframes lgOut { to { opacity: 0; transform: translateY(14px) scale(.97); filter: blur(6px); } }
 @keyframes lgFade { from { opacity: 0; } to { opacity: 1; } }
 @keyframes lgSpin { to { --ang: 360deg; } }
+@keyframes shake { 0%, 100% { transform: none; } 20% { transform: translateX(-7px); } 40% { transform: translateX(6px); } 60% { transform: translateX(-4px); } 80% { transform: translateX(3px); } }
+.lg-google.shake { animation: shake .45s ease; }
 .hint { font-size: 13px; color: var(--muted); margin: 0; }
 .notes { font-size: 14px; color: var(--muted); margin: 0; max-width: 90ch; }
 .notes b { color: var(--ink); font-weight: 600; }
@@ -3021,9 +3023,9 @@ function openLogin() {
   if (AUTH.user) return;
   const L = $('login'); L.hidden = false; L.classList.remove('closing');
   $('lgBot').src = AV.talk; setTimeout(() => { $('lgBot').src = AV.idle; }, 900);
-  lgSay(AUTH.env === 'claude' ? 'ในหน้านี้ใช้บัญชี Claude ของคุณแทน ลงชื่อเข้า claude.ai แล้วเปิดหน้านี้อีกครั้ง' : (!FIREBASE_CONFIG ? 'ระบบเข้าสู่ระบบด้วย Google ยังไม่เปิดใช้งาน เจ้าของเว็บต้องเชื่อม Firebase ก่อน' : ''));
-  $('lgGoogle').disabled = AUTH.env === 'claude' || !FIREBASE_CONFIG;
-  setTimeout(() => { try { ($('lgGoogle').disabled ? $('lgClose') : $('lgGoogle')).focus({ preventScroll: true }); } catch (e) {} }, 60);
+  lgSay('');
+  $('lgGoogle').disabled = false;
+  setTimeout(() => { try { $('lgGoogle').focus({ preventScroll: true }); } catch (e) {} }, 60);
 }
 function closeLogin() {
   const L = $('login'); if (L.hidden) return;
@@ -3038,7 +3040,14 @@ const FB_ERR = {
   'auth/operation-not-allowed': 'ยังไม่ได้เปิด Google sign-in ใน Firebase'
 };
 async function googleLogin() {
-  if (AUTH.env === 'claude' || !FIREBASE_CONFIG || !window.firebase) return;
+  const notReady = AUTH.env === 'claude' ? 'ในหน้านี้ใช้บัญชี Claude ของคุณแทน ลงชื่อเข้า claude.ai แล้วเปิดหน้านี้อีกครั้งครับ'
+    : !FIREBASE_CONFIG ? 'ขออภัยครับ ระบบเข้าสู่ระบบด้วย Google ยังไม่เปิด เจ้าของเว็บกำลังเชื่อม Firebase อยู่ ระหว่างนี้ใช้ส่วนอื่นของเว็บได้ตามปกติ'
+    : !window.firebase ? 'โหลดระบบ Google ไม่สำเร็จ ตรวจอินเทอร์เน็ตแล้วรีเฟรชหน้าอีกครั้ง' : '';
+  if (notReady) {
+    lgSay(notReady); const c = $('lgGoogle'); c.classList.remove('shake'); void c.offsetWidth; c.classList.add('shake');
+    $('lgBot').src = AV.think; setTimeout(() => { $('lgBot').src = AV.idle; }, 2200);
+    return;
+  }
   const btn = $('lgGoogle'); btn.disabled = true; $('lgGoogleText').textContent = 'กำลังเปิดหน้าต่าง Google…'; lgSay('');
   const provider = new firebase.auth.GoogleAuthProvider(); provider.setCustomParameters({ prompt: 'select_account' });
   try { await firebase.auth().signInWithPopup(provider); closeLogin(); }
