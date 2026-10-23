@@ -104,6 +104,17 @@ kbd { font-family: var(--f-mono); font-size: 11px; border: 1px solid currentColo
 .slider { display: grid; gap: 2px; }
 .slider label { display: flex; justify-content: space-between; font-size: 14px; color: var(--muted); }
 .slider output { font-family: var(--f-mono); color: var(--ink); }
+.slider label.has-num { align-items: center; gap: 8px; flex-wrap: wrap; }
+.slider label.has-num output { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.numbox { display: inline-flex; align-items: center; gap: 4px; margin-left: auto; font: 12px var(--f-mono); color: var(--muted); }
+.numbox input { width: 7.5ch; min-height: 30px; padding: 3px 6px; text-align: right; font: 600 13px var(--f-mono); color: var(--ink); background: var(--paper); border: 1px solid var(--grid-strong); border-radius: 6px; -moz-appearance: textfield; appearance: textfield; transition: border-color .2s, box-shadow .2s; }
+.numbox input::-webkit-outer-spin-button, .numbox input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.numbox input:hover { border-color: var(--joint); }
+.numbox input:focus { outline: none; border-color: var(--robot); box-shadow: 0 0 0 3px color-mix(in srgb, var(--robot) 25%, transparent); }
+.sliders.four .slider label.has-num { display: grid; grid-template-columns: minmax(0, 1fr); gap: 4px; }
+.sliders.four .numbox { margin-left: 0; }
+.sliders.four .numbox input { width: 100%; max-width: 9ch; }
+.numbox input.clamped { border-color: var(--com); animation: shake .35s ease; }
 input[type=range] { width: 100%; accent-color: var(--robot); }
 .status { display: flex; align-items: center; gap: 10px; font-family: var(--f-display); font-weight: 700; font-size: 18px; }
 .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--cop); flex: none; }
@@ -594,11 +605,11 @@ body.authed .lock { opacity: 0; visibility: hidden; pointer-events: none; }
         <div class="sliders">
           <div class="slider">
             <label for="speed">ความเร็วเป้าหมาย <output id="speedOut">0.9 m/s</output></label>
-            <input id="speed" type="range" min="0.2" max="1.6" step="0.1" value="0.9">
+            <input id="speed" type="range" min="0.2" max="1.6" step="0.05" value="0.9">
           </div>
           <div class="slider">
             <label for="force">แรงดลที่ผลัก <output id="forceOut">40 N·s</output></label>
-            <input id="force" type="range" min="5" max="120" step="5" value="40">
+            <input id="force" type="range" min="5" max="120" step="1" value="40">
           </div>
           <div class="slider">
             <label for="rough">ความขรุขระของพื้น <output id="roughOut">±6 cm</output></label>
@@ -609,19 +620,19 @@ body.authed .lock { opacity: 0; visibility: hidden; pointer-events: none; }
           <div class="sliders">
             <div class="slider">
               <label for="kp">มอเตอร์ข้อต่อ Kp <output id="kpOut">3000 N·m/rad</output></label>
-              <input id="kp" type="range" min="50" max="8000" step="50" value="3000">
+              <input id="kp" type="range" min="50" max="8000" step="10" value="3000">
             </div>
             <div class="slider">
               <label for="kd">มอเตอร์ข้อต่อ Kd <output id="kdOut">170 N·m·s/rad</output></label>
-              <input id="kd" type="range" min="0" max="600" step="5" value="170">
+              <input id="kd" type="range" min="0" max="600" step="1" value="170">
             </div>
             <div class="slider">
               <label for="kpb">ทรงตัว CoM Kp <output id="kpbOut">1600 N/m</output></label>
-              <input id="kpb" type="range" min="100" max="6000" step="50" value="1600">
+              <input id="kpb" type="range" min="100" max="6000" step="10" value="1600">
             </div>
             <div class="slider">
               <label for="kdb">ทรงตัว CoM Kd <output id="kdbOut">545 N·s/m</output></label>
-              <input id="kdb" type="range" min="0" max="1500" step="5" value="545">
+              <input id="kdb" type="range" min="0" max="1500" step="1" value="545">
             </div>
           </div>
           <div class="pdinfo">
@@ -651,8 +662,8 @@ body.authed .lock { opacity: 0; visibility: hidden; pointer-events: none; }
           <div class="slider"><label for="bTorsoW">ลำตัวกว้าง <output id="bTorsoWOut">0.36 m</output></label><input id="bTorsoW" type="range" min="0.2" max="0.5" step="0.01" value="0.36"></div>
           <div class="slider"><label for="bArm">แขนยาว <output id="bArmOut">0.54 m</output></label><input id="bArm" type="range" min="0" max="0.8" step="0.01" value="0.54"></div>
           <div class="slider"><label for="bMT">น้ำหนักลำตัว <output id="bMTOut">25 kg</output></label><input id="bMT" type="range" min="3" max="80" step="1" value="25"></div>
-          <div class="slider"><label for="bML">น้ำหนักขา (ต่อข้าง) <output id="bMLOut">8 kg</output></label><input id="bML" type="range" min="1" max="20" step="0.5" value="8"></div>
-          <div class="slider"><label for="bMA">น้ำหนักแขน (ต่อข้าง) <output id="bMAOut">3 kg</output></label><input id="bMA" type="range" min="0.5" max="10" step="0.5" value="3"></div>
+          <div class="slider"><label for="bML">น้ำหนักขา (ต่อข้าง) <output id="bMLOut">8 kg</output></label><input id="bML" type="range" min="1" max="20" step="0.1" value="8"></div>
+          <div class="slider"><label for="bMA">น้ำหนักแขน (ต่อข้าง) <output id="bMAOut">3 kg</output></label><input id="bMA" type="range" min="0.5" max="10" step="0.1" value="3"></div>
         </div>
         <div class="pdinfo">
           <span id="bTotal">น้ำหนักรวม 47 kg</span>
@@ -1969,7 +1980,7 @@ function setWalking(v) {
   S.walking = v; walkBtn.setAttribute('aria-pressed', String(v));
   walkBtn.innerHTML = (v ? 'หยุด' : 'เดิน') + ' <kbd>W</kbd>';
 }
-function setSpeed(v) { S.vdes = clamp(Math.round(v * 10) / 10, 0.2, 1.6); $('speed').value = S.vdes; $('speedOut').textContent = S.vdes.toFixed(1) + ' m/s'; }
+function setSpeed(v) { S.vdes = clamp(Math.round(v * 20) / 20, 0.2, 1.6); $('speed').value = S.vdes; $('speedOut').textContent = S.vdes.toFixed(2) + ' m/s'; }
 function jump() { if (S.mode === 'stand' || S.mode === 'shift' || S.mode === 'walk') S.jumpReq = true; }
 function push(kind) {
   if (S.mode === 'fall' || S.mode === 'fallen' || S.mode === 'getup') return;
@@ -3301,6 +3312,45 @@ $('admSearch').oninput = e => { ADM.q = e.target.value; admList(); };
 $('adm').addEventListener('keydown', e => { if (e.key === 'Escape') admClose(); e.stopPropagation(); });
 $('adm').addEventListener('keyup', e => e.stopPropagation());
 initAuth();
+
+/* ================= type a value: every control slider gets a number box next to its label ================= */
+const NUM_UNITS = { speed: ['', 'm/s'], force: ['', 'N·s'], rough: ['±', 'cm'], kp: ['', 'N·m/rad'], kd: ['', 'N·m·s/rad'], kpb: ['', 'N/m'], kdb: ['', 'N·s/m'],
+  bThigh: ['', 'm'], bShin: ['', 'm'], bTorsoH: ['', 'm'], bTorsoW: ['', 'm'], bArm: ['', 'm'], bMT: ['', 'kg'], bML: ['', 'kg'], bMA: ['', 'kg'] };
+const stepDecimals = st => (String(st).split('.')[1] || '').length;
+Object.keys(NUM_UNITS).forEach(id => {
+  const rg = $(id), out = $(id + 'Out'); if (!rg || !out) return;
+  const lab = out.parentElement, [pre, unit] = NUM_UNITS[id], dec = stepDecimals(rg.step);
+  const box = document.createElement('span'); box.className = 'numbox';
+  const num = document.createElement('input');
+  Object.assign(num, { type: 'number', min: rg.min, max: rg.max, step: rg.step, inputMode: 'decimal' });
+  num.setAttribute('aria-label', lab.textContent.replace(out.textContent, '').trim() + ' (' + unit + ')');
+  if (pre) box.append(pre);
+  box.append(num, unit);
+  lab.classList.add('has-num'); lab.appendChild(box);
+  // the number box must not focus the slider when clicked (it sits inside the slider's <label>)
+  box.addEventListener('click', e => e.preventDefault());
+  num.addEventListener('click', e => { e.stopPropagation(); });
+  const show = () => { if (document.activeElement !== num) num.value = (+rg.value).toFixed(dec); };
+  const commit = () => {
+    if (num.value === '') { show(); return; }
+    let v = +num.value; if (!isFinite(v)) { show(); return; }
+    const lo = +rg.min, hi = +rg.max, cl = Math.min(hi, Math.max(lo, v));
+    num.classList.toggle('clamped', cl !== v);
+    if (cl !== v) { num.title = 'ใส่ได้ตั้งแต่ ' + lo + ' ถึง ' + hi + ' ' + unit; setTimeout(() => num.classList.remove('clamped'), 900); }
+    rg.value = cl;
+    rg.dispatchEvent(new Event('input', { bubbles: true })); rg.dispatchEvent(new Event('change', { bubbles: true }));
+    num.value = (+rg.value).toFixed(dec);
+  };
+  num.addEventListener('change', commit);
+  num.addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Enter') { commit(); num.select(); } if (e.key === 'Escape') { show(); num.blur(); } });
+  num.addEventListener('keyup', e => e.stopPropagation());
+  num.addEventListener('blur', () => { num.classList.remove('clamped'); show(); });
+  num.addEventListener('focus', () => num.select());
+  // stay in step with the slider however it changes (dragging, reset buttons, the AI assistant)
+  new MutationObserver(show).observe(out, { childList: true, characterData: true, subtree: true });
+  rg.addEventListener('input', show);
+  show();
+});
 
 /* ================= telemetry ================= */
 const MODE = { stand: ['ยืนทรงตัว', 'ok'], shift: ['ถ่ายน้ำหนัก', 'ok'], walk: ['เดิน', 'ok'], crouch: ['ย่อตัวเตรียมกระโดด', 'warn'], air: ['ลอยตัว', 'warn'],
