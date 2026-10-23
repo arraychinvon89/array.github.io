@@ -428,7 +428,10 @@ body.authed .lock { opacity: 0; visibility: hidden; pointer-events: none; }
 @keyframes lgSpin { to { --ang: 360deg; } }
 @keyframes shake { 0%, 100% { transform: none; } 20% { transform: translateX(-7px); } 40% { transform: translateX(6px); } 60% { transform: translateX(-4px); } 80% { transform: translateX(3px); } }
 .lg-google.shake { animation: shake .45s ease; }
-.stats-btn { min-height: 32px; padding: 2px 10px; font-size: 12px; border-radius: 999px; gap: 5px; color: #1b1206; background: var(--robot); border-color: var(--robot-dark); }
+.set-owner { display: grid; gap: 8px; padding-top: 10px; border-top: 1px solid var(--line); }
+.set-owner[hidden] { display: none; }
+.set-sep { font: 11px var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.stats-btn { justify-content: center; gap: 6px; color: #1b1206; background: var(--robot); border-color: var(--robot-dark); }
 .stats-btn:hover { box-shadow: 0 0 0 3px color-mix(in srgb, var(--robot) 30%, transparent); border-color: var(--robot-dark); }
 .adm { position: fixed; inset: 0; z-index: 125; display: grid; place-items: center; padding: max(16px, env(safe-area-inset-top, 0px)) 16px max(16px, env(safe-area-inset-bottom, 0px)); }
 .adm-backdrop { position: absolute; inset: 0; background: rgba(3,4,6,.7); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); animation: lgFade .45s ease both; }
@@ -540,7 +543,6 @@ body.authed .lock { opacity: 0; visibility: hidden; pointer-events: none; }
         <div class="acct-user" id="acctUser" hidden>
           <img id="acctImg" alt="" referrerpolicy="no-referrer">
           <span id="acctName"></span>
-          <button id="statsBtn" class="stats-btn" hidden title="ดูจำนวนผู้ใช้ (เฉพาะเจ้าของเว็บ)"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 20V11M12 20V4M19 20v-6"/></svg> ผู้ใช้</button>
           <button id="logoutBtn" class="logout-btn">ออกจากระบบ</button>
         </div>
       </div>
@@ -552,6 +554,10 @@ body.authed .lock { opacity: 0; visibility: hidden; pointer-events: none; }
           </div>
           <p class="hint">ถนัดมือไหนก็ย้ายแผงควบคุมไปด้านนั้น ค่านี้จำไว้ในเบราว์เซอร์นี้</p>
           <button type="button" id="tourAgain">🤖 ให้หุ่นยนต์สอนใช้อีกครั้ง</button>
+          <div class="set-owner" id="ownerBox" hidden>
+            <span class="set-sep">เจ้าของเว็บ</span>
+            <button type="button" id="statsBtn" class="stats-btn"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 20V11M12 20V4M19 20v-6"/></svg> ดูผู้ใช้ทั้งหมด</button>
+          </div>
         </div>
       </div>
     </div>
@@ -3183,18 +3189,25 @@ $('logoutBtn').onclick = () => { if (window.firebase && FIREBASE_CONFIG) firebas
 /* ================= members: each Google sign-in is recorded in Firestore users/{uid};
    the owner (allowed by the Firestore security rules) gets a dashboard of how many people joined ================= */
 const DAY = 864e5;
+const OWNER_SHA256 = '1deedc2b32d92c4f497adcb7e0b9dff5d08a6bcc6d904131680cb3bb2dcd8480';   // sha-256 of the owner's e-mail (kept out of the page source)
+async function isOwner(u) {
+  if (!u || !u.email || u.emailVerified === false || !(window.crypto && crypto.subtle)) return false;
+  const h = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(u.email.trim().toLowerCase()));
+  return [...new Uint8Array(h)].map(b => b.toString(16).padStart(2, '0')).join('') === OWNER_SHA256;
+}
 const fsdb = () => (window.firebase && firebase.firestore) ? firebase.firestore() : null;
 async function memberSeen(u) {
-  $('statsBtn').hidden = true; ADM.rows = null; if (!u) admClose();
-  const db = fsdb(); if (!u || !db) return;
+  $('ownerBox').hidden = true; ADM.rows = null; if (!u) admClose();
+  const db = fsdb(); if (!u) return;
+  // only the owner's account sees the button; the Firestore rules also refuse the member list to anyone else
+  if (await isOwner(u)) $('ownerBox').hidden = false;
+  if (!db) return;
   const ref = db.collection('users').doc(u.uid), FV = firebase.firestore.FieldValue;
   const info = { name: (u.displayName || '').slice(0, 120), photo: (u.photoURL || '').slice(0, 500), email: (u.email || '').slice(0, 200), last: FV.serverTimestamp(), visits: FV.increment(1) };
   try {
     const snap = await ref.get();
     await (snap.exists ? ref.update(info) : ref.set(Object.assign({ created: FV.serverTimestamp() }, info)));
   } catch (e) { console.warn('member record', e.code || e); }
-  // only the owner may list everyone: the rules turn this query down for anyone else
-  try { await db.collection('users').limit(1).get(); $('statsBtn').hidden = false; } catch (e) {}
 }
 const ADM = { rows: null, q: '' };
 const tsMs = t => t && t.toMillis ? t.toMillis() : 0;
@@ -3270,12 +3283,12 @@ async function admLoad() {
     ADM.rows = snap.docs.map(d => { const x = d.data(); return { name: x.name || '', email: x.email || '', photo: x.photo || '', created: tsMs(x.created), last: tsMs(x.last), visits: x.visits || 0 }; });
     admRender();
   } catch (e) {
-    admSay(e.code === 'permission-denied' ? 'บัญชีนี้ไม่มีสิทธิ์ดูรายชื่อผู้ใช้' : 'โหลดข้อมูลไม่สำเร็จ: ' + (e.message || e.code));
+    admSay(e.code === 'permission-denied' ? 'Firebase ยังไม่อนุญาต: ตรวจว่าวางกฎ (Rules) ของ Firestore แล้วกด Publish' : /not.?found|failed-precondition|unavailable/i.test(e.code + ' ' + e.message) ? 'ยังไม่ได้สร้าง Firestore Database ใน Firebase' : 'โหลดข้อมูลไม่สำเร็จ: ' + (e.message || e.code));
   } finally { $('admRefresh').classList.remove('spin'); $('admBody').classList.remove('loading'); }
 }
-function admOpen() { const A = $('adm'); A.hidden = false; A.classList.remove('closing'); if (ADM.rows) admRender(); admLoad(); setTimeout(() => $('admClose').focus({ preventScroll: true }), 60); }
-function admClose() { const A = $('adm'); if (A.hidden) return; A.classList.add('closing'); setTimeout(() => { A.hidden = true; A.classList.remove('closing'); $('statsBtn').focus({ preventScroll: true }); }, reducedMotion ? 0 : 300); }
-$('statsBtn').onclick = admOpen;
+function admOpen() { $('setPanel').hidden = true; $('setBtn').setAttribute('aria-expanded', 'false'); const A = $('adm'); A.hidden = false; A.classList.remove('closing'); if (ADM.rows) admRender(); admLoad(); setTimeout(() => $('admClose').focus({ preventScroll: true }), 60); }
+function admClose() { const A = $('adm'); if (A.hidden) return; A.classList.add('closing'); setTimeout(() => { A.hidden = true; A.classList.remove('closing'); $('setBtn').focus({ preventScroll: true }); }, reducedMotion ? 0 : 300); }
+$('statsBtn').onclick = e => { e.stopPropagation(); admOpen(); };
 $('admClose').onclick = admClose; $('admBackdrop').onclick = admClose; $('admRefresh').onclick = admLoad;
 $('admSearch').oninput = e => { ADM.q = e.target.value; admList(); };
 $('adm').addEventListener('keydown', e => { if (e.key === 'Escape') admClose(); e.stopPropagation(); });
