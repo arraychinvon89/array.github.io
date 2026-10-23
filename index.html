@@ -371,6 +371,61 @@ body.entered .workspace { animation: none; }
 .tour-dots i { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,.2); transition: background .3s, transform .3s; }
 .tour-dots i.on { background: #f39a3d; transform: scale(1.3); }
 @media (max-width: 600px) { .tour-box { left: 16px !important; right: 16px; top: auto !important; bottom: max(16px, env(safe-area-inset-bottom, 0px)); width: auto; transform: none !important; } }
+
+/* ---------- sign-in ---------- */
+.sp-account { animation: riseIn .7s ease 1.4s both; }
+.sp-link { display: inline-flex; align-items: center; gap: 8px; font: 500 14px var(--f-body); color: #b7c2cd; background: none; border: 0; border-bottom: 1px dashed rgba(183,194,205,.4); border-radius: 0; padding: 4px 2px; min-height: 36px; }
+.sp-link:hover { color: #fff; border-bottom-color: #fff; background: none; }
+.sp-link:focus-visible { outline: 2px solid #5fe0f2; outline-offset: 3px; }
+.sp-hello { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; color: #cfd7df; }
+.sp-hello img, .acct-user img { width: 26px; height: 26px; border-radius: 50%; object-fit: cover; background: #222; }
+.acct { display: flex; align-items: center; }
+.login-btn { min-height: 40px; padding: 6px 14px; font-size: 14px; color: #1b1206; background: var(--robot); border-color: var(--robot-dark); }
+.login-btn:hover { box-shadow: 0 0 0 3px color-mix(in srgb, var(--robot) 30%, transparent); border-color: var(--robot-dark); }
+.acct-user { display: flex; align-items: center; gap: 8px; font-size: 14px; padding: 4px 4px 4px 6px; border: 1px solid var(--line); border-radius: 999px; background: var(--sheet); }
+.acct-user #acctName { max-width: 14ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.logout-btn { min-height: 32px; padding: 2px 10px; font-size: 12px; border-radius: 999px; }
+.member { font: 600 10px var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--robot); border: 1px solid color-mix(in srgb, var(--robot) 50%, transparent); border-radius: 999px; padding: 1px 7px; vertical-align: 3px; margin-left: 6px; }
+.panel:has(> .lock), .lockable { position: relative; }
+.lock { position: absolute; inset: 0; z-index: 6; display: grid; place-items: center; padding: 16px; border-radius: 6px;
+  background: color-mix(in srgb, var(--paper) 62%, transparent); -webkit-backdrop-filter: blur(7px) saturate(.8); backdrop-filter: blur(7px) saturate(.8);
+  transition: opacity .6s cubic-bezier(.4,0,.2,1), visibility .6s; }
+body.authed .lock { opacity: 0; visibility: hidden; pointer-events: none; }
+.lock-in { display: grid; justify-items: center; gap: 8px; text-align: center; max-width: 30ch; }
+.lock-ico { font-size: 28px; animation: botFloat 3s ease-in-out infinite; }
+.lock-in span { font-size: 13px; color: var(--muted); }
+.lock-btn { margin-top: 4px; color: #1b1206; background: var(--robot); border-color: var(--robot-dark); }
+.lock-btn:hover { box-shadow: 0 0 0 3px color-mix(in srgb, var(--robot) 30%, transparent); }
+.login { position: fixed; inset: 0; z-index: 120; display: grid; place-items: center; padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); }
+.lg-backdrop { position: absolute; inset: 0; background: rgba(3,4,6,.7); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); animation: lgFade .5s ease both; }
+.lg-card { position: relative; width: min(420px, 100%); margin-top: 70px; padding: 70px 30px 24px; text-align: center; color: #e6ebf0; display: grid; gap: 12px; justify-items: center;
+  background: linear-gradient(180deg, rgba(22,26,32,.96), rgba(10,12,15,.96)); border-radius: 18px;
+  box-shadow: 0 0 0 1px rgba(255,255,255,.1), 0 30px 90px rgba(0,0,0,.6), 0 0 80px rgba(243,154,61,.12); animation: lgIn .6s cubic-bezier(.22,1,.36,1) both; }
+.lg-card::before { content: ""; position: absolute; inset: -1px; border-radius: 19px; padding: 1px; pointer-events: none;
+  background: conic-gradient(from var(--ang, 0deg), rgba(243,154,61,.0), rgba(243,154,61,.9), rgba(95,224,242,.8), rgba(243,154,61,.0) 60%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; animation: lgSpin 6s linear infinite; }
+@property --ang { syntax: "<angle>"; initial-value: 0deg; inherits: false; }
+.lg-bot { position: absolute; top: -78px; width: 128px; height: auto; -webkit-mask-image: linear-gradient(to bottom, #000 78%, transparent); mask-image: linear-gradient(to bottom, #000 78%, transparent); filter: drop-shadow(0 12px 26px rgba(243,154,61,.35)); animation: botFloat 3.2s ease-in-out infinite; }
+.lg-eyebrow { font: 12px var(--f-mono); letter-spacing: .1em; text-transform: uppercase; color: #8b96a3; }
+.lg-title { margin: 0; font: 700 32px var(--f-display); color: #fff; }
+.lg-sub { margin: 0; color: #a7b2be; font-size: 14px; max-width: 32ch; }
+.lg-perks { list-style: none; margin: 4px 0; padding: 0; display: grid; gap: 8px; text-align: left; width: 100%; }
+.lg-perks li { display: flex; gap: 10px; align-items: center; font-size: 14px; padding: 10px 12px; border-radius: 10px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.07); }
+.lg-google { width: 100%; justify-content: center; gap: 10px; min-height: 52px; font: 700 16px var(--f-body); color: #1b1206; background: #f39a3d; border: 0; border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(243,154,61,.35); transition: transform .5s cubic-bezier(.22,1,.36,1), box-shadow .5s cubic-bezier(.22,1,.36,1), filter .3s; }
+.lg-google:hover { transform: translateY(-2px) scale(1.02); box-shadow: 0 16px 40px rgba(243,154,61,.5); border: 0; }
+.lg-google:focus-visible, .lg-later:focus-visible { outline: 2px solid #5fe0f2; outline-offset: 3px; }
+.lg-google[disabled] { filter: saturate(.4) brightness(.8); cursor: progress; }
+.lg-msg { margin: 0; font-size: 13px; color: #ffcf9e; background: rgba(243,154,61,.1); border: 1px solid rgba(243,154,61,.3); border-radius: 8px; padding: 8px 10px; width: 100%; }
+.lg-later { color: #b7c2cd; background: none; border: 0; min-height: 36px; font-size: 14px; }
+.lg-later:hover { color: #fff; background: none; }
+.lg-note { margin: 0; font-size: 12px; color: #6f7b88; }
+.login.closing .lg-card { animation: lgOut .35s ease-in forwards; }
+.login.closing .lg-backdrop { animation: lgFade .35s ease reverse forwards; }
+@keyframes lgIn { from { opacity: 0; transform: translateY(26px) scale(.95); filter: blur(8px); } to { opacity: 1; transform: none; filter: none; } }
+@keyframes lgOut { to { opacity: 0; transform: translateY(14px) scale(.97); filter: blur(6px); } }
+@keyframes lgFade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes lgSpin { to { --ang: 360deg; } }
 .hint { font-size: 13px; color: var(--muted); margin: 0; }
 .notes { font-size: 14px; color: var(--muted); margin: 0; max-width: 90ch; }
 .notes b { color: var(--ink); font-weight: 600; }
@@ -392,6 +447,10 @@ body.entered .workspace { animation: none; }
     <div class="sp-actions">
       <button id="spStart" class="sp-btn sp-focusable">เริ่ม simulator <span aria-hidden="true">→</span></button>
       <button id="spTour" class="sp-ghost sp-focusable"><span aria-hidden="true">🤖</span> คุณต้องการให้เราสอนใช้ไหม?</button>
+    </div>
+    <div class="sp-account">
+      <button id="spLogin" class="sp-link"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg> เข้าสู่ระบบด้วย Google</button>
+      <span class="sp-hello" id="spHello" hidden><img id="spHelloImg" alt="" referrerpolicy="no-referrer"><span id="spHelloName"></span></span>
     </div>
     <div class="sp-hint">ขยับเมาส์ หุ่นยนต์ด้านหลังจะเดินตามจุดที่ชี้</div>
     <div class="sp-meta"><span>g = 9.81 m/s²</span><span>LIPM + capture point</span><span>ESP32 · C++</span></div>
@@ -420,6 +479,14 @@ body.entered .workspace { animation: none; }
     </div>
     <div class="hdr-right">
       <p class="lede">หุ่นยนต์สองขาทรงตัวด้วยแบบจำลองลูกตุ้มกลับหัว (LIPM) เลือกจุดวางเท้าจาก capture point ทุกเฟรม ถ้าโดนผลักจะก้าวกู้สมดุลเอง ถ้าผลักแรงเกินไปก็ล้มได้</p>
+      <div class="acct">
+        <button id="loginBtn" class="login-btn"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg> เข้าสู่ระบบ</button>
+        <div class="acct-user" id="acctUser" hidden>
+          <img id="acctImg" alt="" referrerpolicy="no-referrer">
+          <span id="acctName"></span>
+          <button id="logoutBtn" class="logout-btn">ออกจากระบบ</button>
+        </div>
+      </div>
       <div class="settings">
         <button id="setBtn" aria-expanded="false" aria-controls="setPanel"><span aria-hidden="true">⚙</span> ตั้งค่า</button>
         <div id="setPanel" class="setpanel" hidden>
@@ -502,7 +569,15 @@ body.entered .workspace { animation: none; }
         <p class="hint">กดค้างปุ่มเลี้ยว หรือกด A / D (ลูกศรซ้าย/ขวา) ค้างไว้ · แรงดลหารด้วยน้ำหนักหุ่นคือความเร็วที่เพิ่มขึ้น หุ่นหนักจึงทนแรงผลักได้มากกว่า · ตอนเดินอยู่ ผลักด้านข้างเกินราว 60 N·s หรือด้านหลังเกินราว 90 N·s (ที่น้ำหนักเริ่มต้น 47 kg) หุ่นจะก้าวรับไม่ทันแล้วล้ม แล้วลุกขึ้นยืนเอง</p>
       </section>
       <section class="panel" aria-labelledby="body-h">
-        <h2 id="body-h">ขนาดและน้ำหนัก</h2>
+        <h2 id="body-h">ขนาดและน้ำหนัก <span class="member">สมาชิก</span></h2>
+        <div class="lock" aria-hidden="false">
+          <div class="lock-in">
+            <div class="lock-ico" aria-hidden="true">🔒</div>
+            <b>เข้าสู่ระบบเพื่อปรับขนาดและน้ำหนักหุ่น</b>
+            <span>ใช้บัญชี Google ได้เลย ฟรี ไม่ต้องสมัครใหม่</span>
+            <button type="button" class="lock-btn"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg> เข้าสู่ระบบด้วย Google</button>
+          </div>
+        </div>
         <div class="sliders four">
           <div class="slider"><label for="bThigh">ต้นขา <output id="bThighOut">0.44 m</output></label><input id="bThigh" type="range" min="0.25" max="0.6" step="0.01" value="0.44"></div>
           <div class="slider"><label for="bShin">หน้าแข้ง <output id="bShinOut">0.44 m</output></label><input id="bShin" type="range" min="0.25" max="0.6" step="0.01" value="0.44"></div>
@@ -579,7 +654,15 @@ body.entered .workspace { animation: none; }
   </div>
 
   <section class="panel" aria-labelledby="code-h">
-    <h2 id="code-h">โค้ด C++ สำหรับหุ่นยนต์จริง</h2>
+    <h2 id="code-h">โค้ด C++ สำหรับหุ่นยนต์จริง <span class="member">สมาชิก</span></h2>
+    <div class="lock" aria-hidden="false">
+      <div class="lock-in">
+        <div class="lock-ico" aria-hidden="true">🔒</div>
+        <b>เข้าสู่ระบบเพื่อดูและคัดลอกโค้ด C++</b>
+        <span>ใช้บัญชี Google ได้เลย ฟรี ไม่ต้องสมัครใหม่</span>
+        <button type="button" class="lock-btn"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg> เข้าสู่ระบบด้วย Google</button>
+      </div>
+    </div>
     <p class="hint codeintro">ตัวควบคุมชุดเดียวกับที่หน้านี้ใช้ เขียนเป็น C++ ไฟล์เดียว ใช้ได้ทั้ง ESP32 / Teensy / STM32 (Arduino) และ Linux / ROS ไฟล์ <b>robot_config.h</b> สร้างจากค่าขนาด น้ำหนัก และ Kp Kd ที่ตั้งไว้บนหน้านี้ตอนนี้ · วิธีใช้: คัดลอกทั้ง 3 ไฟล์ลงโฟลเดอร์ sketch เดียวกัน ติดตั้งไลบรารี Adafruit PWM Servo Driver กับ Adafruit MPU6050 แก้ช่องสัญญาณ ทิศทาง และมุมศูนย์ของเซอร์โวในไฟล์ .ino แล้วทดสอบตอนแขวนหุ่นไว้ก่อนเสมอ</p>
     <div class="codebar">
       <div class="seg" role="group" aria-label="เลือกไฟล์">
@@ -1169,6 +1252,23 @@ void loop() {
   }
 }
 </script>
+<div class="login" id="login" hidden>
+  <div class="lg-backdrop" id="lgBackdrop"></div>
+  <div class="lg-card" role="dialog" aria-modal="true" aria-labelledby="lgTitle">
+    <img class="lg-bot" id="lgBot" alt="" width="260" height="301">
+    <div class="lg-eyebrow">array_simulator</div>
+    <h2 class="lg-title" id="lgTitle">เข้าสู่ระบบ</h2>
+    <p class="lg-sub">ใช้บัญชี Google ของคุณ ไม่ต้องสมัครหรือตั้งรหัสผ่านใหม่</p>
+    <ul class="lg-perks">
+      <li><span aria-hidden="true">📐</span> ปรับขนาดขา แขน ลำตัว และน้ำหนักหุ่น</li>
+      <li><span aria-hidden="true">💻</span> ดูและคัดลอกโค้ด C++ สำหรับหุ่นยนต์จริง</li>
+    </ul>
+    <button type="button" id="lgGoogle" class="lg-google"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg> <span id="lgGoogleText">เข้าสู่ระบบด้วย Google</span></button>
+    <p class="lg-msg" id="lgMsg" role="status" hidden></p>
+    <button type="button" id="lgClose" class="lg-later">ไว้ทีหลัง</button>
+    <p class="lg-note">เราเห็นแค่ชื่อและรูปโปรไฟล์ของคุณ ไม่เห็นรหัสผ่าน และไม่โพสต์อะไรแทนคุณ</p>
+  </div>
+</div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 <script>
@@ -2258,13 +2358,14 @@ let curFile = 'cfg';
 const FILES = { cfg: ['fCfg', 'robot_config.h'], hpp: ['fHpp', 'array_biped.hpp'], ino: ['fIno', 'esp32_servo_example/esp32_servo_example.ino'] };
 function codeText() { return curFile === 'cfg' ? configSrc() : SRC[curFile]; }
 window.refreshCode = function () {
-  $('codeView').textContent = codeText();
+  $('codeView').textContent = (AUTH && AUTH.user) ? codeText() : '// เข้าสู่ระบบด้วย Google เพื่อดูโค้ด\n\n' + '░'.repeat(60) + '\n' + '░'.repeat(44) + '\n' + '░'.repeat(52);
   for (const k in FILES) $(FILES[k][0]).setAttribute('aria-pressed', String(k === curFile));
   $('codeLink').href = GH + FILES[curFile][1];
 };
 for (const k in FILES) $(FILES[k][0]).onclick = () => { curFile = k; refreshCode(); };
 $('copyCode').onclick = async () => {
   const b = $('copyCode');
+  if (!(AUTH && AUTH.user)) { openLogin(); return; }
   b.classList.remove('popped'); void b.offsetWidth; b.classList.add('popped');
   try { await navigator.clipboard.writeText(codeText()); b.textContent = 'คัดลอกแล้ว ✓'; }
   catch (err) { const r = document.createRange(); r.selectNodeContents($('codeView')); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); b.textContent = 'เลือกข้อความแล้ว กด Ctrl+C'; }
@@ -2480,12 +2581,14 @@ const AI_TOOLS = [
   { name: 'get_state', description: 'Returns the live robot state on the page: mode, speed, falls, joint/foot tracking error, IMU angles and rates, body sizes and masses, PD gains and damping ratios.', execute: () => stateSnapshot() },
   { name: 'get_code', description: 'Returns the full text of one C++ file shown on the page. robot_config.h reflects the current page settings.',
     inputSchema: { type: 'object', properties: { file: { type: 'string', enum: ['array_biped.hpp', 'robot_config.h', 'esp32_servo_example.ino'] } }, required: ['file'] },
-    execute: ({ file }) => { const f = String(file); if (f === 'robot_config.h') return configSrc(); if (f === 'array_biped.hpp') return SRC.hpp; if (f === 'esp32_servo_example.ino') return SRC.ino; throw new Error('unknown file'); } },
+    execute: ({ file }) => { if (!AUTH.user) throw new Error('ผู้ใช้ยังไม่ได้เข้าสู่ระบบ โค้ด C++ เปิดให้เฉพาะสมาชิก บอกผู้ใช้ให้กดเข้าสู่ระบบด้วย Google ก่อน'); const f = String(file); if (f === 'robot_config.h') return configSrc(); if (f === 'array_biped.hpp') return SRC.hpp; if (f === 'esp32_servo_example.ino') return SRC.ino; throw new Error('unknown file'); } },
   { name: 'set_params', description: 'Sets page sliders. Any subset of: kp, kd (N·m/rad, N·m·s/rad), kpBalance, kdBalance (N/m, N·s/m), thigh, shin, torsoHeight, torsoWidth, arm (m), massTorso, massLeg, massArm (kg), speed (m/s), roughness_cm (0-10), pushImpulse (N·s). Values are clamped to the slider range. Returns the values applied.',
     inputSchema: { type: 'object', properties: Object.fromEntries(Object.keys(SLIDERS).map(k => [k, { type: 'number' }])) },
     execute: (input) => {
       const applied = {};
-      for (const k in input) { const id = SLIDERS[k]; if (!id) continue; const el = $(id), v = clamp(Number(input[k]), +el.min, +el.max); if (!isFinite(v)) continue;
+      const BODYK = ['thigh', 'shin', 'torsoHeight', 'torsoWidth', 'arm', 'massTorso', 'massLeg', 'massArm'];
+      for (const k in input) { const id = SLIDERS[k]; if (!id) continue;
+        if (!AUTH.user && BODYK.includes(k)) { applied[k] = 'locked: sign in with Google to change body size and weight'; continue; } const el = $(id), v = clamp(Number(input[k]), +el.min, +el.max); if (!isFinite(v)) continue;
         el.value = v; el.dispatchEvent(new Event('input')); applied[k] = +el.value; }
       return applied;
     } },
@@ -2759,10 +2862,10 @@ const TOUR = [
   { t: () => $('pushB').closest('.group'), say: 'ลอง <b>ผลักหุ่น</b> ดูครับ ผลักเบาๆ หุ่นจะก้าวกู้สมดุล ผลักแรงๆ จะล้ม แล้วลุกขึ้นเองด้วยมือกับเท้า' },
   { t: () => $('speed').closest('.sliders'), say: 'ตรงนี้ปรับ <b>ความเร็ว แรงผลัก และความขรุขระของพื้น</b> ครับ' },
   { t: () => $('kp').closest('.group'), say: '<b>Kp Kd</b> คือค่าของมอเตอร์และการทรงตัว ดูค่า ζ ด้านล่าง ถ้าขึ้นว่า "พอดี" แปลว่าตั้งได้ดีครับ' },
-  { t: '[aria-labelledby="body-h"]', say: 'ปรับ <b>ขนาดขา แขน ลำตัว และน้ำหนัก</b> ของหุ่นได้ ฟิสิกส์จะเปลี่ยนตามทันที' },
+  { t: '[aria-labelledby="body-h"]', say: 'ปรับ <b>ขนาดขา แขน ลำตัว และน้ำหนัก</b> ของหุ่นได้ ฟิสิกส์จะเปลี่ยนตามทันที ส่วนนี้สำหรับสมาชิก กด <b>เข้าสู่ระบบด้วย Google</b> ก่อนนะครับ' },
   { t: '[aria-labelledby="tel-h"]', say: '<b>ค่าจากเซนเซอร์</b> และไจโรกลางลำตัว บอกความเร็ว มุมข้อต่อ และการเอียงของหุ่นแบบสดๆ' },
   { t: '#setBtn', say: 'ถนัดมือซ้ายหรือขวา ย้ายแผงควบคุมได้ที่ปุ่ม <b>ตั้งค่า</b> และกดให้ผมสอนอีกครั้งได้จากตรงนี้ครับ' },
-  { t: '[aria-labelledby="code-h"]', say: '<b>โค้ด C++</b> สำหรับหุ่นยนต์จริง ค่าในไฟล์ robot_config.h ตรงกับที่ตั้งไว้บนหน้านี้ กดคัดลอกไปใช้ได้เลย' },
+  { t: '[aria-labelledby="code-h"]', say: '<b>โค้ด C++</b> สำหรับหุ่นยนต์จริง ค่าในไฟล์ robot_config.h ตรงกับที่ตั้งไว้บนหน้านี้ เข้าสู่ระบบแล้วกดคัดลอกไปใช้ได้เลยครับ' },
   { t: '[aria-labelledby="ai-h"]', say: 'สงสัยอะไร ถาม <b>ผู้ช่วย AI</b> ได้ครับ ผมจะคิดแล้วตอบ และพูดให้ฟังด้วย จบการสอนแล้ว สนุกกับการทดลองนะครับ!' }
 ];
 let tourI = -1, tourFlap = null, tourTimer = null;
@@ -2888,6 +2991,90 @@ document.addEventListener('keydown', e => {
 }, true);
 $('spTour').onclick = () => { startSim(); setTimeout(tourStart, reducedMotion ? 50 : 1500); };
 $('tourAgain').onclick = () => { $('setPanel').hidden = true; $('setBtn').setAttribute('aria-expanded', 'false'); tourStart(); };
+
+
+/* ================= sign-in =================
+   Inside claude.ai the viewer is already signed in to Claude: that identity unlocks the members' panels.
+   On the public website (GitHub Pages) it is Google sign-in through Firebase Authentication.
+   Paste the web-app config from the Firebase console below to switch Google sign-in on. */
+const FIREBASE_CONFIG = null;   // { apiKey: "...", authDomain: "...", projectId: "...", appId: "..." }
+var AUTH = { user: null, env: 'web', ready: false };   // var: the code panel reads it before this block runs
+function setAuth(u, via) {
+  AUTH.user = u; AUTH.via = via || '';
+  document.body.classList.toggle('authed', !!u);
+  $('loginBtn').hidden = !!u; $('acctUser').hidden = !u;
+  $('spLogin').hidden = !!u; $('spHello').hidden = !u;
+  if (u) {
+    $('acctName').textContent = u.name; $('spHelloName').textContent = 'สวัสดี ' + u.name;
+    $('acctImg').src = u.photo || AV.idle; $('spHelloImg').src = u.photo || AV.idle;
+    $('logoutBtn').hidden = via === 'claude';
+  }
+  document.querySelectorAll('.lock').forEach(l => {
+    const panel = l.parentElement;
+    [...panel.children].forEach(ch => { if (ch !== l && ch.tagName !== 'H2') ch.inert = !u; });
+    l.inert = !!u; l.setAttribute('aria-hidden', String(!!u));
+  });
+  if (window.refreshCode) refreshCode();
+}
+function lgSay(msg) { const m = $('lgMsg'); m.hidden = !msg; m.textContent = msg || ''; }
+function openLogin() {
+  if (AUTH.user) return;
+  const L = $('login'); L.hidden = false; L.classList.remove('closing');
+  $('lgBot').src = AV.talk; setTimeout(() => { $('lgBot').src = AV.idle; }, 900);
+  lgSay(AUTH.env === 'claude' ? 'ในหน้านี้ใช้บัญชี Claude ของคุณแทน ลงชื่อเข้า claude.ai แล้วเปิดหน้านี้อีกครั้ง' : (!FIREBASE_CONFIG ? 'ระบบเข้าสู่ระบบด้วย Google ยังไม่เปิดใช้งาน เจ้าของเว็บต้องเชื่อม Firebase ก่อน' : ''));
+  $('lgGoogle').disabled = AUTH.env === 'claude' || !FIREBASE_CONFIG;
+  setTimeout(() => { try { ($('lgGoogle').disabled ? $('lgClose') : $('lgGoogle')).focus({ preventScroll: true }); } catch (e) {} }, 60);
+}
+function closeLogin() {
+  const L = $('login'); if (L.hidden) return;
+  L.classList.add('closing'); setTimeout(() => { L.hidden = true; L.classList.remove('closing'); }, reducedMotion ? 0 : 340);
+}
+const loadScript = src => new Promise((ok, bad) => { const sc = document.createElement('script'); sc.src = src; sc.onload = ok; sc.onerror = bad; document.head.appendChild(sc); });
+const FB_ERR = {
+  'auth/popup-closed-by-user': 'ปิดหน้าต่างก่อนเข้าสู่ระบบเสร็จ ลองใหม่ได้เลย',
+  'auth/cancelled-popup-request': 'ปิดหน้าต่างก่อนเข้าสู่ระบบเสร็จ ลองใหม่ได้เลย',
+  'auth/unauthorized-domain': 'เว็บนี้ยังไม่ได้รับอนุญาตใน Firebase (Authorized domains) เจ้าของเว็บต้องเพิ่มโดเมนก่อน',
+  'auth/network-request-failed': 'เชื่อมต่ออินเทอร์เน็ตไม่ได้ ลองใหม่อีกครั้ง',
+  'auth/operation-not-allowed': 'ยังไม่ได้เปิด Google sign-in ใน Firebase'
+};
+async function googleLogin() {
+  if (AUTH.env === 'claude' || !FIREBASE_CONFIG || !window.firebase) return;
+  const btn = $('lgGoogle'); btn.disabled = true; $('lgGoogleText').textContent = 'กำลังเปิดหน้าต่าง Google…'; lgSay('');
+  const provider = new firebase.auth.GoogleAuthProvider(); provider.setCustomParameters({ prompt: 'select_account' });
+  try { await firebase.auth().signInWithPopup(provider); closeLogin(); }
+  catch (e) {
+    if (e.code === 'auth/popup-blocked' || e.code === 'auth/operation-not-supported-in-this-environment') { await firebase.auth().signInWithRedirect(provider); return; }
+    lgSay(FB_ERR[e.code] || ('เข้าสู่ระบบไม่สำเร็จ: ' + (e.message || e.code)));
+  } finally { btn.disabled = false; $('lgGoogleText').textContent = 'เข้าสู่ระบบด้วย Google'; }
+}
+async function initAuth() {
+  setAuth(null);
+  if (window.claude && window.claude.use) {
+    AUTH.env = 'claude';
+    const cu = await window.claude.use('user').catch(() => null);
+    const me = cu ? await cu.me() : null;
+    if (me && (me.id || me.name)) setAuth({ name: me.name || 'ผู้ใช้ Claude', photo: me.avatarUrl }, 'claude');
+    AUTH.ready = true; return;
+  }
+  AUTH.env = 'web';
+  if (!FIREBASE_CONFIG) { AUTH.ready = true; return; }
+  try {
+    await loadScript('https://cdn.jsdelivr.net/npm/firebase@10.12.2/firebase-app-compat.js');
+    await loadScript('https://cdn.jsdelivr.net/npm/firebase@10.12.2/firebase-auth-compat.js');
+    firebase.initializeApp(FIREBASE_CONFIG);
+    const auth = firebase.auth(); auth.useDeviceLanguage();
+    auth.onAuthStateChanged(u => setAuth(u ? { name: u.displayName || u.email || 'สมาชิก', photo: u.photoURL } : null, 'google'));
+    auth.getRedirectResult().catch(e => { openLogin(); lgSay(FB_ERR[e.code] || ('เข้าสู่ระบบไม่สำเร็จ: ' + e.message)); });
+  } catch (e) { console.warn('Firebase failed to load', e); }
+  AUTH.ready = true;
+}
+$('lgGoogle').onclick = googleLogin;
+$('lgClose').onclick = closeLogin; $('lgBackdrop').onclick = closeLogin;
+$('login').addEventListener('keydown', e => { if (e.key === 'Escape') closeLogin(); e.stopPropagation(); });
+$('loginBtn').onclick = openLogin; $('spLogin').onclick = e => { e.stopPropagation(); openLogin(); };
+document.querySelectorAll('.lock-btn').forEach(b => b.onclick = openLogin);
+$('logoutBtn').onclick = () => { if (window.firebase && FIREBASE_CONFIG) firebase.auth().signOut(); };
+initAuth();
 
 /* ================= telemetry ================= */
 const MODE = { stand: ['ยืนทรงตัว', 'ok'], shift: ['ถ่ายน้ำหนัก', 'ok'], walk: ['เดิน', 'ok'], crouch: ['ย่อตัวเตรียมกระโดด', 'warn'], air: ['ลอยตัว', 'warn'],
