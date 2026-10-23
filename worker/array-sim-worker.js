@@ -2,21 +2,19 @@
 //  array_simulator server — Cloudflare Worker (single file, no build step)
 //
 //  What it does
-//    GET  /me        which plan the signed-in visitor has (Free / Pro / Ultimate) and AI messages left today
+//    GET  /me        which plan the signed-in visitor has (Free / Pro / Ultimate)
 //    POST /checkout  opens a Stripe Checkout page for Pro (99 THB / month) or Ultimate (599 THB / year)
 //    POST /portal    opens the Stripe customer portal (change card, cancel)
 //    POST /webhook   Stripe tells us a payment went through / a subscription changed
-//    POST /ai        the AI assistant for Pro and Ultimate members, using the site owner's Anthropic key
 //
 //  Every request from the website carries the visitor's Firebase ID token (Google sign-in);
 //  the worker checks its signature against Google's public keys, so nobody can pretend to be someone else.
 //
 //  Settings (Cloudflare dashboard → Workers → this worker → Settings → Variables and Secrets)
-//    secrets : ANTHROPIC_API_KEY, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET
+//    secrets : STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET
 //    text    : FIREBASE_PROJECT_ID = array-simulator
 //              SITE_URL            = https://arraychinvon89.github.io/array.github.io/
 //              OWNER_EMAIL         = the owner's Google e-mail (always Ultimate, never charged)
-//    optional: AI_MODEL (default claude-haiku-5-5), AI_DAILY_PRO (default 20), AI_DAILY_ULTIMATE (default 30)
 //    KV namespace binding: DB
 // =============================================================================
 
@@ -39,7 +37,6 @@ export default {
       if (url.pathname === '/me' && req.method === 'GET') return json(await me(user, env), 200, cors);
       if (url.pathname === '/checkout' && req.method === 'POST') return json(await checkout(user, await req.json(), env), 200, cors);
       if (url.pathname === '/portal' && req.method === 'POST') return json(await portal(user, env), 200, cors);
-      if (url.pathname === '/ai' && req.method === 'POST') return await ai(user, req, env, cors);
       return json({ error: 'not found' }, 404, cors);
     } catch (e) {
       const status = e.status || 500;
@@ -58,12 +55,11 @@ function corsHeaders(req, env) {
   const origin = req.headers.get('origin') || '';
   const site = env.SITE_URL ? new URL(env.SITE_URL).origin : '';
   const ok = origin === site || /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
-  return ok ? { 'access-control-allow-origin': origin, 'access-control-allow-headers': 'authorization, content-type, x-ai-ticket',
-    'access-control-allow-methods': 'GET, POST, OPTIONS', 'access-control-expose-headers': 'x-ai-left, x-ai-ticket', 'access-control-max-age': '86400', vary: 'origin' } : { vary: 'origin' };
+  return ok ? { 'access-control-allow-origin': origin, 'access-control-allow-headers': 'authorization, content-type',
+    'access-control-allow-methods': 'GET, POST, OPTIONS', 'access-control-max-age': '86400', vary: 'origin' } : { vary: 'origin' };
 }
 const b64urlBytes = s => Uint8Array.from(atob(s.replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((s.length + 3) % 4)), c => c.charCodeAt(0));
 const b64urlJson = s => JSON.parse(new TextDecoder().decode(b64urlBytes(s)));
-const today = () => new Date(Date.now() + 7 * 3600e3).toISOString().slice(0, 10);   // the day in Thailand (UTC+7)
 
 // ----------------------------------------------------------------------------- Firebase ID token check
 let jwks = null, jwksUntil = 0;
@@ -104,11 +100,9 @@ function tierOf(rec, user, env) {
   if ((rec.pro || 0) > now) return { tier: 'pro', until: rec.pro };
   return { tier: 'free', until: 0 };
 }
-const aiLimit = (tier, env) => tier === 'ultimate' ? +(env.AI_DAILY_ULTIMATE || 30) : tier === 'pro' ? +(env.AI_DAILY_PRO || 20) : 0;
 async function me(user, env) {
   const rec = await getRec(env, user.uid), t = tierOf(rec, user, env);
-  const used = +(await env.DB.get('ai:' + user.uid + ':' + today()) || 0), lim = aiLimit(t.tier, env);
-  return { tier: t.tier, until: t.until, sub: !!(rec.sub && rec.sub.id && t.tier !== 'free'), aiLeft: lim ? Math.max(0, lim - used) : null, aiLimit: lim || null };
+  return { tier: t.tier, until: t.until, sub: !!(rec.sub && rec.sub.id && t.tier !== 'free') };
 }
 
 // ----------------------------------------------------------------------------- Stripe
@@ -230,48 +224,4 @@ async function webhook(req, env) {
     }
   }
   return new Response('ok');
-}
-
-// ----------------------------------------------------------------------------- AI assistant for members
-async function ai(user, req, env, cors) {
-  const rec = await getRec(env, user.uid), { tier } = tierOf(rec, user, env);
-  const lim = aiLimit(tier, env);
-  if (!lim) throw fail(402, 'members only');
-  const raw = await req.text();
-  if (raw.length > 120000) throw fail(413, 'too large');
-  const body = JSON.parse(raw);
-  // a question can take a few tool rounds; only the first counts towards the daily allowance.
-  // Follow-up rounds carry a short-lived signed ticket from the previous answer (at most 6 rounds, 3 minutes).
-  const key = 'ai:' + user.uid + ':' + today(), used = +(await env.DB.get(key) || 0);
-  const tk = await readTicket(req.headers.get('x-ai-ticket'), user.uid, env);
-  const first = tk === null;
-  if (first && used >= lim) return json({ error: 'daily limit' }, 429, { ...cors, 'x-ai-left': '0' });
-  const messages = Array.isArray(body.messages) ? body.messages.slice(-30) : [];
-  const tools = Array.isArray(body.tools) ? body.tools.slice(0, 8) : undefined;
-  if (tools && tools.length) tools[tools.length - 1] = { ...tools[tools.length - 1], cache_control: { type: 'ephemeral' } };
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: { 'content-type': 'application/json', 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01' },
-    body: JSON.stringify({
-      model: env.AI_MODEL || 'claude-haiku-5-5', max_tokens: 2048,
-      system: [{ type: 'text', text: String(body.system || '').slice(0, 30000), cache_control: { type: 'ephemeral' } }],
-      tools, messages, metadata: { user_id: user.uid } }),
-  });
-  const out = await res.text();
-  if (!res.ok) { console.error('anthropic', res.status, out.slice(0, 300)); return json({ error: 'ai upstream ' + res.status }, 502, cors); }
-  const left = first ? lim - used - 1 : lim - used;
-  if (first) await env.DB.put(key, String(used + 1), { expirationTtl: 60 * 60 * 48 });
-  const next = (first ? 0 : tk) + 1;
-  const ticket = next < 6 ? await makeTicket(user.uid, next, env) : '';
-  return new Response(out, { status: 200, headers: { 'content-type': 'application/json', ...cors, 'x-ai-left': String(Math.max(0, left)), 'x-ai-ticket': ticket } });
-}
-async function ticketMac(msg, env) {
-  const key = await crypto.subtle.importKey('raw', new TextEncoder().encode('ai-ticket:' + env.ANTHROPIC_API_KEY), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
-  return [...new Uint8Array(await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(msg)))].map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 32);
-}
-async function makeTicket(uid, n, env) { const exp = Date.now() + 180e3, msg = uid + '.' + exp + '.' + n; return exp + '.' + n + '.' + await ticketMac(msg, env); }
-async function readTicket(t, uid, env) {               // -> round number, or null when there is no valid ticket
-  const m = (t || '').match(/^(\d+)\.(\d)\.([0-9a-f]{32})$/);
-  if (!m || +m[1] < Date.now() || +m[2] >= 6) return null;
-  return (await ticketMac(uid + '.' + m[1] + '.' + m[2], env)) === m[3] ? +m[2] : null;
 }

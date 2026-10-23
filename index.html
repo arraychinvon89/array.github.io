@@ -757,26 +757,6 @@ esp-web-install-button { display: inline-block; }
         </div>
         <p class="hint">เท้าห่างมากทรงตัวด้านข้างดีขึ้นแต่ตัวโยกซ้ายขวามาก · ก้าวเร็ว (ค่าน้อย) รับแรงผลักทันกว่าแต่มอเตอร์ทำงานหนัก · ยกเท้าสูงข้ามพื้นขรุขระได้ดี แต่เปลืองพลังงาน ค่าทั้งหมดนี้ไปอยู่ใน robot_config.h ด้วย</p>
       </section>
-      <section class="panel" aria-labelledby="phys-h">
-        <h2 id="phys-h">ฟิสิกส์ขั้นสูง <span class="member ult">ULTIMATE</span></h2>
-        <div class="lock" data-need="ultimate" data-title="จำลองแรงโน้มถ่วง แรงเสียดทาน มอเตอร์ และเซ็นเซอร์" aria-hidden="false"></div>
-        <div class="group"><span>แรงโน้มถ่วงสำเร็จรูป</span>
-          <div class="row gpre" id="gPresets">
-            <button type="button" data-g="9.81" aria-pressed="true">🌍 โลก</button><button type="button" data-g="1.62" aria-pressed="false">🌙 ดวงจันทร์</button><button type="button" data-g="3.71" aria-pressed="false">🔴 ดาวอังคาร</button><button type="button" data-g="24.79" aria-pressed="false">🪐 ดาวพฤหัส</button>
-          </div>
-        </div>
-        <div class="sliders">
-          <div class="slider"><label for="pG">แรงโน้มถ่วง <output id="pGOut">9.81 m/s²</output></label><input id="pG" type="range" min="1.6" max="25" step="0.01" value="9.81"></div>
-          <div class="slider"><label for="pMu">แรงเสียดทานพื้น μ <output id="pMuOut">0.60</output></label><input id="pMu" type="range" min="0.05" max="1.2" step="0.05" value="0.6"></div>
-          <div class="slider"><label for="pTq">แรงบิดสูงสุดของมอเตอร์ <output id="pTqOut">400 N·m</output></label><input id="pTq" type="range" min="10" max="600" step="5" value="400"></div>
-          <div class="slider"><label for="pNoise">สัญญาณรบกวน IMU <output id="pNoiseOut">±0.0°</output></label><input id="pNoise" type="range" min="0" max="5" step="0.1" value="0"></div>
-        </div>
-        <div class="pdinfo">
-          <span id="pInfo">น้ำหนัก 461 N</span>
-          <button id="pReset">คืนค่าเริ่มต้น</button>
-        </div>
-        <p class="hint">แรงโน้มถ่วงต่ำ ลูกตุ้มล้มช้า หุ่นก้าวช้าลงเอง · พื้นลื่น (μ ต่ำ) ถ้าแรงที่เท้าต้องดันเกิน μ × น้ำหนัก เท้าจะลื่นแล้วล้ม · มอเตอร์แรงบิดต่ำ เข่าจะรับน้ำหนักไม่ไหว · IMU มีสัญญาณรบกวน หุ่นจะกะจุดวางเท้าคลาดเคลื่อน เหมือนเซ็นเซอร์จริง</p>
-      </section>
     </aside>
     <div class="mainc">
       <div class="viewbar">
@@ -942,7 +922,6 @@ esp-web-install-button { display: inline-block; }
     </form>
     <p class="hint" id="aiNote" hidden></p>
     <div class="aikey" id="aiKeyBox" hidden>
-      <button type="button" class="ai-up" id="aiUpsell" hidden>⭐ สมาชิก Pro คุยกับผู้ช่วยได้เลย ไม่ต้องใช้ key</button>
       <span class="set-title"><b>ไม่ต้องใช้ key:</b> เปิดหน้านี้ผ่าน Claude แล้วผู้ช่วยจะใช้บัญชี Claude ของคุณ (บัญชีฟรีก็ใช้ได้)</span>
       <a class="ai-claude" href="https://claude.ai/artifact/HR9fQQstTWxvs4iT7WyWX2" target="_blank" rel="noopener">คุยกับผู้ช่วยผ่าน Claude ↗</a>
       <label for="aiKey">หรือใช้บนเว็บนี้เลยด้วย Anthropic API key ของคุณ</label>
@@ -1529,10 +1508,8 @@ void loop() {
         <ul>
           <li>ทุกอย่างใน Free</li>
           <li>ปรับขนาดและน้ำหนักหุ่น</li>
-          <li>AI วิเคราะห์หุ่น ไม่ต้องใช้ key</li>
           <li>ปรับพารามิเตอร์การเดินเพิ่ม</li>
           <li>อัปโหลดลงหุ่นผ่านสาย USB</li>
-          <li class="no">ฟิสิกส์ขั้นสูง</li>
           <li class="no">ไฟล์โค้ด C++ ทั้งหมด</li>
         </ul>
         <button type="button" class="pl-btn" data-buy="pro">สมัคร Pro</button>
@@ -1544,8 +1521,6 @@ void loop() {
         <div class="pl-per">เฉลี่ยเดือนละ 50 บาท · ถูกกว่า Pro รายเดือนครึ่งหนึ่ง</div>
         <ul>
           <li>ทุกอย่างใน Pro</li>
-          <li>ฟิสิกส์ขั้นสูง: แรงโน้มถ่วง พื้นลื่น มอเตอร์ เซ็นเซอร์</li>
-          <li>AI วิเคราะห์หุ่น ไม่ต้องใช้ key</li>
           <li>ไฟล์โค้ด C++ ทั้งหมด แก้และต่อยอดเองได้</li>
         </ul>
         <button type="button" class="pl-btn" data-buy="ultimate">สมัคร Ultimate</button>
@@ -2927,15 +2902,15 @@ const RULES = () => `คุณคือผู้ช่วยในเว็บ a
 เรื่องความปลอดภัยของหุ่นจริง: แนะนำให้ทดสอบตอนแขวนหุ่น เริ่มจากค่าต่ำ และมีสวิตช์ตัดไฟ
 สถานะตอนนี้ (JSON): ${JSON.stringify(stateSnapshot())}`;
 const SLIDERS = { kp: 'kp', kd: 'kd', kpBalance: 'kpb', kdBalance: 'kdb', thigh: 'bThigh', shin: 'bShin', torsoHeight: 'bTorsoH', torsoWidth: 'bTorsoW', arm: 'bArm', massTorso: 'bMT', massLeg: 'bML', massArm: 'bMA', speed: 'speed', roughness_cm: 'rough', pushImpulse: 'force',
-  stepWidth: 'aStepW', stepTimeScale: 'aTime', footLiftScale: 'aLift', gravity: 'pG', friction: 'pMu', maxTorque: 'pTq', imuNoise_deg: 'pNoise' };
+  stepWidth: 'aStepW', stepTimeScale: 'aTime', footLiftScale: 'aLift' };
 const SLIDER_NEED = { thigh: 'body', shin: 'body', torsoHeight: 'body', torsoWidth: 'body', arm: 'body', massTorso: 'body', massLeg: 'body', massArm: 'body',
-  stepWidth: 'adv', stepTimeScale: 'adv', footLiftScale: 'adv', gravity: 'phys', friction: 'phys', maxTorque: 'phys', imuNoise_deg: 'phys' };
+  stepWidth: 'adv', stepTimeScale: 'adv', footLiftScale: 'adv' };
 const AI_TOOLS = [
   { name: 'get_state', description: 'Returns the live robot state on the page: mode, speed, falls, joint/foot tracking error, IMU angles and rates, body sizes and masses, PD gains and damping ratios.', execute: () => stateSnapshot() },
   { name: 'get_code', description: 'Returns the full text of one C++ file shown on the page. robot_config.h reflects the current page settings.',
     inputSchema: { type: 'object', properties: { file: { type: 'string', enum: ['array_biped.hpp', 'robot_config.h', 'esp32_servo_example.ino'] } }, required: ['file'] },
     execute: ({ file }) => { if (!can('code')) throw new Error('โค้ด C++ เปิดให้เฉพาะสมาชิก Ultimate บอกผู้ใช้ว่ากดปุ่ม ⭐ แพ็กเกจ ด้านบนเพื่อดูรายละเอียด'); const f = String(file); if (f === 'robot_config.h') return configSrc(); if (f === 'array_biped.hpp') return SRC.hpp; if (f === 'esp32_servo_example.ino') return SRC.ino; throw new Error('unknown file'); } },
-  { name: 'set_params', description: 'Sets page sliders. Any subset of: kp, kd (N·m/rad, N·m·s/rad), kpBalance, kdBalance (N/m, N·s/m), thigh, shin, torsoHeight, torsoWidth, arm (m), massTorso, massLeg, massArm (kg), speed (m/s), roughness_cm (0-10), pushImpulse (N·s), stepWidth (m), stepTimeScale, footLiftScale (multipliers), gravity (m/s²), friction (mu), maxTorque (N·m), imuNoise_deg. Body keys need Pro, step keys need Pro, physics keys need Ultimate. Values are clamped to the slider range. Returns the values applied.',
+  { name: 'set_params', description: 'Sets page sliders. Any subset of: kp, kd (N·m/rad, N·m·s/rad), kpBalance, kdBalance (N/m, N·s/m), thigh, shin, torsoHeight, torsoWidth, arm (m), massTorso, massLeg, massArm (kg), speed (m/s), roughness_cm (0-10), pushImpulse (N·s), stepWidth (m), stepTimeScale, footLiftScale (multipliers). Body and step keys need the Pro plan. Values are clamped to the slider range. Returns the values applied.',
     inputSchema: { type: 'object', properties: Object.fromEntries(Object.keys(SLIDERS).map(k => [k, { type: 'number' }])) },
     execute: (input) => {
       const applied = {};
@@ -2972,8 +2947,8 @@ async function ask(q) {
   while (aiTurns.length > 14) aiTurns.shift();
   const b = bubble('bot wait', 'กำลังคิด…'), acts = [];
   botState('think', 'ขอคิดแป๊บนึงนะครับ…');
-  if (!aiSample && aiMode !== 'api' && aiMode !== 'server') { b.textContent = 'กำลังเชื่อมต่อผู้ช่วย…'; await aiReady; }
-  if (aiMode === 'api' || aiMode === 'server') {
+  if (!aiSample && aiMode !== 'api') { b.textContent = 'กำลังเชื่อมต่อผู้ช่วย…'; await aiReady; }
+  if (aiMode === 'api') {
     setBusy(true); aiCtl = new AbortController();
     try {
       const text = await askApi(b, acts);
@@ -2983,7 +2958,7 @@ async function ask(q) {
     } catch (e) {
       b.className = 'msg bot';
       botState('idle', e.name === 'AbortError' ? 'หยุดแล้วครับ' : 'เชื่อมต่อไม่สำเร็จครับ ดูรายละเอียดในแชต');
-      b.innerHTML = e.name === 'AbortError' ? '<div class="act">หยุดแล้ว</div>' : '<div class="act">' + esc((aiMode === 'server' ? SRV_ERR[e.status] : 0) || API_ERR[e.status] || ('เชื่อมต่อไม่สำเร็จ' + (e.message ? ': ' + e.message : ''))) + '</div>';
+      b.innerHTML = e.name === 'AbortError' ? '<div class="act">หยุดแล้ว</div>' : '<div class="act">' + esc(API_ERR[e.status] || ('เชื่อมต่อไม่สำเร็จ' + (e.message ? ': ' + e.message : ''))) + '</div>';
       aiTurns.pop();
     } finally {
       if (acts.length) { const d = document.createElement('div'); d.className = 'act'; d.textContent = 'ใช้เครื่องมือ: ' + [...new Set(acts)].join(', '); b.appendChild(d); }
@@ -3022,12 +2997,6 @@ const lsSet = v => { try { v ? localStorage.setItem(KEY_LS, v) : localStorage.re
 let apiKey = '';
 function aiFallback() {
   if (aiSample) return;
-  if (WORKER_URL && window.__planReady && can('ai') && AUTH.via !== 'claude') {          // Pro / Ultimate: the site's own server answers, no key needed
-    aiMode = 'server'; $('aiKeyBox').hidden = true; aiSend.textContent = 'ส่ง';
-    aiNote.hidden = false; aiNote.textContent = 'สมาชิก ' + PLAN_NAME[PLAN.tier] + ' คุยกับผู้ช่วยได้เลย ไม่ต้องใช้ key' + (PLAN.aiLeft != null ? ' · วันนี้เหลือ ' + PLAN.aiLeft + ' ข้อความ' : '');
-    return;
-  }
-  $('aiUpsell').hidden = !WORKER_URL;
   $('aiKeyBox').hidden = false;
   apiKey = lsGet();
   aiMode = apiKey ? 'api' : 'copy';
@@ -3043,18 +3012,13 @@ $('aiKey').addEventListener('keydown', e => { e.stopPropagation(); if (e.key ===
 const API_TOOLS = () => AI_TOOLS.map(t => ({ name: t.name, description: t.description, input_schema: t.inputSchema || { type: 'object', properties: {} } }));
 async function askApi(bubbleEl, acts) {
   const msgs = aiTurns.map(t => ({ role: t.role, content: t.content }));
-  let shown = '', ticket = '';
+  let shown = '';
   for (let round = 0; round < 6; round++) {
-    const srv = aiMode === 'server';
-    const res = srv
-      ? await fetch(WORKER_URL + '/ai', { method: 'POST', signal: aiCtl.signal, headers: Object.assign({ 'content-type': 'application/json', authorization: 'Bearer ' + await idToken() }, ticket ? { 'x-ai-ticket': ticket } : {}),
-          body: JSON.stringify({ system: RULES(), tools: API_TOOLS(), messages: msgs }) })
-      : await fetch('https://api.anthropic.com/v1/messages', {
-          method: 'POST', signal: aiCtl.signal,
-          headers: { 'content-type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
-          body: JSON.stringify({ model: 'claude-sonnet-5-5', max_tokens: 4096, system: RULES(), tools: API_TOOLS(), messages: msgs })
-        });
-    if (srv) { ticket = res.headers.get('x-ai-ticket') || ''; if (res.headers.get('x-ai-left') != null) { PLAN.aiLeft = +res.headers.get('x-ai-left'); aiFallback(); } }
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST', signal: aiCtl.signal,
+      headers: { 'content-type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      body: JSON.stringify({ model: 'claude-sonnet-5-5', max_tokens: 4096, system: RULES(), tools: API_TOOLS(), messages: msgs })
+    });
     if (!res.ok) {
       let msg = ''; try { msg = (await res.json()).error.message; } catch (e) {}
       const err = new Error(msg); err.status = res.status; throw err;
@@ -3075,7 +3039,6 @@ async function askApi(bubbleEl, acts) {
   }
   return shown;
 }
-const SRV_ERR = { 401: 'การเข้าสู่ระบบหมดอายุ ออกจากระบบแล้วเข้าใหม่อีกครั้ง', 402: 'ผู้ช่วยแบบไม่ต้องใช้ key สำหรับสมาชิก Pro และ Ultimate', 429: 'วันนี้ใช้ผู้ช่วยครบจำนวนแล้ว พรุ่งนี้มาคุยกันใหม่นะครับ', 413: 'แชตยาวเกินไป กดล้างแชตแล้วถามใหม่', 502: 'เซิร์ฟเวอร์ AI ไม่ตอบ ลองใหม่อีกครั้ง' };
 const API_ERR = { 401: 'API key ไม่ถูกต้อง ตรวจ key แล้วบันทึกใหม่', 403: 'key นี้ไม่มีสิทธิ์ใช้งาน', 429: 'เรียกถี่เกินไปหรือเครดิตหมด ลองใหม่อีกสักครู่', 529: 'เซิร์ฟเวอร์ Anthropic ยุ่งอยู่ ลองใหม่อีกครั้ง' };
 const aiReady = (async () => {
   try { aiSample = window.claude && window.claude.use ? await window.claude.use('sample') : null; } catch (e) { aiSample = null; }
@@ -3566,7 +3529,7 @@ initAuth();
 
 /* ================= type a value: every control slider gets a number box next to its label ================= */
 const NUM_UNITS = { speed: ['', 'm/s'], force: ['', 'N·s'], rough: ['±', 'cm'], kp: ['', 'N·m/rad'], kd: ['', 'N·m·s/rad'], kpb: ['', 'N/m'], kdb: ['', 'N·s/m'],
-  aStepW: ['', 'm'], aTime: ['×', ''], aLift: ['×', ''], pG: ['', 'm/s²'], pMu: ['μ', ''], pTq: ['', 'N·m'], pNoise: ['±', '°'],
+  aStepW: ['', 'm'], aTime: ['×', ''], aLift: ['×', ''],
   bThigh: ['', 'm'], bShin: ['', 'm'], bTorsoH: ['', 'm'], bTorsoW: ['', 'm'], bArm: ['', 'm'], bMT: ['', 'kg'], bML: ['', 'kg'], bMA: ['', 'kg'] };
 const stepDecimals = st => (String(st).split('.')[1] || '').length;
 Object.keys(NUM_UNITS).forEach(id => {
@@ -3609,7 +3572,7 @@ Object.keys(NUM_UNITS).forEach(id => {
    Paste the Worker's URL below once it is deployed; until then every signed-in visitor is on Free. */
 var WORKER_URL = null;   // e.g. 'https://array-sim.<your-name>.workers.dev'
 var RANK = { guest: 0, free: 1, pro: 2, ultimate: 3 };
-var NEED = { body: 'pro', adv: 'pro', ai: 'pro', phys: 'ultimate', code: 'ultimate', flash: 'pro' };
+var NEED = { body: 'pro', adv: 'pro', code: 'ultimate', flash: 'pro' };
 var PLAN_NAME = { guest: 'ผู้เยี่ยมชม', free: 'Free', pro: 'Pro', ultimate: 'Ultimate' };
 var PLAN = { tier: 'guest', until: 0, sub: false, aiLeft: null, owner: false };
 function can(f) { return RANK[PLAN.tier] >= RANK[NEED[f] || f]; }
@@ -3701,7 +3664,6 @@ $('plansBtn').onclick = () => openPlans();
 $('plClose').onclick = closePlans; $('plBackdrop').onclick = closePlans;
 $('plans').addEventListener('keydown', e => { if (e.key === 'Escape') closePlans(); e.stopPropagation(); });
 $('plans').addEventListener('keyup', e => e.stopPropagation());
-$('aiUpsell').onclick = () => openPlans('pro');
 function toast(msg, ms = 4200) { const t = $('toast'); t.textContent = msg; t.hidden = false; clearTimeout(toast.tm); toast.tm = setTimeout(() => { t.hidden = true; }, ms); }
 // back from Stripe Checkout: the webhook may take a few seconds, so ask again until the plan shows up
 (function paidReturn() {
@@ -3722,23 +3684,9 @@ function updAdv() {
   $('aInfo').textContent = 'ก้าวละ ' + (clamp(0.6 - 0.12 * S.vdes * FROUDE(), 0.42, 0.6) * ADV.tScale * Math.sqrt(LS) * Math.sqrt(9.81 / G)).toFixed(2) + ' s · ยกเท้าสูงสุด ' + Math.round((0.045 + 0.05) * LS * ADV.lift * 100) + ' cm';
   if (window.refreshCode) refreshCode();
 }
-function updPhys(e) {
-  const g0 = G;
-  G = +$('pG').value; ADV.mu = +$('pMu').value; ADV.tq = +$('pTq').value; ADV.noise = +$('pNoise').value;
-  $('pGOut').textContent = G.toFixed(2) + ' m/s²'; $('pMuOut').textContent = ADV.mu.toFixed(2);
-  $('pTqOut').textContent = Math.round(ADV.tq) + ' N·m'; $('pNoiseOut').textContent = '±' + ADV.noise.toFixed(1) + '°';
-  document.querySelectorAll('#gPresets button').forEach(b => b.setAttribute('aria-pressed', String(Math.abs(+b.dataset.g - G) < 0.005)));
-  if (g0 !== G) updBody();                                  // ω and the PD damping ratios depend on g
-  const knee = (MTOT - BODY.mL) * G * 0.12;                 // rough knee torque while standing on one leg
-  $('pInfo').textContent = 'น้ำหนัก ' + Math.round(MTOT * G) + ' N · เข่ารับน้ำหนักราว ' + Math.round(knee) + ' N·m' + (ADV.tq < knee * 1.3 ? ' ⚠ มอเตอร์อาจไม่พอ' : '') + (G < 9.8 ? ' · เดินได้เร็วสุด ×' + FROUDE().toFixed(2) + ' ของค่าที่ตั้ง' : '');
-  updAdv();
-}
 ['aStepW', 'aTime', 'aLift'].forEach(id => $(id).addEventListener('input', updAdv));
-['pG', 'pMu', 'pTq', 'pNoise'].forEach(id => $(id).addEventListener('input', updPhys));
-document.querySelectorAll('#gPresets button').forEach(b => b.onclick = () => { $('pG').value = b.dataset.g; $('pG').dispatchEvent(new Event('input', { bubbles: true })); });
 $('aReset').onclick = () => { $('aStepW').value = 0.2; $('aTime').value = 1; $('aLift').value = 1; updAdv(); ['aStepW', 'aTime', 'aLift'].forEach(id => $(id).dispatchEvent(new Event('input', { bubbles: true }))); };
-$('pReset').onclick = () => { $('pG').value = 9.81; $('pMu').value = 0.6; $('pTq').value = 400; $('pNoise').value = 0; updPhys(); ['pG', 'pMu', 'pTq', 'pNoise'].forEach(id => $(id).dispatchEvent(new Event('input', { bubbles: true }))); };
-updPhys();
+updAdv();
 window.__planReady = true; refreshPlan();
 window.__sim = { S, ADV, configSrc, get PLAN() { return PLAN; }, get aiMode() { return aiMode; } };   // read-only handle for automated tests
 
