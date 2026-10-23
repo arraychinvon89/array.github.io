@@ -447,7 +447,10 @@ body.authed .lock { opacity: 0; visibility: hidden; pointer-events: none; }
 .adm-ghost.spin svg { animation: admSpin .8s linear infinite; }
 @keyframes admSpin { to { transform: rotate(360deg); } }
 .adm-body { overflow-y: auto; display: grid; gap: 16px; align-content: start; min-height: 0; padding-right: 2px; scrollbar-width: thin; }
-.adm-body.loading { opacity: .5; filter: blur(1px); transition: opacity .3s, filter .3s; }
+.adm-body { transition: opacity .3s; }
+.adm-body.loading { opacity: .6; }
+.adm-wait { display: flex; justify-content: center; align-items: center; gap: 10px; padding: 18px; color: var(--muted); font-size: 14px; }
+.adm-wait::before { content: ""; width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--grid-strong); border-top-color: var(--robot); animation: admSpin .8s linear infinite; }
 .adm-hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr); gap: 12px; }
 .adm-big, .adm-tile { display: grid; align-content: center; gap: 2px; padding: 14px 16px; border-radius: 12px; background: var(--paper); border: 1px solid var(--line); }
 .adm-big { background: linear-gradient(150deg, color-mix(in srgb, var(--robot) 22%, var(--paper)), var(--paper) 70%); border-color: color-mix(in srgb, var(--robot) 40%, var(--line)); }
@@ -3279,11 +3282,15 @@ async function admLoad() {
   const db = fsdb(); if (!db) return;
   $('admRefresh').classList.add('spin'); $('admBody').classList.add('loading'); admSay('');
   try {
-    const snap = await db.collection('users').orderBy('last', 'desc').get();
+    if (!ADM.rows) $('admList').innerHTML = '<li class="adm-wait">กำลังโหลดรายชื่อ…</li>';
+    // an uncreated Firestore database never answers, so give up after a while instead of waiting forever
+    const snap = await Promise.race([db.collection('users').orderBy('last', 'desc').get({ source: 'server' }),
+      new Promise((_, bad) => setTimeout(() => bad({ code: 'timeout' }), 12000))]);
     ADM.rows = snap.docs.map(d => { const x = d.data(); return { name: x.name || '', email: x.email || '', photo: x.photo || '', created: tsMs(x.created), last: tsMs(x.last), visits: x.visits || 0 }; });
     admRender();
   } catch (e) {
-    admSay(e.code === 'permission-denied' ? 'Firebase ยังไม่อนุญาต: ตรวจว่าวางกฎ (Rules) ของ Firestore แล้วกด Publish' : /not.?found|failed-precondition|unavailable/i.test(e.code + ' ' + e.message) ? 'ยังไม่ได้สร้าง Firestore Database ใน Firebase' : 'โหลดข้อมูลไม่สำเร็จ: ' + (e.message || e.code));
+    if (!ADM.rows) $('admList').textContent = '';
+    admSay(e.code === 'timeout' ? 'เชื่อมต่อฐานข้อมูลไม่ได้ ถ้ายังไม่ได้สร้าง Firestore Database ใน Firebase ให้สร้างก่อน แล้วกดปุ่มโหลดใหม่ ↻' : e.code === 'permission-denied' ? 'Firebase ยังไม่อนุญาต: ตรวจว่าวางกฎ (Rules) ของ Firestore แล้วกด Publish' : /not.?found|failed-precondition|unavailable/i.test(e.code + ' ' + e.message) ? 'ยังไม่ได้สร้าง Firestore Database ใน Firebase' : 'โหลดข้อมูลไม่สำเร็จ: ' + (e.message || e.code));
   } finally { $('admRefresh').classList.remove('spin'); $('admBody').classList.remove('loading'); }
 }
 function admOpen() { $('setPanel').hidden = true; $('setBtn').setAttribute('aria-expanded', 'false'); const A = $('adm'); A.hidden = false; A.classList.remove('closing'); if (ADM.rows) admRender(); admLoad(); setTimeout(() => $('admClose').focus({ preventScroll: true }), 60); }
