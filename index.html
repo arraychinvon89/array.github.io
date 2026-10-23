@@ -329,6 +329,7 @@ body.entered .workspace { animation: none; }
 .splash.reveal { clip-path: circle(0% at var(--rx, 50%) var(--ry, 50%)); transition: clip-path .8s cubic-bezier(.7,0,.3,1), opacity .3s .6s; }
 .splash { clip-path: circle(150% at var(--rx, 50%) var(--ry, 50%)); }
 .ai-claude { display: inline-flex; align-items: center; gap: 8px; text-decoration: none; font-weight: 600; color: #1b1206; background: var(--robot); border-radius: 6px; padding: 10px 16px; min-height: 44px; width: fit-content; }
+.ai-up { width: fit-content; min-height: 44px; font-weight: 700; color: #1b1206; background: var(--robot); border-color: var(--robot-dark); }
 .ai-claude:focus-visible { outline: 2px solid var(--glow); outline-offset: 2px; }
 
 /* welcome: the button under the pointer grows, everything else sinks into the dark */
@@ -401,7 +402,7 @@ body.entered .workspace { animation: none; }
 .lock { position: absolute; inset: 0; z-index: 6; display: grid; place-items: center; padding: 16px; border-radius: 6px;
   background: color-mix(in srgb, var(--paper) 62%, transparent); -webkit-backdrop-filter: blur(7px) saturate(.8); backdrop-filter: blur(7px) saturate(.8);
   transition: opacity .6s cubic-bezier(.4,0,.2,1), visibility .6s; }
-body.authed .lock { opacity: 0; visibility: hidden; pointer-events: none; }
+.lock.open { opacity: 0; visibility: hidden; pointer-events: none; }
 .lock-in { display: grid; justify-items: center; gap: 8px; text-align: center; max-width: 30ch; }
 .lock-ico { font-size: 28px; animation: botFloat 3s ease-in-out infinite; }
 .lock-in span { font-size: 13px; color: var(--muted); }
@@ -499,6 +500,78 @@ body.authed .lock { opacity: 0; visibility: hidden; pointer-events: none; }
   .adm-col small { display: none; }
   .adm-col:nth-child(4n) small { display: block; }
 }
+.member.ult { color: #c9a6ff; border-color: rgba(181,140,255,.55); }
+.gpre { flex-wrap: wrap; gap: 6px; }
+.gpre button { min-height: 36px; padding: 4px 10px; font-size: 13px; }
+.gpre button[aria-pressed="true"] { border-color: var(--robot); color: var(--ink); box-shadow: inset 0 0 0 1px var(--robot); }
+.plans-btn { min-height: 40px; padding: 6px 14px; font-size: 14px; border-color: color-mix(in srgb, var(--robot) 55%, var(--grid-strong)); }
+.plans-btn:hover { border-color: var(--robot); box-shadow: 0 0 0 3px color-mix(in srgb, var(--robot) 22%, transparent); }
+.tier-pill { font: 700 10px var(--f-mono); letter-spacing: .08em; padding: 2px 7px; border-radius: 999px; border: 1px solid var(--grid-strong); color: var(--muted); }
+.tier-pill[data-tier="pro"] { color: #1b1206; background: var(--robot); border-color: var(--robot); }
+.tier-pill[data-tier="ultimate"] { color: #fff; background: linear-gradient(120deg, #8b5cf6, #f39a3d); border-color: transparent; }
+.lock-need { font: 700 11px var(--f-mono); letter-spacing: .08em; padding: 2px 8px; border-radius: 999px; color: #1b1206; background: var(--robot); }
+.lock-btn.ult { color: #fff; background: linear-gradient(120deg, #8b5cf6, #f39a3d); border: 0; }
+.lock-need.ult { color: #fff; background: linear-gradient(120deg, #8b5cf6, #f39a3d); }
+.plans { position: fixed; inset: 0; z-index: 126; display: grid; place-items: center; padding: max(16px, env(safe-area-inset-top, 0px)) 16px max(16px, env(safe-area-inset-bottom, 0px)); }
+.plans.closing .pl-card { animation: lgOut .3s ease-in forwards; }
+.plans.closing .adm-backdrop { animation: lgFade .3s ease reverse forwards; }
+.pl-card { position: relative; width: min(980px, 100%); max-height: calc(100vh - 32px); max-height: calc(100dvh - 32px); overflow-y: auto; display: grid; gap: 14px; justify-items: center; text-align: center;
+  padding: 26px 22px 20px; color: var(--ink); background: var(--sheet); border-radius: 18px; box-shadow: 0 0 0 1px var(--grid-strong), 0 30px 90px rgba(0,0,0,.55), 0 0 90px rgba(243,154,61,.1); animation: lgIn .55s cubic-bezier(.22,1,.36,1) both; scrollbar-width: thin; }
+.pl-x { position: absolute; top: 14px; right: 14px; }
+.pl-title { margin: 0; font: 700 32px var(--f-display); }
+.pl-sub { margin: 0; color: var(--muted); max-width: 52ch; font-size: 15px; }
+.pl-grid { width: 100%; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; align-items: stretch; margin-top: 6px; }
+.pl { position: relative; display: grid; grid-template-rows: auto auto auto 1fr auto; gap: 6px; text-align: left; padding: 20px 18px 18px; border-radius: 14px; background: var(--paper); border: 1px solid var(--line);
+  transition: transform .45s cubic-bezier(.22,1,.36,1), border-color .3s, box-shadow .45s; animation: riseIn .6s cubic-bezier(.22,1,.36,1) both; }
+.pl:nth-child(2) { animation-delay: .08s; } .pl:nth-child(3) { animation-delay: .16s; }
+.pl:hover { transform: translateY(-4px); }
+.pl.pro { border-color: color-mix(in srgb, var(--robot) 55%, var(--line)); box-shadow: 0 14px 40px rgba(243,154,61,.12); }
+.pl.ult { border-color: rgba(181,140,255,.6); background: linear-gradient(165deg, rgba(139,92,246,.16), var(--paper) 55%); box-shadow: 0 16px 50px rgba(139,92,246,.18); }
+.pl.cur { outline: 2px solid var(--cop); outline-offset: 2px; }
+.pl h3 { margin: 0; font: 700 20px var(--f-display); }
+.pl-price { display: flex; align-items: baseline; gap: 6px; }
+.pl-price b { font: 700 44px/1 var(--f-display); font-variant-numeric: tabular-nums; }
+.pl-price span { color: var(--muted); font-size: 14px; }
+.pl-per { font-size: 12px; color: var(--muted); min-height: 2.4em; }
+.pl.ult .pl-per { color: #d9c5ff; }
+.pl ul { list-style: none; margin: 6px 0 8px; padding: 0; display: grid; gap: 7px; align-content: start; font-size: 14px; }
+.pl li { display: flex; gap: 8px; align-items: flex-start; }
+.pl li::before { content: "✓"; flex: none; width: 18px; height: 18px; border-radius: 50%; display: grid; place-items: center; font-size: 11px; font-weight: 700; color: #06240f; background: var(--cop); margin-top: 1px; }
+.pl li.no { color: var(--muted); }
+.pl li.no::before { content: "–"; color: var(--muted); background: var(--grid); }
+.pl-btn { width: 100%; justify-content: center; min-height: 46px; font-weight: 700; font-size: 15px; border-radius: 10px; }
+.pl.pro .pl-btn { color: #1b1206; background: var(--robot); border-color: var(--robot-dark); }
+.pl.ult .pl-btn { color: #fff; background: linear-gradient(120deg, #8b5cf6, #f39a3d); border: 0; box-shadow: 0 10px 30px rgba(139,92,246,.35); }
+.pl-btn:disabled { opacity: .55; cursor: default; filter: saturate(.5); box-shadow: none; }
+.pl-ribbon { position: absolute; top: -11px; right: 14px; font: 700 11px var(--f-body); padding: 3px 10px; border-radius: 999px; color: #fff; background: linear-gradient(120deg, #8b5cf6, #f39a3d); box-shadow: 0 6px 18px rgba(139,92,246,.4); }
+.pl-pay { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: center; font-size: 14px; color: var(--muted); }
+.pl-pay .seg button { min-height: 40px; font-size: 13px; }
+.pl-card .lg-msg { max-width: 640px; text-align: left; }
+.pl-card .lg-note { max-width: 70ch; color: var(--muted); }
+.pl-manage { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: center; font-size: 14px; }
+.toast { position: fixed; left: 50%; bottom: max(20px, env(safe-area-inset-bottom, 0px)); z-index: 130; transform: translateX(-50%); max-width: min(520px, calc(100vw - 32px)); padding: 12px 18px; border-radius: 12px;
+  font-size: 14px; color: var(--ink); background: var(--sheet); border: 1px solid var(--grid-strong); box-shadow: 0 16px 40px rgba(0,0,0,.45); animation: riseIn .45s cubic-bezier(.22,1,.36,1) both; }
+@media (max-width: 820px) { .pl-grid { grid-template-columns: minmax(0, 1fr); } .pl-title { font-size: 26px; } .pl-per { min-height: 0; } }
+.fl-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.fl-step { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 12px; padding: 12px 14px; border-radius: 12px; background: var(--paper); border: 1px solid var(--line); }
+.fl-num { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font: 700 14px var(--f-mono); color: #fff; background: linear-gradient(120deg, #8b5cf6, #f39a3d); }
+.fl-body { display: grid; gap: 8px; min-width: 0; }
+.fl-tag { font: 600 11px var(--f-body); color: var(--muted); border: 1px solid var(--grid-strong); border-radius: 999px; padding: 1px 8px; margin-left: 6px; }
+.fl-btn { min-height: 42px; }
+.fl-state { font-size: 13px; color: var(--muted); }
+.fl-state.ok { color: var(--cop); }
+.fl-state.bad { color: var(--com); }
+.fl-ctl button { min-height: 40px; }
+.fl-danger { border-color: color-mix(in srgb, var(--com) 60%, var(--grid-strong)); }
+.fl-stat { font: 13px var(--f-mono); color: var(--muted); }
+.fl-servo summary { cursor: pointer; font-size: 14px; color: var(--ink); min-height: 32px; display: flex; align-items: center; }
+.fl-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; margin-top: 8px; }
+.fl-grid label { display: grid; gap: 4px; font-size: 12px; color: var(--muted); }
+.fl-grid input { min-height: 38px; padding: 6px 10px; font: 13px var(--f-mono); color: var(--ink); background: var(--sheet); border: 1px solid var(--grid-strong); border-radius: 6px; min-width: 0; }
+.fl-log { margin: 0; max-height: 160px; overflow: auto; padding: 10px 12px; font: 12px/1.5 var(--f-mono); color: var(--muted); background: var(--paper); border: 1px solid var(--line); border-radius: 8px; white-space: pre-wrap; }
+.fl-log:empty { display: none; }
+.fl-warn { margin: 0; padding: 10px 12px; border-radius: 8px; font-size: 14px; color: #ffcf9e; background: rgba(243,154,61,.1); border: 1px solid rgba(243,154,61,.3); }
+esp-web-install-button { display: inline-block; }
 .hint { font-size: 13px; color: var(--muted); margin: 0; }
 .notes { font-size: 14px; color: var(--muted); margin: 0; max-width: 90ch; }
 .notes b { color: var(--ink); font-weight: 600; }
@@ -552,11 +625,13 @@ body.authed .lock { opacity: 0; visibility: hidden; pointer-events: none; }
     </div>
     <div class="hdr-right">
       <p class="lede">หุ่นยนต์สองขาทรงตัวด้วยแบบจำลองลูกตุ้มกลับหัว (LIPM) เลือกจุดวางเท้าจาก capture point ทุกเฟรม ถ้าโดนผลักจะก้าวกู้สมดุลเอง ถ้าผลักแรงเกินไปก็ล้มได้</p>
+      <button id="plansBtn" class="plans-btn" type="button"><span aria-hidden="true">⭐</span> แพ็กเกจ</button>
       <div class="acct">
         <button id="loginBtn" class="login-btn"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg> เข้าสู่ระบบ</button>
         <div class="acct-user" id="acctUser" hidden>
           <img id="acctImg" alt="" referrerpolicy="no-referrer">
           <span id="acctName"></span>
+          <span class="tier-pill" id="acctTier" data-tier="free">FREE</span>
           <button id="logoutBtn" class="logout-btn">ออกจากระบบ</button>
         </div>
       </div>
@@ -646,15 +721,8 @@ body.authed .lock { opacity: 0; visibility: hidden; pointer-events: none; }
         <p class="hint">กดค้างปุ่มเลี้ยว หรือกด A / D (ลูกศรซ้าย/ขวา) ค้างไว้ · แรงดลหารด้วยน้ำหนักหุ่นคือความเร็วที่เพิ่มขึ้น หุ่นหนักจึงทนแรงผลักได้มากกว่า · ตอนเดินอยู่ ผลักด้านข้างเกินราว 60 N·s หรือด้านหลังเกินราว 90 N·s (ที่น้ำหนักเริ่มต้น 47 kg) หุ่นจะก้าวรับไม่ทันแล้วล้ม แล้วลุกขึ้นยืนเอง</p>
       </section>
       <section class="panel" aria-labelledby="body-h">
-        <h2 id="body-h">ขนาดและน้ำหนัก <span class="member">สมาชิก</span></h2>
-        <div class="lock" aria-hidden="false">
-          <div class="lock-in">
-            <div class="lock-ico" aria-hidden="true">🔒</div>
-            <b>เข้าสู่ระบบเพื่อปรับขนาดและน้ำหนักหุ่น</b>
-            <span>ใช้บัญชี Google ได้เลย ฟรี ไม่ต้องสมัครใหม่</span>
-            <button type="button" class="lock-btn"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg> เข้าสู่ระบบด้วย Google</button>
-          </div>
-        </div>
+        <h2 id="body-h">ขนาดและน้ำหนัก <span class="member">PRO</span></h2>
+        <div class="lock" data-need="pro" data-title="ปรับขนาดและน้ำหนักหุ่น" aria-hidden="false"></div>
         <div class="sliders four">
           <div class="slider"><label for="bThigh">ต้นขา <output id="bThighOut">0.44 m</output></label><input id="bThigh" type="range" min="0.25" max="0.6" step="0.01" value="0.44"></div>
           <div class="slider"><label for="bShin">หน้าแข้ง <output id="bShinOut">0.44 m</output></label><input id="bShin" type="range" min="0.25" max="0.6" step="0.01" value="0.44"></div>
@@ -673,6 +741,40 @@ body.authed .lock { opacity: 0; visibility: hidden; pointer-events: none; }
           <button id="bReset">คืนค่าเริ่มต้น</button>
         </div>
         <p class="hint">ตั้งแขนยาว 0 ถ้าไม่ต้องการแขน · ขายาวขึ้นก้าวได้ยาวขึ้นแต่จังหวะช้าลง · หุ่นหนักขึ้นต้องใช้ Kp ข้อต่อมากขึ้น ไม่อย่างนั้นเข่าจะทรุด · ลำตัวสูงหรือหนักทำให้ CoM สูงขึ้น ลูกตุ้มล้มช้าลง</p>
+      </section>
+      <section class="panel" aria-labelledby="adv-h">
+        <h2 id="adv-h">การเดินขั้นสูง <span class="member">PRO</span></h2>
+        <div class="lock" data-need="pro" data-title="ปรับจังหวะและท่าเดินของหุ่น" aria-hidden="false"></div>
+        <div class="sliders">
+          <div class="slider"><label for="aStepW">ระยะห่างเท้าซ้าย-ขวา <output id="aStepWOut">0.20 m</output></label><input id="aStepW" type="range" min="0.12" max="0.34" step="0.01" value="0.2"></div>
+          <div class="slider"><label for="aTime">เวลาต่อก้าว <output id="aTimeOut">×1.00</output></label><input id="aTime" type="range" min="0.7" max="1.4" step="0.05" value="1"></div>
+          <div class="slider"><label for="aLift">ความสูงยกเท้า <output id="aLiftOut">×1.00</output></label><input id="aLift" type="range" min="0.5" max="2" step="0.05" value="1"></div>
+        </div>
+        <div class="pdinfo">
+          <span id="aInfo">ก้าวละ 0.55 s · ยกเท้าสูงสุด 9 cm</span>
+          <button id="aReset">คืนค่าเริ่มต้น</button>
+        </div>
+        <p class="hint">เท้าห่างมากทรงตัวด้านข้างดีขึ้นแต่ตัวโยกซ้ายขวามาก · ก้าวเร็ว (ค่าน้อย) รับแรงผลักทันกว่าแต่มอเตอร์ทำงานหนัก · ยกเท้าสูงข้ามพื้นขรุขระได้ดี แต่เปลืองพลังงาน ค่าทั้งหมดนี้ไปอยู่ใน robot_config.h ด้วย</p>
+      </section>
+      <section class="panel" aria-labelledby="phys-h">
+        <h2 id="phys-h">ฟิสิกส์ขั้นสูง <span class="member ult">ULTIMATE</span></h2>
+        <div class="lock" data-need="ultimate" data-title="จำลองแรงโน้มถ่วง แรงเสียดทาน มอเตอร์ และเซ็นเซอร์" aria-hidden="false"></div>
+        <div class="group"><span>แรงโน้มถ่วงสำเร็จรูป</span>
+          <div class="row gpre" id="gPresets">
+            <button type="button" data-g="9.81" aria-pressed="true">🌍 โลก</button><button type="button" data-g="1.62" aria-pressed="false">🌙 ดวงจันทร์</button><button type="button" data-g="3.71" aria-pressed="false">🔴 ดาวอังคาร</button><button type="button" data-g="24.79" aria-pressed="false">🪐 ดาวพฤหัส</button>
+          </div>
+        </div>
+        <div class="sliders">
+          <div class="slider"><label for="pG">แรงโน้มถ่วง <output id="pGOut">9.81 m/s²</output></label><input id="pG" type="range" min="1.6" max="25" step="0.01" value="9.81"></div>
+          <div class="slider"><label for="pMu">แรงเสียดทานพื้น μ <output id="pMuOut">0.60</output></label><input id="pMu" type="range" min="0.05" max="1.2" step="0.05" value="0.6"></div>
+          <div class="slider"><label for="pTq">แรงบิดสูงสุดของมอเตอร์ <output id="pTqOut">400 N·m</output></label><input id="pTq" type="range" min="10" max="600" step="5" value="400"></div>
+          <div class="slider"><label for="pNoise">สัญญาณรบกวน IMU <output id="pNoiseOut">±0.0°</output></label><input id="pNoise" type="range" min="0" max="5" step="0.1" value="0"></div>
+        </div>
+        <div class="pdinfo">
+          <span id="pInfo">น้ำหนัก 461 N</span>
+          <button id="pReset">คืนค่าเริ่มต้น</button>
+        </div>
+        <p class="hint">แรงโน้มถ่วงต่ำ ลูกตุ้มล้มช้า หุ่นก้าวช้าลงเอง · พื้นลื่น (μ ต่ำ) ถ้าแรงที่เท้าต้องดันเกิน μ × น้ำหนัก เท้าจะลื่นแล้วล้ม · มอเตอร์แรงบิดต่ำ เข่าจะรับน้ำหนักไม่ไหว · IMU มีสัญญาณรบกวน หุ่นจะกะจุดวางเท้าคลาดเคลื่อน เหมือนเซ็นเซอร์จริง</p>
       </section>
     </aside>
     <div class="mainc">
@@ -731,15 +833,8 @@ body.authed .lock { opacity: 0; visibility: hidden; pointer-events: none; }
   </div>
 
   <section class="panel" aria-labelledby="code-h">
-    <h2 id="code-h">โค้ด C++ สำหรับหุ่นยนต์จริง <span class="member">สมาชิก</span></h2>
-    <div class="lock" aria-hidden="false">
-      <div class="lock-in">
-        <div class="lock-ico" aria-hidden="true">🔒</div>
-        <b>เข้าสู่ระบบเพื่อดูและคัดลอกโค้ด C++</b>
-        <span>ใช้บัญชี Google ได้เลย ฟรี ไม่ต้องสมัครใหม่</span>
-        <button type="button" class="lock-btn"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg> เข้าสู่ระบบด้วย Google</button>
-      </div>
-    </div>
+    <h2 id="code-h">โค้ด C++ สำหรับหุ่นยนต์จริง <span class="member ult">ULTIMATE</span></h2>
+    <div class="lock" data-need="ultimate" data-title="ดูและคัดลอกโค้ด C++ สำหรับหุ่นจริง" aria-hidden="false"></div>
     <p class="hint codeintro">ตัวควบคุมชุดเดียวกับที่หน้านี้ใช้ เขียนเป็น C++ ไฟล์เดียว ใช้ได้ทั้ง ESP32 / Teensy / STM32 (Arduino) และ Linux / ROS ไฟล์ <b>robot_config.h</b> สร้างจากค่าขนาด น้ำหนัก และ Kp Kd ที่ตั้งไว้บนหน้านี้ตอนนี้ · วิธีใช้: คัดลอกทั้ง 3 ไฟล์ลงโฟลเดอร์ sketch เดียวกัน ติดตั้งไลบรารี Adafruit PWM Servo Driver กับ Adafruit MPU6050 แก้ช่องสัญญาณ ทิศทาง และมุมศูนย์ของเซอร์โวในไฟล์ .ino แล้วทดสอบตอนแขวนหุ่นไว้ก่อนเสมอ</p>
     <div class="codebar">
       <div class="seg" role="group" aria-label="เลือกไฟล์">
@@ -753,6 +848,63 @@ body.authed .lock { opacity: 0; visibility: hidden; pointer-events: none; }
       </div>
     </div>
     <pre class="code"><code id="codeView"></code></pre>
+  </section>
+
+  <section class="panel" aria-labelledby="flash-h">
+    <h2 id="flash-h">อัปโหลดลงหุ่นยนต์ผ่าน USB <span class="member ult">ULTIMATE</span></h2>
+    <div class="lock" data-need="ultimate" data-title="ส่งค่าจากหน้านี้ลงหุ่นจริงผ่านสาย USB" aria-hidden="false"></div>
+    <p class="hint">ไม่ต้องเขียนโค้ดหรือเปิด Arduino IDE · ใช้ Chrome หรือ Edge บนคอมพิวเตอร์ · หุ่นใช้บอร์ด ESP32 + บอร์ดขับเซอร์โว PCA9685 + IMU MPU6050 · <b>ทดสอบตอนแขวนหุ่นให้เท้าลอยก่อนเสมอ</b></p>
+    <p class="fl-warn" id="flNoSerial" hidden>เบราว์เซอร์นี้ต่อ USB ไม่ได้ ใช้ Chrome หรือ Edge บนคอมพิวเตอร์ (Windows / Mac / Linux) แล้วเปิดหน้านี้จากเว็บ array_simulator</p>
+    <ol class="fl-steps">
+      <li class="fl-step">
+        <div class="fl-num">1</div>
+        <div class="fl-body">
+          <b>ติดตั้งเฟิร์มแวร์ลงบอร์ด <span class="fl-tag">ทำครั้งแรกครั้งเดียว</span></b>
+          <span class="hint">เสียบสาย USB จากบอร์ด ESP32 เข้าคอม กดปุ่มแล้วเลือกพอร์ตของบอร์ด รอประมาณ 1 นาที</span>
+          <div id="flInstall"><button type="button" class="fl-btn" id="flInstallBtn" disabled>⬇ ติดตั้งเฟิร์มแวร์</button></div>
+        </div>
+      </li>
+      <li class="fl-step">
+        <div class="fl-num">2</div>
+        <div class="fl-body">
+          <b>เชื่อมต่อหุ่น</b>
+          <div class="row"><button type="button" class="fl-btn" id="flConnect">🔌 เชื่อมต่อ</button><span class="fl-state" id="flState">ยังไม่ได้เชื่อมต่อ</span></div>
+        </div>
+      </li>
+      <li class="fl-step">
+        <div class="fl-num">3</div>
+        <div class="fl-body">
+          <b>ส่งค่าจากหน้านี้ลงหุ่น</b>
+          <span class="hint">ขนาด น้ำหนัก Kp Kd การเดิน และฟิสิกส์ ตามที่ตั้งไว้ด้านบนตอนนี้ เก็บไว้ในหุ่นแม้ปิดเครื่อง</span>
+          <div class="row"><button type="button" class="fl-btn primary" id="flSend" disabled>📤 ส่งค่าลงหุ่น</button></div>
+          <details class="fl-servo">
+            <summary>ตั้งค่าเซอร์โว (ช่องสัญญาณ ทิศทาง มุมศูนย์)</summary>
+            <p class="hint">ลำดับข้อต่อแต่ละขา: สะโพกหมุน, สะโพกกาง, สะโพกพับ, เข่า, ข้อเท้าพับ, ข้อเท้าเอียง · ทิศทาง 1 หรือ -1 กลับถ้าข้อต่อหมุนผิดทาง · มุมศูนย์คือมุมเซอร์โวตอนขาตรงเท้าราบ</p>
+            <div class="fl-grid">
+              <label>ช่อง PCA9685 ขาซ้าย<input id="flChL" value="0,1,2,3,4,5" spellcheck="false"></label>
+              <label>ช่อง PCA9685 ขาขวา<input id="flChR" value="8,9,10,11,12,13" spellcheck="false"></label>
+              <label>ทิศทาง ขาซ้าย<input id="flDirL" value="1,1,1,1,1,1" spellcheck="false"></label>
+              <label>ทิศทาง ขาขวา<input id="flDirR" value="1,-1,-1,-1,-1,-1" spellcheck="false"></label>
+              <label>มุมศูนย์ ขาซ้าย (องศา)<input id="flOffL" value="90,90,90,90,90,90" spellcheck="false"></label>
+              <label>มุมศูนย์ ขาขวา (องศา)<input id="flOffR" value="90,90,90,90,90,90" spellcheck="false"></label>
+              <label>ความเร็วเดินบนหุ่นจริง (m/s)<input id="flWalkV" value="0.3" inputmode="decimal"></label>
+            </div>
+          </details>
+        </div>
+      </li>
+      <li class="fl-step">
+        <div class="fl-num">4</div>
+        <div class="fl-body">
+          <b>ทดสอบหุ่น</b>
+          <div class="row fl-ctl">
+            <button type="button" id="flArm" disabled>▶ เริ่ม (ยืน)</button><button type="button" id="flWalk" disabled>เดิน</button><button type="button" id="flStop" disabled>หยุด</button>
+            <button type="button" id="flLeft" disabled>↺ ซ้าย</button><button type="button" id="flRight" disabled>ขวา ↻</button><button type="button" id="flDisarm" class="fl-danger" disabled>■ ปล่อยมอเตอร์</button>
+          </div>
+          <div class="fl-stat" id="flStat">—</div>
+        </div>
+      </li>
+    </ol>
+    <pre class="fl-log" id="flLog" aria-live="polite"></pre>
   </section>
 
   <section class="panel" aria-labelledby="ai-h">
@@ -789,6 +941,7 @@ body.authed .lock { opacity: 0; visibility: hidden; pointer-events: none; }
     </form>
     <p class="hint" id="aiNote" hidden></p>
     <div class="aikey" id="aiKeyBox" hidden>
+      <button type="button" class="ai-up" id="aiUpsell" hidden>⭐ สมาชิก Pro คุยกับผู้ช่วยได้เลย ไม่ต้องใช้ key</button>
       <span class="set-title"><b>ไม่ต้องใช้ key:</b> เปิดหน้านี้ผ่าน Claude แล้วผู้ช่วยจะใช้บัญชี Claude ของคุณ (บัญชีฟรีก็ใช้ได้)</span>
       <a class="ai-claude" href="https://claude.ai/artifact/HR9fQQstTWxvs4iT7WyWX2" target="_blank" rel="noopener">คุยกับผู้ช่วยผ่าน Claude ↗</a>
       <label for="aiKey">หรือใช้บนเว็บนี้เลยด้วย Anthropic API key ของคุณ</label>
@@ -833,7 +986,7 @@ body.authed .lock { opacity: 0; visibility: hidden; pointer-events: none; }
 namespace arraysim {
 
 static const float kPi = 3.14159265358979f;
-static const float kG = 9.81f;
+static const float kG = 9.81f;   // default; RobotConfig::gravity is what the controller uses
 
 inline float clampf(float v, float a, float b) { return v < a ? a : (v > b ? b : v); }
 inline float lerpf(float a, float b, float t) { return a + (b - a) * t; }
@@ -902,6 +1055,7 @@ struct RobotConfig {
   float kpBalance = 1600.f;   // N/m   (CoM over the feet while standing)
   float kdBalance = 545.f;    // N·s/m
   float maxTorque = 150.f;    // N·m, per joint
+  float gravity = 9.81f;      // m/s²
   float fallTilt = 0.70f;     // rad (~40°) body tilt that counts as a fall
   float estimatorGain = 6.f;  // 1/s, how fast the model follows the measured CoM
 
@@ -1028,7 +1182,7 @@ class BipedController {
  private:
   struct Foot { float x, y, yaw, lift, pitch, sx, sy, syaw, spitch, tx, ty, slift; };
 
-  float omega() const { return sqrtf(kG / c_.comHeight()); }
+  float omega() const { return sqrtf(c_.gravity / c_.comHeight()); }
 
   // Correct the model CoM with the CoM measured from the stance leg kinematics + IMU tilt.
   void estimate(const Sensors& s, float dt) {
@@ -1346,6 +1500,65 @@ void loop() {
     <p class="lg-note">เราเห็นแค่ชื่อและรูปโปรไฟล์ของคุณ ไม่เห็นรหัสผ่าน และไม่โพสต์อะไรแทนคุณ</p>
   </div>
 </div>
+<div class="plans" id="plans" hidden>
+  <div class="adm-backdrop" id="plBackdrop"></div>
+  <div class="pl-card" role="dialog" aria-modal="true" aria-labelledby="plTitle">
+    <button type="button" id="plClose" class="adm-ghost pl-x" aria-label="ปิด">✕</button>
+    <div class="lg-eyebrow">array_simulator</div>
+    <h2 class="pl-title" id="plTitle">เลือกแพ็กเกจ</h2>
+    <p class="pl-sub" id="plSub">เริ่มฟรีได้เลย อัปเกรดเมื่ออยากออกแบบหุ่นของตัวเองและเอาไปสร้างจริง</p>
+    <div class="pl-grid">
+      <article class="pl" data-plan="free">
+        <h3><span aria-hidden="true">🆓</span> Free</h3>
+        <div class="pl-price"><b>0</b><span>บาท</span></div>
+        <div class="pl-per">ใช้ได้ตลอด</div>
+        <ul>
+          <li>Simulator 3D และ 2D ครบ</li>
+          <li>ปรับความเร็ว แรงผลัก พื้น และ Kp Kd</li>
+          <li>ผู้ช่วย AI (ใส่ key เอง หรือผ่าน Claude)</li>
+          <li class="no">ปรับขนาดและน้ำหนัก</li>
+          <li class="no">โค้ดสำหรับหุ่นยนต์จริง</li>
+        </ul>
+        <button type="button" class="pl-btn" data-buy="free">เริ่มใช้ฟรี</button>
+      </article>
+      <article class="pl pro" data-plan="pro">
+        <h3><span aria-hidden="true">⭐</span> Pro</h3>
+        <div class="pl-price"><b>99</b><span>บาท / เดือน</span></div>
+        <div class="pl-per">ยกเลิกได้ทุกเมื่อ</div>
+        <ul>
+          <li>ทุกอย่างใน Free</li>
+          <li>ปรับขนาดและน้ำหนักหุ่น</li>
+          <li>AI วิเคราะห์หุ่น ไม่ต้องใช้ key</li>
+          <li>ปรับพารามิเตอร์การเดินเพิ่ม</li>
+          <li class="no">ฟิสิกส์ขั้นสูง</li>
+          <li class="no">โค้ดสำหรับหุ่นยนต์จริง</li>
+        </ul>
+        <button type="button" class="pl-btn" data-buy="pro">สมัคร Pro</button>
+      </article>
+      <article class="pl ult" data-plan="ultimate">
+        <span class="pl-ribbon">คุ้มที่สุด</span>
+        <h3><span aria-hidden="true">🚀</span> Ultimate</h3>
+        <div class="pl-price"><b>599</b><span>บาท / ปี</span></div>
+        <div class="pl-per">เฉลี่ยเดือนละ 50 บาท · ถูกกว่า Pro รายเดือนครึ่งหนึ่ง</div>
+        <ul>
+          <li>ทุกอย่างใน Pro</li>
+          <li>ฟิสิกส์ขั้นสูง: แรงโน้มถ่วง พื้นลื่น มอเตอร์ เซ็นเซอร์</li>
+          <li>AI วิเคราะห์หุ่น ไม่ต้องใช้ key</li>
+          <li>โค้ด C++ ทั้งหมด เอาไปใช้กับหุ่นจริง</li>
+          <li>อัปโหลดลงหุ่นผ่านสาย USB</li>
+        </ul>
+        <button type="button" class="pl-btn" data-buy="ultimate">สมัคร Ultimate</button>
+      </article>
+    </div>
+    <div class="pl-pay">
+      <span>จ่ายด้วย</span>
+      <div class="seg" role="group" aria-label="วิธีจ่ายเงิน"><button type="button" id="payCard" aria-pressed="true">💳 บัตร · ต่ออายุอัตโนมัติ</button><button type="button" id="payPP" aria-pressed="false">📱 PromptPay · จ่ายครั้งเดียว</button></div>
+    </div>
+    <p class="lg-msg" id="plMsg" role="status" hidden></p>
+    <p class="lg-note" id="plNote">ชำระเงินอย่างปลอดภัยผ่าน Stripe เว็บนี้ไม่เห็นและไม่เก็บเลขบัตรของคุณ · จ่ายด้วยบัตรจะต่ออายุอัตโนมัติ ยกเลิกได้ทุกเมื่อ · PromptPay จ่ายครั้งเดียวใช้ได้ 1 เดือน (Pro) หรือ 1 ปี (Ultimate)</p>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" hidden></div>
 <div class="adm" id="adm" hidden>
   <div class="adm-backdrop" id="admBackdrop"></div>
   <div class="adm-card" role="dialog" aria-modal="true" aria-labelledby="admTitle">
@@ -1387,7 +1600,12 @@ void loop() {
 const $ = id => document.getElementById(id);
 
 /* ================= physics constants ================= */
-const G = 9.81, AH = 0.075, HW = 0.095, STEPW = 0.2, TOE = 0.17, HEEL = 0.07, JR = 0.4;   // JR: reflected motor rotor inertia (kg·m²)
+let G = 9.81, STEPW = 0.2;   // gravity and nominal step width: adjustable in the advanced panels
+const AH = 0.075, HW = 0.095, TOE = 0.17, HEEL = 0.07, JR = 0.4;   // JR: reflected motor rotor inertia (kg·m²)
+// advanced settings: step time and foot-lift scale (Pro), ground friction, motor torque limit, IMU noise (Ultimate)
+const ADV = { tScale: 1, lift: 1, mu: 0.6, tq: 400, noise: 0, nx: 0, nz: 0, slipT: 0 };
+// walking speed scales with sqrt(g·L) (same Froude number), so in weaker gravity the same command walks proportionally slower
+const FROUDE = () => Math.min(1, Math.sqrt(G / 9.81));
 // robot body: sizes (m) and weights (kg), changed from the "ขนาดและน้ำหนัก" panel
 const BODY = { thigh: 0.44, shin: 0.44, torsoH: 0.44, torsoW: 0.36, arm: 0.54, mT: 25, mL: 8, mA: 3 };
 let L1, L2, LS, H0, OM, REACH, MAXSTEP, FALLSTEP, MTOT, COMOFF;
@@ -1431,8 +1649,8 @@ function mid() { return { x: (S.feet[0].x + S.feet[1].x) / 2, z: (S.feet[0].z + 
 function wantsMove() { return (S.walking && S.vdes > 0.05) || S.turn !== 0; }
 
 function beginStep() {
-  const vd = S.walking ? S.vdes : 0;
-  S.T = (S.recover > 0 ? 0.32 : clamp(0.6 - 0.12 * vd, 0.42, 0.6)) * Math.sqrt(LS);
+  const vd = S.walking ? S.vdes * FROUDE() : 0;
+  S.T = (S.recover > 0 ? 0.32 : clamp(0.6 - 0.12 * vd, 0.42, 0.6) * ADV.tScale) * Math.sqrt(LS) * Math.sqrt(9.81 / G);
   S.t = 0; S.ts = 0; S.quick = false; S.mode = 'walk';
   const sw = S.feet[1 - S.si], st = S.feet[S.si];
   Object.assign(sw, { sx: sw.x, sz: sw.z, syaw: sw.yaw, spitch: sw.pitch, tx: sw.x, tz: sw.z, sgy: sw.gy });
@@ -1523,7 +1741,7 @@ function limitHeight() {
 
 function step(dt) {
   const f = fwdOf(S.th), n = leftOf(S.th);
-  const vd = S.walking ? S.vdes : 0;
+  const vd = S.walking ? S.vdes * FROUDE() : 0;
   const wants = wantsMove();
   S.tm += dt; S.recover = Math.max(0, S.recover - dt);
 
@@ -1531,7 +1749,9 @@ function step(dt) {
     const m = mid();
     let tx = m.x, tz = m.z;
     if (S.mode === 'shift') { const st = S.feet[S.si], k = S.closing === true ? 0.92 : 0.55; tx = lerp(m.x, st.x, k); tz = lerp(m.z, st.z, k); }
-    const ax = (S.kpB * (tx - S.x) - S.kdB * S.vx) / MTOT, az = (S.kpB * (tz - S.z) - S.kdB * S.vz) / MTOT;
+    // the CoM can only be pushed through the CoP under the feet, and that push scales with g: weaker gravity, gentler sway
+    const gk = Math.min(1, G / 9.81);
+    const ax = gk * (S.kpB * (tx - S.x) - S.kdB * S.vx) / MTOT, az = gk * (S.kpB * (tz - S.z) - S.kdB * S.vz) / MTOT;
     S.vx += ax * dt; S.vz += az * dt; S.x += S.vx * dt; S.z += S.vz * dt; S.ax = ax; S.az = az;
     S.copx = S.x - ax / (OM * OM); S.copz = S.z - az / (OM * OM);
     S.feet.forEach(ft => { ft.pitch *= Math.max(0, 1 - dt * 10); ft.lift = 0; });
@@ -1558,7 +1778,7 @@ function step(dt) {
     } else if (S.mode === 'stand' && wants) {
       S.closing = false;
       const sw = S.lastSwing === 0 ? 1 : 0; S.si = 1 - sw; S.lastSwing = sw; S.mode = 'shift'; S.tm = 0;
-    } else if (S.mode === 'shift' && S.tm > (S.closing === true ? 0.5 : 0.28)) {
+    } else if (S.mode === 'shift' && S.tm > (S.closing === true ? 0.5 : 0.28) / Math.sqrt(Math.min(1, G / 9.81))) {
       beginStep();
     } else if (S.mode === 'land' && S.tm > 0.45) {
       S.mode = 'stand'; S.tm = 0;
@@ -1568,14 +1788,21 @@ function step(dt) {
     const st = S.feet[S.si], sw = S.feet[1 - S.si];
     const sf = fwdOf(st.yaw);
     const vf = S.vx * f[0] + S.vz * f[1];
-    const cop = clamp((vd > 0.05 ? 0.03 : 0) - 0.14 * (vd - vf), -HEEL + 0.015, TOE - 0.03);
+    // speed regulation through the CoP; the controller knows g, so it pushes harder where gravity gives the CoP less authority
+    const cop = clamp((vd > 0.05 ? 0.03 : 0) - 0.14 * Math.min(4, 9.81 / G) * (vd - vf), -HEEL + 0.015, TOE - 0.03);
     const px = st.x + sf[0] * cop, pz = st.z + sf[1] * cop;
     S.copx = px; S.copz = pz;
     const ax = OM * OM * (S.x - px), az = OM * OM * (S.z - pz);
     S.vx += ax * dt; S.vz += az * dt; S.x += S.vx * dt; S.z += S.vz * dt; S.ax = ax; S.az = az;
+    // the stance foot can only push sideways as hard as friction allows: |a| <= mu * g, otherwise it slides out
+    ADV.slipT = Math.hypot(ax, az) > ADV.mu * G ? ADV.slipT + dt : 0;
+    if (ADV.slipT > 0.06) { ADV.slipT = 0; startFall(); S.fallReason = 'slip'; return; }
+    // a noisy IMU makes the controller misjudge where the CoM is going (low-passed random walk)
+    if (ADV.noise > 0) { const sg = ADV.noise * Math.PI / 180 * (H0 + COMOFF), k = Math.min(1, dt * 4);
+      ADV.nx += ((Math.random() * 2 - 1) * 1.7 * sg - ADV.nx) * k; ADV.nz += ((Math.random() * 2 - 1) * 1.7 * sg - ADV.nz) * k; } else { ADV.nx = ADV.nz = 0; }
     S.t += dt;
     const s = Math.min(1, S.t / S.T);
-    const xix = S.x + S.vx / OM, xiz = S.z + S.vz / OM;
+    const xix = S.x + S.vx / OM + ADV.nx, xiz = S.z + S.vz / OM + ADV.nz;
     const e = Math.exp(OM * Math.max(0, S.T - S.t));
     const ex = px + (xix - px) * e, ez = pz + (xiz - pz) * e;
     const eT = Math.exp(OM * S.T);
@@ -1597,7 +1824,7 @@ function step(dt) {
     const sh = normal ? clamp((u - 0.08) / 0.92, 0, 1) : u, e5 = mj(sh);
     sw.x = lerp(sw.sx, sw.tx, e5); sw.z = lerp(sw.sz, sw.tz, e5);
     sw.yaw = lerpAng(sw.syaw, S.th, e5);
-    const hs = (0.045 + 0.05 * mv) * LS;
+    const hs = (0.045 + 0.05 * mv) * LS * ADV.lift;
     if (normal) {
       sw.lift = u < 0.08 ? 0 : hs * Math.sin(Math.PI * sh);
       if (u < 0.12) sw.pitch = lerp(sw.spitch, 0.55 * mv, u / 0.12);
@@ -1889,7 +2116,8 @@ function ragStep(R, dt) {
       if (p.x[1] < ground) {
         p.x[1] = ground; p.o[1] = ground;                         // inelastic contact: no bounce, no energy from the push-out
         // Coulomb-like friction: slow the sliding along the ground
-        p.x[0] = p.o[0] + (p.x[0] - p.o[0]) * 0.55; p.x[2] = p.o[2] + (p.x[2] - p.o[2]) * 0.55;
+        const fr = clamp(1 - 0.75 * ADV.mu, 0.04, 0.97);
+        p.x[0] = p.o[0] + (p.x[0] - p.o[0]) * fr; p.x[2] = p.o[2] + (p.x[2] - p.o[2]) * fr;
       }
     }
   }
@@ -1932,8 +2160,9 @@ function servo(p, n, h) {
     const C = Math.max(0.05, len(sub(Ad, H)));
     for (let j = 0; j < n; j++) {
       const load = sup * G * L1 * L2 * Math.sin(Math.max(0, s.k)) / C;        // N·m bending the knee
-      s.hv = (s.hv + h * S.kp * (dh - s.h) / Jh) / (1 + h * S.kd / Jh); s.h += s.hv * h;
-      s.kv = (s.kv + h * (S.kp * (dk - s.k) + load) / Jk) / (1 + h * S.kd / Jk); s.k += s.kv * h;
+      const tq = ADV.tq;                                                      // motor torque saturates at its rated limit
+      s.hv = (s.hv + h * clamp(S.kp * (dh - s.h), -tq, tq) / Jh) / (1 + h * S.kd / Jh); s.h += s.hv * h;
+      s.kv = (s.kv + h * (clamp(S.kp * (dk - s.k), -tq, tq) + load) / Jk) / (1 + h * S.kd / Jk); s.k += s.kv * h;
       if (s.k < 0) { s.k = 0; if (s.kv < 0) s.kv = 0; }        // knee hard stop: no hyperextension
       if (s.k > 2.6) { s.k = 2.6; if (s.kv > 0) s.kv = 0; }
     }
@@ -2457,9 +2686,16 @@ inline arraysim::RobotConfig makeRobotConfig() {
   // standing balance PD
   c.kpBalance = ${f(S.kpB, 1)}; // N/m
   c.kdBalance = ${f(S.kdB, 1)};  // N·s/m
+  // gait
+  c.stepWidth = ${f(STEPW)};
+  c.stepTimeMin = ${f(0.42 * ADV.tScale)};
+  c.stepTimeMax = ${f(0.6 * ADV.tScale)};
+  // physics of the robot and its world
+  c.gravity = ${f(G, 2)};    // m/s²
+  c.maxTorque = ${f(ADV.tq, 1)};   // N·m per joint
   // derived from leg length
   c.maxStep = 0.966f * (c.thigh + c.shin);
-  c.swingHeight = 0.08f * (c.thigh + c.shin);
+  c.swingHeight = ${f(0.08 * ADV.lift)} * (c.thigh + c.shin);
   return c;
 }
 `;
@@ -2468,14 +2704,14 @@ let curFile = 'cfg';
 const FILES = { cfg: ['fCfg', 'robot_config.h'], hpp: ['fHpp', 'array_biped.hpp'], ino: ['fIno', 'esp32_servo_example/esp32_servo_example.ino'] };
 function codeText() { return curFile === 'cfg' ? configSrc() : SRC[curFile]; }
 window.refreshCode = function () {
-  $('codeView').textContent = (AUTH && AUTH.user) ? codeText() : '// เข้าสู่ระบบด้วย Google เพื่อดูโค้ด\n\n' + '░'.repeat(60) + '\n' + '░'.repeat(44) + '\n' + '░'.repeat(52);
+  $('codeView').textContent = (window.can && can('code')) ? codeText() : '// โค้ดสำหรับหุ่นยนต์จริง เปิดให้สมาชิก Ultimate\n\n' + '░'.repeat(60) + '\n' + '░'.repeat(44) + '\n' + '░'.repeat(52);
   for (const k in FILES) $(FILES[k][0]).setAttribute('aria-pressed', String(k === curFile));
   $('codeLink').href = GH + FILES[curFile][1];
 };
 for (const k in FILES) $(FILES[k][0]).onclick = () => { curFile = k; refreshCode(); };
 $('copyCode').onclick = async () => {
   const b = $('copyCode');
-  if (!(AUTH && AUTH.user)) { openLogin(); return; }
+  if (!can('code')) { openPlans('ultimate'); return; }
   b.classList.remove('popped'); void b.offsetWidth; b.classList.add('popped');
   try { await navigator.clipboard.writeText(codeText()); b.textContent = 'คัดลอกแล้ว ✓'; }
   catch (err) { const r = document.createRange(); r.selectNodeContents($('codeView')); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); b.textContent = 'เลือกข้อความแล้ว กด Ctrl+C'; }
@@ -2497,6 +2733,8 @@ function updImu(p, dt) {
     IMU.gy += (wrapA(yaw - IMU.yaw) / dt - IMU.gy) * k;
   }
   Object.assign(IMU, { pitch, roll, yaw, init: true, u, f, l: left, pos: add(p.pts.P, mul(u, 0.04 + BODY.torsoH / 2)) });
+  if (ADV.noise > 0) { const n = () => (Math.random() + Math.random() + Math.random() - 1.5) * 1.4 * ADV.noise * Math.PI / 180;
+    IMU.pitch += n(); IMU.roll += n(); IMU.gp += n() * 8; IMU.gr += n() * 8; IMU.gy += n() * 4; }
 }
 const att = $('att'), actx = att.getContext('2d');
 (function () { const d = Math.min(devicePixelRatio || 1, 2); att.width = 132 * d; att.height = 132 * d; actx.setTransform(d, 0, 0, d, 0, 0); })();
@@ -2677,6 +2915,7 @@ function stateSnapshot() {
     speed_mps: r1(Math.hypot(S.vx, S.vz)), comHeight_m: r1(S.y - S.gref + COMOFF), steps: S.steps, falls: S.falls,
     jointTrackingError_deg: deg(S.jointErr), footError_mm: Math.round(Math.max(S.ankErr[0], S.ankErr[1]) * 1000),
     imu_deg: { roll: deg(IMU.roll), pitch: deg(IMU.pitch), yaw: deg(IMU.yaw) }, imuRate_degps: { roll: deg(IMU.gr), pitch: deg(IMU.gp), yaw: deg(IMU.gy) },
+    plan: PLAN.tier, advanced: { stepWidth_m: STEPW, stepTimeScale: ADV.tScale, footLiftScale: ADV.lift, gravity_mps2: G, friction_mu: ADV.mu, maxTorque_Nm: ADV.tq, imuNoise_deg: ADV.noise },
     terrainRoughness_m: TA, body: { ...BODY, totalMass_kg: r1(MTOT), standingHeight_m: r1(H0 + BODY.torsoH + 0.065) },
     gains: { kpJoint: S.kp, kdJoint: S.kd, kpBalance: S.kpB, kdBalance: S.kdB }, damping: { stanceKnee: $('pdJ').textContent, swingHip: $('pdJ2').textContent, balance: $('pdB').textContent }
   };
@@ -2686,19 +2925,22 @@ const RULES = () => `คุณคือผู้ช่วยในเว็บ a
 เครื่องมือ: get_state (สถานะล่าสุด), get_code (อ่านไฟล์ C++ ก่อนตอบเรื่องโค้ดเสมอ), set_params (ปรับค่าบนหน้า), control_robot (สั่งเดิน/หยุด/กระโดด/ผลัก/ตั้งใหม่) ใช้ set_params หรือ control_robot เฉพาะเมื่อผู้ใช้ขอให้ปรับหรือทดลอง แล้วบอกว่าเปลี่ยนอะไรไป
 เรื่องความปลอดภัยของหุ่นจริง: แนะนำให้ทดสอบตอนแขวนหุ่น เริ่มจากค่าต่ำ และมีสวิตช์ตัดไฟ
 สถานะตอนนี้ (JSON): ${JSON.stringify(stateSnapshot())}`;
-const SLIDERS = { kp: 'kp', kd: 'kd', kpBalance: 'kpb', kdBalance: 'kdb', thigh: 'bThigh', shin: 'bShin', torsoHeight: 'bTorsoH', torsoWidth: 'bTorsoW', arm: 'bArm', massTorso: 'bMT', massLeg: 'bML', massArm: 'bMA', speed: 'speed', roughness_cm: 'rough', pushImpulse: 'force' };
+const SLIDERS = { kp: 'kp', kd: 'kd', kpBalance: 'kpb', kdBalance: 'kdb', thigh: 'bThigh', shin: 'bShin', torsoHeight: 'bTorsoH', torsoWidth: 'bTorsoW', arm: 'bArm', massTorso: 'bMT', massLeg: 'bML', massArm: 'bMA', speed: 'speed', roughness_cm: 'rough', pushImpulse: 'force',
+  stepWidth: 'aStepW', stepTimeScale: 'aTime', footLiftScale: 'aLift', gravity: 'pG', friction: 'pMu', maxTorque: 'pTq', imuNoise_deg: 'pNoise' };
+const SLIDER_NEED = { thigh: 'body', shin: 'body', torsoHeight: 'body', torsoWidth: 'body', arm: 'body', massTorso: 'body', massLeg: 'body', massArm: 'body',
+  stepWidth: 'adv', stepTimeScale: 'adv', footLiftScale: 'adv', gravity: 'phys', friction: 'phys', maxTorque: 'phys', imuNoise_deg: 'phys' };
 const AI_TOOLS = [
   { name: 'get_state', description: 'Returns the live robot state on the page: mode, speed, falls, joint/foot tracking error, IMU angles and rates, body sizes and masses, PD gains and damping ratios.', execute: () => stateSnapshot() },
   { name: 'get_code', description: 'Returns the full text of one C++ file shown on the page. robot_config.h reflects the current page settings.',
     inputSchema: { type: 'object', properties: { file: { type: 'string', enum: ['array_biped.hpp', 'robot_config.h', 'esp32_servo_example.ino'] } }, required: ['file'] },
-    execute: ({ file }) => { if (!AUTH.user) throw new Error('ผู้ใช้ยังไม่ได้เข้าสู่ระบบ โค้ด C++ เปิดให้เฉพาะสมาชิก บอกผู้ใช้ให้กดเข้าสู่ระบบด้วย Google ก่อน'); const f = String(file); if (f === 'robot_config.h') return configSrc(); if (f === 'array_biped.hpp') return SRC.hpp; if (f === 'esp32_servo_example.ino') return SRC.ino; throw new Error('unknown file'); } },
-  { name: 'set_params', description: 'Sets page sliders. Any subset of: kp, kd (N·m/rad, N·m·s/rad), kpBalance, kdBalance (N/m, N·s/m), thigh, shin, torsoHeight, torsoWidth, arm (m), massTorso, massLeg, massArm (kg), speed (m/s), roughness_cm (0-10), pushImpulse (N·s). Values are clamped to the slider range. Returns the values applied.',
+    execute: ({ file }) => { if (!can('code')) throw new Error('โค้ด C++ เปิดให้เฉพาะสมาชิก Ultimate บอกผู้ใช้ว่ากดปุ่ม ⭐ แพ็กเกจ ด้านบนเพื่อดูรายละเอียด'); const f = String(file); if (f === 'robot_config.h') return configSrc(); if (f === 'array_biped.hpp') return SRC.hpp; if (f === 'esp32_servo_example.ino') return SRC.ino; throw new Error('unknown file'); } },
+  { name: 'set_params', description: 'Sets page sliders. Any subset of: kp, kd (N·m/rad, N·m·s/rad), kpBalance, kdBalance (N/m, N·s/m), thigh, shin, torsoHeight, torsoWidth, arm (m), massTorso, massLeg, massArm (kg), speed (m/s), roughness_cm (0-10), pushImpulse (N·s), stepWidth (m), stepTimeScale, footLiftScale (multipliers), gravity (m/s²), friction (mu), maxTorque (N·m), imuNoise_deg. Body keys need Pro, step keys need Pro, physics keys need Ultimate. Values are clamped to the slider range. Returns the values applied.',
     inputSchema: { type: 'object', properties: Object.fromEntries(Object.keys(SLIDERS).map(k => [k, { type: 'number' }])) },
     execute: (input) => {
       const applied = {};
       const BODYK = ['thigh', 'shin', 'torsoHeight', 'torsoWidth', 'arm', 'massTorso', 'massLeg', 'massArm'];
       for (const k in input) { const id = SLIDERS[k]; if (!id) continue;
-        if (!AUTH.user && BODYK.includes(k)) { applied[k] = 'locked: sign in with Google to change body size and weight'; continue; } const el = $(id), v = clamp(Number(input[k]), +el.min, +el.max); if (!isFinite(v)) continue;
+        if (SLIDER_NEED[k] && !can(SLIDER_NEED[k])) { applied[k] = 'locked: needs the ' + NEED[SLIDER_NEED[k]] + ' plan'; continue; } const el = $(id), v = clamp(Number(input[k]), +el.min, +el.max); if (!isFinite(v)) continue;
         el.value = v; el.dispatchEvent(new Event('input')); applied[k] = +el.value; }
       return applied;
     } },
@@ -2729,8 +2971,8 @@ async function ask(q) {
   while (aiTurns.length > 14) aiTurns.shift();
   const b = bubble('bot wait', 'กำลังคิด…'), acts = [];
   botState('think', 'ขอคิดแป๊บนึงนะครับ…');
-  if (!aiSample && aiMode !== 'api') { b.textContent = 'กำลังเชื่อมต่อผู้ช่วย…'; await aiReady; }
-  if (aiMode === 'api') {
+  if (!aiSample && aiMode !== 'api' && aiMode !== 'server') { b.textContent = 'กำลังเชื่อมต่อผู้ช่วย…'; await aiReady; }
+  if (aiMode === 'api' || aiMode === 'server') {
     setBusy(true); aiCtl = new AbortController();
     try {
       const text = await askApi(b, acts);
@@ -2740,7 +2982,7 @@ async function ask(q) {
     } catch (e) {
       b.className = 'msg bot';
       botState('idle', e.name === 'AbortError' ? 'หยุดแล้วครับ' : 'เชื่อมต่อไม่สำเร็จครับ ดูรายละเอียดในแชต');
-      b.innerHTML = e.name === 'AbortError' ? '<div class="act">หยุดแล้ว</div>' : '<div class="act">' + esc(API_ERR[e.status] || ('เชื่อมต่อไม่สำเร็จ' + (e.message ? ': ' + e.message : ''))) + '</div>';
+      b.innerHTML = e.name === 'AbortError' ? '<div class="act">หยุดแล้ว</div>' : '<div class="act">' + esc((aiMode === 'server' ? SRV_ERR[e.status] : 0) || API_ERR[e.status] || ('เชื่อมต่อไม่สำเร็จ' + (e.message ? ': ' + e.message : ''))) + '</div>';
       aiTurns.pop();
     } finally {
       if (acts.length) { const d = document.createElement('div'); d.className = 'act'; d.textContent = 'ใช้เครื่องมือ: ' + [...new Set(acts)].join(', '); b.appendChild(d); }
@@ -2778,6 +3020,13 @@ const lsGet = () => { try { return localStorage.getItem(KEY_LS) || ''; } catch (
 const lsSet = v => { try { v ? localStorage.setItem(KEY_LS, v) : localStorage.removeItem(KEY_LS); } catch (e) {} };
 let apiKey = '';
 function aiFallback() {
+  if (aiSample) return;
+  if (WORKER_URL && window.__planReady && can('ai') && AUTH.via !== 'claude') {          // Pro / Ultimate: the site's own server answers, no key needed
+    aiMode = 'server'; $('aiKeyBox').hidden = true; aiSend.textContent = 'ส่ง';
+    aiNote.hidden = false; aiNote.textContent = 'สมาชิก ' + PLAN_NAME[PLAN.tier] + ' คุยกับผู้ช่วยได้เลย ไม่ต้องใช้ key' + (PLAN.aiLeft != null ? ' · วันนี้เหลือ ' + PLAN.aiLeft + ' ข้อความ' : '');
+    return;
+  }
+  $('aiUpsell').hidden = !WORKER_URL;
   $('aiKeyBox').hidden = false;
   apiKey = lsGet();
   aiMode = apiKey ? 'api' : 'copy';
@@ -2793,13 +3042,18 @@ $('aiKey').addEventListener('keydown', e => { e.stopPropagation(); if (e.key ===
 const API_TOOLS = () => AI_TOOLS.map(t => ({ name: t.name, description: t.description, input_schema: t.inputSchema || { type: 'object', properties: {} } }));
 async function askApi(bubbleEl, acts) {
   const msgs = aiTurns.map(t => ({ role: t.role, content: t.content }));
-  let shown = '';
+  let shown = '', ticket = '';
   for (let round = 0; round < 6; round++) {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST', signal: aiCtl.signal,
-      headers: { 'content-type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
-      body: JSON.stringify({ model: 'claude-sonnet-5-5', max_tokens: 4096, system: RULES(), tools: API_TOOLS(), messages: msgs })
-    });
+    const srv = aiMode === 'server';
+    const res = srv
+      ? await fetch(WORKER_URL + '/ai', { method: 'POST', signal: aiCtl.signal, headers: Object.assign({ 'content-type': 'application/json', authorization: 'Bearer ' + await idToken() }, ticket ? { 'x-ai-ticket': ticket } : {}),
+          body: JSON.stringify({ system: RULES(), tools: API_TOOLS(), messages: msgs }) })
+      : await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST', signal: aiCtl.signal,
+          headers: { 'content-type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+          body: JSON.stringify({ model: 'claude-sonnet-5-5', max_tokens: 4096, system: RULES(), tools: API_TOOLS(), messages: msgs })
+        });
+    if (srv) { ticket = res.headers.get('x-ai-ticket') || ''; if (res.headers.get('x-ai-left') != null) { PLAN.aiLeft = +res.headers.get('x-ai-left'); aiFallback(); } }
     if (!res.ok) {
       let msg = ''; try { msg = (await res.json()).error.message; } catch (e) {}
       const err = new Error(msg); err.status = res.status; throw err;
@@ -2820,6 +3074,7 @@ async function askApi(bubbleEl, acts) {
   }
   return shown;
 }
+const SRV_ERR = { 401: 'การเข้าสู่ระบบหมดอายุ ออกจากระบบแล้วเข้าใหม่อีกครั้ง', 402: 'ผู้ช่วยแบบไม่ต้องใช้ key สำหรับสมาชิก Pro และ Ultimate', 429: 'วันนี้ใช้ผู้ช่วยครบจำนวนแล้ว พรุ่งนี้มาคุยกันใหม่นะครับ', 413: 'แชตยาวเกินไป กดล้างแชตแล้วถามใหม่', 502: 'เซิร์ฟเวอร์ AI ไม่ตอบ ลองใหม่อีกครั้ง' };
 const API_ERR = { 401: 'API key ไม่ถูกต้อง ตรวจ key แล้วบันทึกใหม่', 403: 'key นี้ไม่มีสิทธิ์ใช้งาน', 429: 'เรียกถี่เกินไปหรือเครดิตหมด ลองใหม่อีกสักครู่', 529: 'เซิร์ฟเวอร์ Anthropic ยุ่งอยู่ ลองใหม่อีกครั้ง' };
 const aiReady = (async () => {
   try { aiSample = window.claude && window.claude.use ? await window.claude.use('sample') : null; } catch (e) { aiSample = null; }
@@ -3126,12 +3381,7 @@ function setAuth(u, via) {
     $('acctImg').src = u.photo || AV.idle; $('spHelloImg').src = u.photo || AV.idle;
     $('logoutBtn').hidden = via === 'claude';
   }
-  document.querySelectorAll('.lock').forEach(l => {
-    const panel = l.parentElement;
-    [...panel.children].forEach(ch => { if (ch !== l && ch.tagName !== 'H2') ch.inert = !u; });
-    l.inert = !!u; l.setAttribute('aria-hidden', String(!!u));
-  });
-  if (window.refreshCode) refreshCode();
+  if (window.__planReady) refreshPlan();
 }
 function lgSay(msg) { const m = $('lgMsg'); m.hidden = !msg; m.textContent = msg || ''; }
 function openLogin() {
@@ -3197,7 +3447,7 @@ $('lgGoogle').onclick = googleLogin;
 $('lgClose').onclick = closeLogin; $('lgBackdrop').onclick = closeLogin;
 $('login').addEventListener('keydown', e => { if (e.key === 'Escape') closeLogin(); e.stopPropagation(); });
 $('loginBtn').onclick = openLogin; $('spLogin').onclick = e => { e.stopPropagation(); openLogin(); };
-document.querySelectorAll('.lock-btn').forEach(b => b.onclick = openLogin);
+
 $('logoutBtn').onclick = () => { if (window.firebase && FIREBASE_CONFIG) firebase.auth().signOut(); };
 
 /* ================= members: each Google sign-in is recorded in Firestore users/{uid};
@@ -3315,6 +3565,7 @@ initAuth();
 
 /* ================= type a value: every control slider gets a number box next to its label ================= */
 const NUM_UNITS = { speed: ['', 'm/s'], force: ['', 'N·s'], rough: ['±', 'cm'], kp: ['', 'N·m/rad'], kd: ['', 'N·m·s/rad'], kpb: ['', 'N/m'], kdb: ['', 'N·s/m'],
+  aStepW: ['', 'm'], aTime: ['×', ''], aLift: ['×', ''], pG: ['', 'm/s²'], pMu: ['μ', ''], pTq: ['', 'N·m'], pNoise: ['±', '°'],
   bThigh: ['', 'm'], bShin: ['', 'm'], bTorsoH: ['', 'm'], bTorsoW: ['', 'm'], bArm: ['', 'm'], bMT: ['', 'kg'], bML: ['', 'kg'], bMA: ['', 'kg'] };
 const stepDecimals = st => (String(st).split('.')[1] || '').length;
 Object.keys(NUM_UNITS).forEach(id => {
@@ -3352,6 +3603,279 @@ Object.keys(NUM_UNITS).forEach(id => {
   show();
 });
 
+/* ================= plans: Free / Pro / Ultimate =================
+   Payments run on Stripe through a small Cloudflare Worker (worker/array-sim-worker.js in the repo).
+   Paste the Worker's URL below once it is deployed; until then every signed-in visitor is on Free. */
+var WORKER_URL = null;   // e.g. 'https://array-sim.<your-name>.workers.dev'
+var RANK = { guest: 0, free: 1, pro: 2, ultimate: 3 };
+var NEED = { body: 'pro', adv: 'pro', ai: 'pro', phys: 'ultimate', code: 'ultimate', flash: 'ultimate' };
+var PLAN_NAME = { guest: 'ผู้เยี่ยมชม', free: 'Free', pro: 'Pro', ultimate: 'Ultimate' };
+var PLAN = { tier: 'guest', until: 0, sub: false, aiLeft: null, owner: false };
+function can(f) { return RANK[PLAN.tier] >= RANK[NEED[f] || f]; }
+window.can = can;
+const idToken = () => firebase.auth().currentUser.getIdToken();
+async function api(path, body) {
+  const res = await fetch(WORKER_URL + path, { method: body ? 'POST' : 'GET', headers: Object.assign({ authorization: 'Bearer ' + await idToken() }, body ? { 'content-type': 'application/json' } : {}), body: body ? JSON.stringify(body) : undefined });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) { const e = new Error(data.error || ('HTTP ' + res.status)); e.status = res.status; throw e; }
+  return data;
+}
+var planSeq = 0;
+async function refreshPlan() {
+  const seq = ++planSeq;
+  if (!AUTH.user) return setPlan({ tier: 'guest' });
+  if (AUTH.via === 'claude') return setPlan({ tier: 'ultimate', preview: true });       // the owner's own preview inside claude.ai
+  const u = window.firebase && firebase.auth().currentUser;
+  const owner = !!(u && await isOwner(u));
+  let info = { tier: owner ? 'ultimate' : 'free', owner };
+  if (WORKER_URL && u) { try { const me = await api('/me'); info = Object.assign(me, { owner }); if (owner) info.tier = 'ultimate'; } catch (e) { console.warn('plan lookup', e); } }
+  if (seq === planSeq) setPlan(info);
+}
+function setPlan(info) {
+  Object.assign(PLAN, { tier: 'free', until: 0, sub: false, aiLeft: null, owner: false, preview: false }, info);
+  document.body.dataset.tier = PLAN.tier;
+  const pill = $('acctTier'); pill.dataset.tier = PLAN.tier; pill.textContent = PLAN_NAME[PLAN.tier].toUpperCase();
+  applyLocks();
+  if (window.refreshCode) refreshCode();
+  if (window.flPrepare) flPrepare();
+  if (!aiSample && aiMode !== 'wait') aiFallback();
+  if (!$('plans').hidden) renderPlans();
+}
+function applyLocks() {
+  document.querySelectorAll('.lock[data-need]').forEach(l => {
+    const need = l.dataset.need, open = RANK[PLAN.tier] >= RANK[need], panel = l.parentElement;
+    l.classList.toggle('open', open); l.inert = open; l.setAttribute('aria-hidden', String(open));
+    [...panel.children].forEach(ch => { if (ch !== l && ch.tagName !== 'H2') ch.inert = !open; });
+    const ult = need === 'ultimate', price = ult ? '599 บาท/ปี' : '99 บาท/เดือน';
+    l.innerHTML = '<div class="lock-in"><div class="lock-ico" aria-hidden="true">' + (ult ? '🚀' : '⭐') + '</div>'
+      + '<span class="lock-need' + (ult ? ' ult' : '') + '">' + (ult ? 'ULTIMATE' : 'PRO') + '</span>'
+      + '<b>' + esc(l.dataset.title) + '</b>'
+      + '<span>' + (ult ? 'มีในแพ็กเกจ Ultimate · ' : 'มีในแพ็กเกจ Pro ขึ้นไป · ') + price + '</span>'
+      + '<button type="button" class="lock-btn' + (ult ? ' ult' : '') + '">' + (ult ? 'อัปเกรดเป็น Ultimate' : 'อัปเกรดเป็น Pro') + '</button></div>';
+    l.querySelector('.lock-btn').onclick = () => openPlans(need);
+  });
+}
+let payMethod = 'card';
+function plSay(msg) { $('plMsg').hidden = !msg; $('plMsg').textContent = msg || ''; }
+function renderPlans() {
+  const t = PLAN.tier;
+  document.querySelectorAll('.pl').forEach(card => {
+    const plan = card.dataset.plan, btn = card.querySelector('.pl-btn'), cur = t === plan;
+    card.classList.toggle('cur', cur);
+    btn.disabled = false;
+    if (plan === 'free') { btn.textContent = t === 'guest' ? 'เข้าสู่ระบบ ใช้ฟรี' : cur ? 'แพ็กเกจปัจจุบัน' : 'รวมอยู่ในแพ็กเกจของคุณ'; btn.disabled = t !== 'guest'; }
+    else if (cur) { btn.textContent = PLAN.sub ? 'จัดการ / ยกเลิกการสมัคร' : 'แพ็กเกจปัจจุบัน'; btn.disabled = !PLAN.sub; }
+    else if (RANK[t] > RANK[plan]) { btn.textContent = 'รวมอยู่ใน ' + PLAN_NAME[t] + ' แล้ว'; btn.disabled = true; }
+    else btn.textContent = (plan === 'pro' ? 'สมัคร Pro' : 'สมัคร Ultimate') + (payMethod === 'promptpay' ? ' ด้วย PromptPay' : '');
+  });
+  let sub = 'เริ่มฟรีได้เลย อัปเกรดเมื่ออยากออกแบบหุ่นของตัวเองและเอาไปสร้างจริง';
+  if (PLAN.preview) sub = 'คุณกำลังดูในหน้า Claude ของเจ้าของเว็บ ทุกฟีเจอร์เปิดอยู่ สมัครจริงได้ที่เว็บ array_simulator';
+  else if (PLAN.owner) sub = 'บัญชีเจ้าของเว็บ ใช้ได้ทุกฟีเจอร์โดยไม่ต้องจ่าย';
+  else if (RANK[t] >= 2) sub = 'แพ็กเกจของคุณ: ' + PLAN_NAME[t] + (PLAN.until ? (PLAN.sub ? ' · ต่ออายุ ' : ' · ใช้ได้ถึง ') + new Date(PLAN.until).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' }) : '');
+  $('plSub').textContent = sub;
+  $('payCard').setAttribute('aria-pressed', String(payMethod === 'card')); $('payPP').setAttribute('aria-pressed', String(payMethod === 'promptpay'));
+}
+function openPlans(focus) {
+  const P = $('plans'); P.hidden = false; P.classList.remove('closing'); plSay(''); renderPlans();
+  $('setPanel').hidden = true; $('setBtn').setAttribute('aria-expanded', 'false');
+  const card = focus && P.querySelector('.pl[data-plan="' + focus + '"]');
+  setTimeout(() => { const b = (card || P.querySelector('.pl.ult')).querySelector('.pl-btn'); try { (b.disabled ? $('plClose') : b).focus({ preventScroll: true }); } catch (e) {} if (card && card.scrollIntoView) card.scrollIntoView({ block: 'nearest', behavior: reducedMotion ? 'auto' : 'smooth' }); }, 80);
+}
+function closePlans() { const P = $('plans'); if (P.hidden) return; P.classList.add('closing'); setTimeout(() => { P.hidden = true; P.classList.remove('closing'); }, reducedMotion ? 0 : 300); }
+async function buy(plan) {
+  if (plan === 'free') { closePlans(); openLogin(); return; }
+  if (PLAN.tier === plan && PLAN.sub) return manage();
+  if (!AUTH.user) { closePlans(); openLogin(); lgSay('เข้าสู่ระบบด้วย Google ก่อน แล้วกด ⭐ แพ็กเกจ อีกครั้งเพื่อสมัคร'); return; }
+  if (PLAN.preview) { plSay('หน้านี้เป็นหน้าทดลองใน Claude สมัครจริงได้ที่ arraychinvon89.github.io/array.github.io'); return; }
+  if (!WORKER_URL) { plSay('ระบบชำระเงินกำลังจะเปิดเร็วๆ นี้ครับ ตอนนี้ยังสมัครไม่ได้'); return; }
+  const btn = document.querySelector('.pl[data-plan="' + plan + '"] .pl-btn'), txt = btn.textContent;
+  btn.disabled = true; btn.textContent = 'กำลังไปหน้าชำระเงิน…'; plSay('');
+  try { const { url } = await api('/checkout', { plan, method: payMethod }); location.href = url; }
+  catch (e) { plSay('เปิดหน้าชำระเงินไม่สำเร็จ: ' + e.message); btn.disabled = false; btn.textContent = txt; }
+}
+async function manage() {
+  try { const { url } = await api('/portal', {}); location.href = url; } catch (e) { plSay('เปิดหน้าจัดการไม่สำเร็จ: ' + e.message); }
+}
+document.querySelectorAll('.pl-btn').forEach(b => b.onclick = () => buy(b.dataset.buy));
+$('payCard').onclick = () => { payMethod = 'card'; renderPlans(); };
+$('payPP').onclick = () => { payMethod = 'promptpay'; renderPlans(); };
+$('plansBtn').onclick = () => openPlans();
+$('plClose').onclick = closePlans; $('plBackdrop').onclick = closePlans;
+$('plans').addEventListener('keydown', e => { if (e.key === 'Escape') closePlans(); e.stopPropagation(); });
+$('plans').addEventListener('keyup', e => e.stopPropagation());
+$('aiUpsell').onclick = () => openPlans('pro');
+function toast(msg, ms = 4200) { const t = $('toast'); t.textContent = msg; t.hidden = false; clearTimeout(toast.tm); toast.tm = setTimeout(() => { t.hidden = true; }, ms); }
+// back from Stripe Checkout: the webhook may take a few seconds, so ask again until the plan shows up
+(function paidReturn() {
+  const q = new URLSearchParams(location.search), paid = q.get('paid');
+  if (!paid) return;
+  history.replaceState(null, '', location.pathname + location.hash);
+  if (paid === 'cancel') { setTimeout(() => toast('ยกเลิกการชำระเงินแล้ว ยังไม่มีการตัดเงินครับ'), 1200); return; }
+  setTimeout(() => toast('ขอบคุณที่สมัครครับ! กำลังเปิดใช้แพ็กเกจ…', 8000), 1200);
+  let n = 0;
+  const poll = async () => { await refreshPlan(); if (RANK[PLAN.tier] >= RANK[paid]) { toast('เปิดใช้ ' + PLAN_NAME[PLAN.tier] + ' แล้ว 🎉 สนุกกับการออกแบบหุ่นนะครับ', 6000); return; } if (++n < 15) setTimeout(poll, 2000); else toast('ชำระเงินแล้วแต่ยังเปิดใช้ไม่ได้ ลองรีเฟรชหน้าในอีกสักครู่ครับ', 8000); };
+  setTimeout(poll, 2500);
+})();
+
+/* ================= advanced walking (Pro) and advanced physics (Ultimate) ================= */
+function updAdv() {
+  STEPW = +$('aStepW').value; ADV.tScale = +$('aTime').value; ADV.lift = +$('aLift').value;
+  $('aStepWOut').textContent = STEPW.toFixed(2) + ' m'; $('aTimeOut').textContent = '×' + ADV.tScale.toFixed(2); $('aLiftOut').textContent = '×' + ADV.lift.toFixed(2);
+  $('aInfo').textContent = 'ก้าวละ ' + (clamp(0.6 - 0.12 * S.vdes * FROUDE(), 0.42, 0.6) * ADV.tScale * Math.sqrt(LS) * Math.sqrt(9.81 / G)).toFixed(2) + ' s · ยกเท้าสูงสุด ' + Math.round((0.045 + 0.05) * LS * ADV.lift * 100) + ' cm';
+  if (window.refreshCode) refreshCode();
+}
+function updPhys(e) {
+  const g0 = G;
+  G = +$('pG').value; ADV.mu = +$('pMu').value; ADV.tq = +$('pTq').value; ADV.noise = +$('pNoise').value;
+  $('pGOut').textContent = G.toFixed(2) + ' m/s²'; $('pMuOut').textContent = ADV.mu.toFixed(2);
+  $('pTqOut').textContent = Math.round(ADV.tq) + ' N·m'; $('pNoiseOut').textContent = '±' + ADV.noise.toFixed(1) + '°';
+  document.querySelectorAll('#gPresets button').forEach(b => b.setAttribute('aria-pressed', String(Math.abs(+b.dataset.g - G) < 0.005)));
+  if (g0 !== G) updBody();                                  // ω and the PD damping ratios depend on g
+  const knee = (MTOT - BODY.mL) * G * 0.12;                 // rough knee torque while standing on one leg
+  $('pInfo').textContent = 'น้ำหนัก ' + Math.round(MTOT * G) + ' N · เข่ารับน้ำหนักราว ' + Math.round(knee) + ' N·m' + (ADV.tq < knee * 1.3 ? ' ⚠ มอเตอร์อาจไม่พอ' : '') + (G < 9.8 ? ' · เดินได้เร็วสุด ×' + FROUDE().toFixed(2) + ' ของค่าที่ตั้ง' : '');
+  updAdv();
+}
+['aStepW', 'aTime', 'aLift'].forEach(id => $(id).addEventListener('input', updAdv));
+['pG', 'pMu', 'pTq', 'pNoise'].forEach(id => $(id).addEventListener('input', updPhys));
+document.querySelectorAll('#gPresets button').forEach(b => b.onclick = () => { $('pG').value = b.dataset.g; $('pG').dispatchEvent(new Event('input', { bubbles: true })); });
+$('aReset').onclick = () => { $('aStepW').value = 0.2; $('aTime').value = 1; $('aLift').value = 1; updAdv(); ['aStepW', 'aTime', 'aLift'].forEach(id => $(id).dispatchEvent(new Event('input', { bubbles: true }))); };
+$('pReset').onclick = () => { $('pG').value = 9.81; $('pMu').value = 0.6; $('pTq').value = 400; $('pNoise').value = 0; updPhys(); ['pG', 'pMu', 'pTq', 'pNoise'].forEach(id => $(id).dispatchEvent(new Event('input', { bubbles: true }))); };
+updPhys();
+window.__planReady = true; refreshPlan();
+window.__sim = { S, ADV, configSrc, get PLAN() { return PLAN; }, get aiMode() { return aiMode; } };   // read-only handle for automated tests
+
+/* ================= upload to the real robot over USB (Web Serial + ESP Web Tools) ================= */
+const FW_MANIFEST = 'https://arraychinvon89.github.io/array.github.io/firmware/manifest.json';
+const FL = { port: null, writer: null, reader: null, buf: '', waiters: [], fw: '' };
+const hasSerial = 'serial' in navigator;
+function flLog(line, dirOut) { const el = $('flLog'); el.textContent = (el.textContent + (dirOut ? '→ ' : '') + line + '\n').split('\n').slice(-60).join('\n'); el.scrollTop = el.scrollHeight; }
+function flUi() {
+  const on = !!FL.port;
+  ['flSend', 'flArm', 'flWalk', 'flStop', 'flLeft', 'flRight', 'flDisarm'].forEach(id => { $(id).disabled = !on; });
+  $('flConnect').textContent = on ? '⏏ ตัดการเชื่อมต่อ' : '🔌 เชื่อมต่อ';
+  $('flState').className = 'fl-state' + (on ? ' ok' : '');
+  $('flState').textContent = on ? 'เชื่อมต่อแล้ว · เฟิร์มแวร์ ' + (FL.fw || '?') : 'ยังไม่ได้เชื่อมต่อ';
+  if (!on) $('flStat').textContent = '—';
+}
+function flOnLine(line) {
+  if (line.startsWith('STAT ')) {
+    const kv = Object.fromEntries(line.slice(5).split(' ').map(x => x.split('=')));
+    const MODE_TH = { disarmed: 'มอเตอร์ปล่อยอยู่', stand: 'ยืน', walk: 'เดิน', fallen: 'ล้ม · มอเตอร์ตัดแล้ว' };
+    $('flStat').textContent = (MODE_TH[kv.mode] || kv.mode) + ' · roll ' + kv.roll + '° · pitch ' + kv.pitch + '°' + (kv.imu === '0' ? ' · ⚠ ไม่พบ IMU' : '');
+    return;
+  }
+  flLog(line);
+  const w = FL.waiters.find(w => w.re.test(line));
+  if (w) { FL.waiters.splice(FL.waiters.indexOf(w), 1); w.ok(line); }
+}
+async function flRead() {
+  const dec = new TextDecoder();
+  try {
+    while (FL.port && FL.port.readable) {
+      FL.reader = FL.port.readable.getReader();
+      try {
+        for (;;) {
+          const { value, done } = await FL.reader.read();
+          if (done) break;
+          FL.buf += dec.decode(value, { stream: true });
+          let i; while ((i = FL.buf.indexOf('\n')) >= 0) { const l = FL.buf.slice(0, i).replace(/\r$/, ''); FL.buf = FL.buf.slice(i + 1); if (l.trim()) flOnLine(l); }
+        }
+      } finally { FL.reader.releaseLock(); FL.reader = null; }
+    }
+  } catch (e) { flLog('การเชื่อมต่อหลุด: ' + e.message); flClose(); }
+}
+function flCmd(text, re = /^(OK|ERR)/, ms = 3000) {
+  return new Promise((ok, bad) => {
+    if (!FL.writer) return bad(new Error('ยังไม่ได้เชื่อมต่อ'));
+    const w = { re, ok }; FL.waiters.push(w);
+    flLog(text, true);
+    FL.writer.write(new TextEncoder().encode(text + '\n')).catch(bad);
+    setTimeout(() => { const i = FL.waiters.indexOf(w); if (i >= 0) { FL.waiters.splice(i, 1); bad(new Error('หุ่นไม่ตอบ')); } }, ms);
+  });
+}
+async function flClose() {
+  const p = FL.port; FL.port = null;
+  try { if (FL.reader) await FL.reader.cancel(); } catch (e) {}
+  try { if (FL.writer) { FL.writer.releaseLock(); FL.writer = null; } } catch (e) {}
+  try { if (p) await p.close(); } catch (e) {}
+  FL.waiters.length = 0; flUi();
+}
+async function flConnect() {
+  if (FL.port) return flClose();
+  if (!hasSerial) return;
+  try {
+    const port = await navigator.serial.requestPort();
+    await port.open({ baudRate: 115200 });
+    FL.port = port; FL.writer = port.writable.getWriter(); FL.buf = '';
+    flRead();
+    $('flState').textContent = 'กำลังคุยกับบอร์ด…';
+    let hello = null;
+    for (let i = 0; i < 3 && !hello; i++) hello = await flCmd('HELLO', /^ARRAYSIM /, 1500).catch(() => null);   // the board may still be booting
+    if (!hello) { flLog('ไม่พบเฟิร์มแวร์ array_simulator บนบอร์ดนี้ ทำขั้นที่ 1 ก่อน'); $('flState').className = 'fl-state bad'; $('flState').textContent = 'ไม่พบเฟิร์มแวร์ ทำขั้นที่ 1 ก่อน'; await flClose(); $('flState').className = 'fl-state bad'; $('flState').textContent = 'ไม่พบเฟิร์มแวร์ ทำขั้นที่ 1 ก่อน'; return; }
+    FL.fw = hello.split(' ')[1] || '';
+    const cfg = await flCmd('GET', /^CFG /).catch(() => null);
+    if (cfg) {
+      const kv = Object.fromEntries(cfg.slice(4).trim().split(' ').map(x => [x.slice(0, x.indexOf('=')), x.slice(x.indexOf('=') + 1)]));
+      [['chL', 'flChL'], ['chR', 'flChR'], ['dirL', 'flDirL'], ['dirR', 'flDirR'], ['offL', 'flOffL'], ['offR', 'flOffR'], ['walkSpeed', 'flWalkV']].forEach(([k, id]) => { if (kv[k] != null) $(id).value = k === 'walkSpeed' ? (+kv[k]).toFixed(2) : kv[k]; });
+    }
+    await flCmd('MON 1').catch(() => {});
+    flUi();
+  } catch (e) {
+    if (e && e.name !== 'NotFoundError') flLog('เชื่อมต่อไม่สำเร็จ: ' + e.message);
+    await flClose();
+  }
+}
+function flSettings() {
+  const n = (v, d = 4) => (+v).toFixed(d);
+  const L = BODY.thigh + BODY.shin;
+  const six = (id, re) => { const v = $(id).value.replace(/\s+/g, ''); if (!re.test(v)) throw new Error('ค่าในช่อง "' + $(id).parentElement.firstChild.textContent.trim() + '" ต้องเป็นตัวเลข 6 ตัวคั่นด้วยจุลภาค'); return v; };
+  const ints = /^-?\d+(,-?\d+){5}$/, nums = /^-?\d+(\.\d+)?(,-?\d+(\.\d+)?){5}$/;
+  return ['thigh=' + n(BODY.thigh), 'shin=' + n(BODY.shin), 'torsoHeight=' + n(BODY.torsoH), 'armLength=' + n(BODY.arm),
+    'massTorso=' + n(BODY.mT, 2), 'massLeg=' + n(BODY.mL, 2), 'massArm=' + n(Math.max(0, BODY.mA), 2),
+    'stepWidth=' + n(STEPW), 'stepTimeMin=' + n(0.42 * ADV.tScale), 'stepTimeMax=' + n(0.6 * ADV.tScale), 'swingHeight=' + n(0.08 * ADV.lift * L), 'maxStep=' + n(0.966 * L),
+    'kpJoint=' + n(S.kp, 1), 'kdJoint=' + n(S.kd, 1), 'kpBalance=' + n(S.kpB, 1), 'kdBalance=' + n(S.kdB, 1), 'maxTorque=' + n(ADV.tq, 1), 'gravity=' + n(G, 3),
+    'walkSpeed=' + n(clamp(+$('flWalkV').value || 0.3, 0, 1.5), 2),
+    'chL=' + six('flChL', ints), 'chR=' + six('flChR', ints), 'dirL=' + six('flDirL', ints), 'dirR=' + six('flDirR', ints), 'offL=' + six('flOffL', nums), 'offR=' + six('flOffR', nums)].join(' ');
+}
+async function flSend() {
+  const b = $('flSend'); b.disabled = true;
+  try {
+    const res = await flCmd('SET ' + flSettings(), /^(OK|ERR)/, 4000);
+    if (res.startsWith('OK')) { b.textContent = 'ส่งแล้ว ✓'; toast('ส่งค่าลงหุ่นแล้ว ค่าเก็บไว้ในหุ่นแม้ปิดเครื่อง'); }
+    else { flLog('หุ่นไม่รับค่า: ' + res.slice(4)); b.textContent = 'หุ่นไม่รับค่า'; }
+  } catch (e) { flLog(e.message); b.textContent = 'ส่งไม่สำเร็จ'; }
+  setTimeout(() => { b.textContent = '📤 ส่งค่าลงหุ่น'; b.disabled = !FL.port; }, 1800);
+}
+let ewtLoaded = false;
+async function flPrepare() {               // load the installer only for members who can use it
+  if (!hasSerial) { $('flNoSerial').hidden = false; ['flInstallBtn', 'flConnect'].forEach(id => { $(id).disabled = true; }); return; }
+  if (ewtLoaded || !can('flash')) return;
+  ewtLoaded = true;
+  try {
+    await import('https://unpkg.com/esp-web-tools@10.2.1/dist/web/install-button.js?module');
+    const el = document.createElement('esp-web-install-button');
+    el.setAttribute('manifest', FW_MANIFEST);
+    const btn = $('flInstallBtn'); btn.disabled = false; btn.slot = 'activate';
+    el.appendChild(btn);
+    const unsup = document.createElement('span'); unsup.slot = 'unsupported'; unsup.className = 'hint'; unsup.textContent = 'เบราว์เซอร์นี้ติดตั้งเฟิร์มแวร์ไม่ได้ ใช้ Chrome หรือ Edge บนคอมพิวเตอร์';
+    el.appendChild(unsup);
+    $('flInstall').appendChild(el);
+    btn.addEventListener('click', () => { if (FL.port) flClose(); });     // the installer needs the port to itself
+  } catch (e) { ewtLoaded = false; flLog('โหลดตัวติดตั้งไม่สำเร็จ ตรวจอินเทอร์เน็ตแล้วรีเฟรชหน้า'); }
+}
+window.flPrepare = flPrepare; flPrepare();
+$('flConnect').onclick = flConnect;
+$('flSend').onclick = flSend;
+$('flArm').onclick = () => flCmd('ARM').catch(e => flLog(e.message));
+$('flDisarm').onclick = () => flCmd('DISARM').catch(e => flLog(e.message));
+$('flWalk').onclick = () => flCmd('WALK ' + clamp(+$('flWalkV').value || 0.3, 0, 1.5)).catch(e => flLog(e.message));
+$('flStop').onclick = () => flCmd('WALK 0').then(() => flCmd('TURN 0')).catch(e => flLog(e.message));
+$('flLeft').onclick = () => flCmd('TURN 0.4').catch(e => flLog(e.message));
+$('flRight').onclick = () => flCmd('TURN -0.4').catch(e => flLog(e.message));
+document.querySelectorAll('.fl-grid input').forEach(i => { i.addEventListener('keydown', e => e.stopPropagation()); i.addEventListener('keyup', e => e.stopPropagation()); });
+if (hasSerial) navigator.serial.addEventListener('disconnect', e => { if (e.target === FL.port) { flLog('ถอดสาย USB แล้ว'); flClose(); } });
+flUi();
+
 /* ================= telemetry ================= */
 const MODE = { stand: ['ยืนทรงตัว', 'ok'], shift: ['ถ่ายน้ำหนัก', 'ok'], walk: ['เดิน', 'ok'], crouch: ['ย่อตัวเตรียมกระโดด', 'warn'], air: ['ลอยตัว', 'warn'],
   land: ['ลงพื้น · ซับแรงกระแทก', 'warn'], fall: ['เสียสมดุล · กำลังล้ม', 'bad'], fallen: ['ล้ม · เตรียมลุก', 'bad'], getup: ['ลุกขึ้น', 'warn'] };
@@ -3362,7 +3886,8 @@ function telemetry(p) {
   imuText();
   const q = p.pts, v = p.vec;
   let [label, tone] = MODE[S.mode];
-  if ((S.mode === 'fall' || S.mode === 'fallen') && S.fallReason === 'servo') label = 'เข่าทรุด · Kp ข้อต่อต่ำเกินไป';
+  if ((S.mode === 'fall' || S.mode === 'fallen') && S.fallReason === 'servo') label = ADV.tq < 400 && S.kp * 0.05 > ADV.tq ? 'เข่าทรุด · มอเตอร์แรงบิดไม่พอ' : 'เข่าทรุด · Kp ข้อต่อต่ำเกินไป';
+  if ((S.mode === 'fall' || S.mode === 'fallen') && S.fallReason === 'slip') label = 'เท้าลื่น · พื้นลื่นเกินไป';
   else if (S.mode === 'getup' && S.getup && S.getup.phase) label = 'ลุกขึ้น · ' + S.getup.phase;
   else if (S.mode === 'walk' && S.recover > 0) { label = 'ก้าวกู้สมดุล'; tone = 'warn'; }
   else if (S.mode === 'walk' && !wantsMove()) label = 'กำลังหยุด';

@@ -37,7 +37,8 @@ jobs:
               0xe000 ~/.arduino15/packages/esp32/hardware/esp32/*/tools/partitions/boot_app0.bin 0x10000 build/array_sim_fw.ino.bin
           fi
           cp build/array_sim_fw.ino.merged.bin firmware/bin/array_sim_fw.bin
-          echo "{\"version\": \"$(grep -o 'FW_VERSION \"[^\"]*' firmware/array_sim_fw/array_sim_fw.ino | cut -d'\"' -f2)\", \"commit\": \"${GITHUB_SHA::7}\", \"built\": \"$(date -u +%FT%TZ)\"}" > firmware/bin/build.json
+          VER=$(sed -n 's/^#define FW_VERSION "\(.*\)"/\1/p' firmware/array_sim_fw/array_sim_fw.ino)
+          printf '{"version": "%s", "commit": "%s", "built": "%s"}\n' "$VER" "${GITHUB_SHA::7}" "$(date -u +%FT%TZ)" > firmware/bin/build.json
       - name: Publish the binary on the site
         run: |
           git config user.name "github-actions[bot]"
