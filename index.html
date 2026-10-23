@@ -428,6 +428,60 @@ body.authed .lock { opacity: 0; visibility: hidden; pointer-events: none; }
 @keyframes lgSpin { to { --ang: 360deg; } }
 @keyframes shake { 0%, 100% { transform: none; } 20% { transform: translateX(-7px); } 40% { transform: translateX(6px); } 60% { transform: translateX(-4px); } 80% { transform: translateX(3px); } }
 .lg-google.shake { animation: shake .45s ease; }
+.stats-btn { min-height: 32px; padding: 2px 10px; font-size: 12px; border-radius: 999px; gap: 5px; color: #1b1206; background: var(--robot); border-color: var(--robot-dark); }
+.stats-btn:hover { box-shadow: 0 0 0 3px color-mix(in srgb, var(--robot) 30%, transparent); border-color: var(--robot-dark); }
+.adm { position: fixed; inset: 0; z-index: 125; display: grid; place-items: center; padding: max(16px, env(safe-area-inset-top, 0px)) 16px max(16px, env(safe-area-inset-bottom, 0px)); }
+.adm-backdrop { position: absolute; inset: 0; background: rgba(3,4,6,.7); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); animation: lgFade .45s ease both; }
+.adm-card { position: relative; width: min(760px, 100%); max-height: calc(100vh - 32px); max-height: calc(100dvh - 32px); display: grid; grid-template-rows: auto auto minmax(0, 1fr); gap: 14px;
+  padding: 22px; color: var(--ink); background: var(--sheet); border-radius: 18px; box-shadow: 0 0 0 1px var(--grid-strong), 0 30px 90px rgba(0,0,0,.55), 0 0 80px rgba(243,154,61,.1);
+  animation: lgIn .55s cubic-bezier(.22,1,.36,1) both; }
+.adm.closing .adm-card { animation: lgOut .3s ease-in forwards; }
+.adm.closing .adm-backdrop { animation: lgFade .3s ease reverse forwards; }
+.adm-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.adm-title { margin: 2px 0 0; font: 700 26px var(--f-display); }
+.adm-actions { display: flex; gap: 6px; }
+.adm-ghost { min-width: 40px; min-height: 40px; padding: 0; justify-content: center; border-radius: 10px; }
+.adm-ghost.spin svg { animation: admSpin .8s linear infinite; }
+@keyframes admSpin { to { transform: rotate(360deg); } }
+.adm-body { overflow-y: auto; display: grid; gap: 16px; align-content: start; min-height: 0; padding-right: 2px; scrollbar-width: thin; }
+.adm-body.loading { opacity: .5; filter: blur(1px); transition: opacity .3s, filter .3s; }
+.adm-hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr); gap: 12px; }
+.adm-big, .adm-tile { display: grid; align-content: center; gap: 2px; padding: 14px 16px; border-radius: 12px; background: var(--paper); border: 1px solid var(--line); }
+.adm-big { background: linear-gradient(150deg, color-mix(in srgb, var(--robot) 22%, var(--paper)), var(--paper) 70%); border-color: color-mix(in srgb, var(--robot) 40%, var(--line)); }
+.adm-big b { font: 700 56px/1 var(--f-display); font-variant-numeric: tabular-nums; }
+.adm-big span, .adm-tile span { font-size: 13px; color: var(--muted); }
+.adm-tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.adm-tile b { font: 700 28px/1.1 var(--f-display); font-variant-numeric: tabular-nums; }
+.adm-chart { position: relative; margin: 0; padding: 14px 16px 10px; border-radius: 12px; background: var(--paper); border: 1px solid var(--line); }
+.adm-chart figcaption { font-size: 13px; color: var(--muted); margin-bottom: 10px; }
+.adm-bars { height: 130px; display: grid; grid-template-columns: repeat(14, minmax(0, 1fr)); gap: 2px; align-items: end; border-bottom: 1px solid var(--grid-strong); }
+.adm-col { position: relative; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; cursor: default; }
+.adm-col i { display: block; width: min(70%, 26px); min-height: 2px; border-radius: 4px 4px 0 0; background: var(--robot); transform-origin: bottom; animation: admGrow .7s cubic-bezier(.22,1,.36,1) both; transition: filter .2s; }
+.adm-col i.zero { background: var(--grid-strong); }
+.adm-col:hover i { filter: brightness(1.2); }
+.adm-col em { font: 600 11px var(--f-mono); font-style: normal; color: var(--ink); margin-bottom: 3px; }
+.adm-col small { position: absolute; top: 100%; margin-top: 5px; font: 10px var(--f-mono); color: var(--muted); white-space: nowrap; }
+.adm-bars { margin-bottom: 20px; }
+@keyframes admGrow { from { transform: scaleY(0); } to { transform: none; } }
+.adm-tip { position: absolute; z-index: 2; pointer-events: none; transform: translate(-50%, -100%); padding: 6px 10px; border-radius: 8px; font-size: 12px; white-space: nowrap; color: var(--ink); background: var(--sheet); border: 1px solid var(--grid-strong); box-shadow: 0 8px 24px rgba(0,0,0,.35); }
+.adm-listhead { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; font-weight: 600; }
+.adm-listhead input { flex: 0 1 240px; min-width: 0; min-height: 38px; padding: 6px 10px; font: 14px var(--f-body); color: var(--ink); background: var(--paper); border: 1px solid var(--grid-strong); border-radius: 8px; }
+.adm-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.adm-list li { display: grid; grid-template-columns: 36px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 8px 10px; border-radius: 10px; background: var(--paper); border: 1px solid var(--line); animation: msgIn .35s ease both; }
+.adm-list img { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; background: var(--grid); }
+.adm-who { min-width: 0; display: grid; }
+.adm-who b, .adm-who span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.adm-who span, .adm-when { font-size: 12px; color: var(--muted); }
+.adm-when { text-align: right; display: grid; }
+.adm-when .on { color: var(--cop); }
+.adm-empty { padding: 18px; text-align: center; color: var(--muted); font-size: 14px; }
+@media (max-width: 600px) {
+  .adm-card { padding: 16px; }
+  .adm-hero { grid-template-columns: minmax(0, 1fr); }
+  .adm-big b { font-size: 44px; }
+  .adm-col small { display: none; }
+  .adm-col:nth-child(4n) small { display: block; }
+}
 .hint { font-size: 13px; color: var(--muted); margin: 0; }
 .notes { font-size: 14px; color: var(--muted); margin: 0; max-width: 90ch; }
 .notes b { color: var(--ink); font-weight: 600; }
@@ -486,6 +540,7 @@ body.authed .lock { opacity: 0; visibility: hidden; pointer-events: none; }
         <div class="acct-user" id="acctUser" hidden>
           <img id="acctImg" alt="" referrerpolicy="no-referrer">
           <span id="acctName"></span>
+          <button id="statsBtn" class="stats-btn" hidden title="ดูจำนวนผู้ใช้ (เฉพาะเจ้าของเว็บ)"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 20V11M12 20V4M19 20v-6"/></svg> ผู้ใช้</button>
           <button id="logoutBtn" class="logout-btn">ออกจากระบบ</button>
         </div>
       </div>
@@ -1269,6 +1324,39 @@ void loop() {
     <p class="lg-msg" id="lgMsg" role="status" hidden></p>
     <button type="button" id="lgClose" class="lg-later">ไว้ทีหลัง</button>
     <p class="lg-note">เราเห็นแค่ชื่อและรูปโปรไฟล์ของคุณ ไม่เห็นรหัสผ่าน และไม่โพสต์อะไรแทนคุณ</p>
+  </div>
+</div>
+<div class="adm" id="adm" hidden>
+  <div class="adm-backdrop" id="admBackdrop"></div>
+  <div class="adm-card" role="dialog" aria-modal="true" aria-labelledby="admTitle">
+    <div class="adm-top">
+      <div>
+        <div class="lg-eyebrow">เฉพาะเจ้าของเว็บ</div>
+        <h2 class="adm-title" id="admTitle">ผู้ใช้ array_simulator</h2>
+      </div>
+      <div class="adm-actions">
+        <button type="button" id="admRefresh" class="adm-ghost" aria-label="โหลดใหม่"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg></button>
+        <button type="button" id="admClose" class="adm-ghost" aria-label="ปิด">✕</button>
+      </div>
+    </div>
+    <p class="lg-msg" id="admMsg" role="status" hidden></p>
+    <div class="adm-body" id="admBody">
+      <div class="adm-hero">
+        <div class="adm-big"><b id="admTotal">0</b><span>สมาชิกทั้งหมด</span></div>
+        <div class="adm-tiles">
+          <div class="adm-tile"><b id="admToday">0</b><span>สมัครใหม่วันนี้</span></div>
+          <div class="adm-tile"><b id="admActive">0</b><span>เข้าใช้วันนี้</span></div>
+          <div class="adm-tile"><b id="admWeek">0</b><span>สมัครใหม่ 7 วัน</span></div>
+        </div>
+      </div>
+      <figure class="adm-chart">
+        <figcaption>สมัครใหม่รายวัน · 14 วันล่าสุด</figcaption>
+        <div class="adm-bars" id="admBars" role="img"></div>
+        <div class="adm-tip" id="admTip" hidden></div>
+      </figure>
+      <div class="adm-listhead"><span>สมาชิกล่าสุด</span><input id="admSearch" type="search" placeholder="ค้นหาชื่อหรืออีเมล" aria-label="ค้นหาสมาชิก"></div>
+      <ul class="adm-list" id="admList"></ul>
+    </div>
   </div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -3077,9 +3165,10 @@ async function initAuth() {
   try {
     await loadScript('https://cdn.jsdelivr.net/npm/firebase@10.12.2/firebase-app-compat.js');
     await loadScript('https://cdn.jsdelivr.net/npm/firebase@10.12.2/firebase-auth-compat.js');
+    await loadScript('https://cdn.jsdelivr.net/npm/firebase@10.12.2/firebase-firestore-compat.js').catch(() => {});
     firebase.initializeApp(FIREBASE_CONFIG);
     const auth = firebase.auth(); auth.useDeviceLanguage();
-    auth.onAuthStateChanged(u => setAuth(u ? { name: u.displayName || u.email || 'สมาชิก', photo: u.photoURL } : null, 'google'));
+    auth.onAuthStateChanged(u => { setAuth(u ? { name: u.displayName || u.email || 'สมาชิก', photo: u.photoURL } : null, 'google'); memberSeen(u); });
     auth.getRedirectResult().catch(e => { openLogin(); lgSay(FB_ERR[e.code] || ('เข้าสู่ระบบไม่สำเร็จ: ' + e.message)); });
   } catch (e) { console.warn('Firebase failed to load', e); }
   AUTH.ready = true;
@@ -3090,6 +3179,107 @@ $('login').addEventListener('keydown', e => { if (e.key === 'Escape') closeLogin
 $('loginBtn').onclick = openLogin; $('spLogin').onclick = e => { e.stopPropagation(); openLogin(); };
 document.querySelectorAll('.lock-btn').forEach(b => b.onclick = openLogin);
 $('logoutBtn').onclick = () => { if (window.firebase && FIREBASE_CONFIG) firebase.auth().signOut(); };
+
+/* ================= members: each Google sign-in is recorded in Firestore users/{uid};
+   the owner (allowed by the Firestore security rules) gets a dashboard of how many people joined ================= */
+const DAY = 864e5;
+const fsdb = () => (window.firebase && firebase.firestore) ? firebase.firestore() : null;
+async function memberSeen(u) {
+  $('statsBtn').hidden = true; ADM.rows = null; if (!u) admClose();
+  const db = fsdb(); if (!u || !db) return;
+  const ref = db.collection('users').doc(u.uid), FV = firebase.firestore.FieldValue;
+  const info = { name: (u.displayName || '').slice(0, 120), photo: (u.photoURL || '').slice(0, 500), email: (u.email || '').slice(0, 200), last: FV.serverTimestamp(), visits: FV.increment(1) };
+  try {
+    const snap = await ref.get();
+    await (snap.exists ? ref.update(info) : ref.set(Object.assign({ created: FV.serverTimestamp() }, info)));
+  } catch (e) { console.warn('member record', e.code || e); }
+  // only the owner may list everyone: the rules turn this query down for anyone else
+  try { await db.collection('users').limit(1).get(); $('statsBtn').hidden = false; } catch (e) {}
+}
+const ADM = { rows: null, q: '' };
+const tsMs = t => t && t.toMillis ? t.toMillis() : 0;
+const dayKey = ms => { const d = new Date(ms); return d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate(); };
+const startOfDay = ms => { const d = new Date(ms); d.setHours(0, 0, 0, 0); return d.getTime(); };
+function ago(ms) {
+  if (!ms) return '—';
+  const m = Math.round((Date.now() - ms) / 6e4);
+  if (m < 2) return 'ออนไลน์เมื่อสักครู่'; if (m < 60) return m + ' นาทีที่แล้ว';
+  const h = Math.round(m / 60); if (h < 24) return h + ' ชั่วโมงที่แล้ว';
+  const d = Math.round(h / 24); return d < 30 ? d + ' วันที่แล้ว' : new Date(ms).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' });
+}
+function countUp(el, to) {
+  const from = +el.dataset.v || 0; el.dataset.v = to;
+  if (reducedMotion || from === to) { el.textContent = to.toLocaleString('th-TH'); return; }
+  const t0 = performance.now(), dur = 900;
+  const step = now => { const k = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - k, 3);
+    el.textContent = Math.round(from + (to - from) * e).toLocaleString('th-TH'); if (k < 1) requestAnimationFrame(step); };
+  requestAnimationFrame(step);
+}
+function admSay(msg) { $('admMsg').hidden = !msg; $('admMsg').textContent = msg || ''; }
+function admRender() {
+  const rows = ADM.rows || [], now = Date.now(), today = startOfDay(now);
+  countUp($('admTotal'), rows.length);
+  countUp($('admToday'), rows.filter(r => r.created >= today).length);
+  countUp($('admActive'), rows.filter(r => r.last >= today).length);
+  countUp($('admWeek'), rows.filter(r => r.created >= today - 6 * DAY).length);
+  // signups per day, last 14 days
+  const days = [];
+  for (let i = 13; i >= 0; i--) { const d0 = startOfDay(today - i * DAY + DAY / 2); days.push({ t: d0, k: dayKey(d0), n: 0 }); }
+  const byKey = Object.fromEntries(days.map(d => [d.k, d]));
+  rows.forEach(r => { const d = r.created && byKey[dayKey(r.created)]; if (d) d.n++; });
+  const max = Math.max(1, ...days.map(d => d.n)), bars = $('admBars');
+  bars.textContent = '';
+  bars.setAttribute('aria-label', 'สมัครใหม่รายวัน: ' + days.map(d => new Date(d.t).toLocaleDateString('th-TH', { day: 'numeric', month: 'short' }) + ' ' + d.n + ' คน').join(', '));
+  days.forEach((d, i) => {
+    const col = document.createElement('div'); col.className = 'adm-col';
+    const label = new Date(d.t).toLocaleDateString('th-TH', { day: 'numeric', month: 'short' });
+    const showNum = d.n && (d.n === max || i === 13);
+    col.innerHTML = (showNum ? '<em>' + d.n + '</em>' : '') + '<i class="' + (d.n ? '' : 'zero') + '" style="height:' + (d.n ? Math.max(4, d.n / max * 100) : 0) + '%;animation-delay:' + (i * 30) + 'ms"></i><small>' + (i % 2 === 1 ? label : '') + '</small>';
+    col.onmouseenter = () => { const tip = $('admTip'), fr = bars.parentElement.getBoundingClientRect(), cr = col.getBoundingClientRect();
+      tip.textContent = label + ' · สมัครใหม่ ' + d.n + ' คน'; tip.hidden = false;
+      tip.style.left = Math.min(fr.width - 80, Math.max(80, cr.left - fr.left + cr.width / 2)) + 'px'; tip.style.top = (cr.top - fr.top + 6) + 'px'; };
+    col.onmouseleave = () => { $('admTip').hidden = true; };
+    bars.appendChild(col);
+  });
+  admList();
+}
+function admList() {
+  const q = ADM.q.trim().toLowerCase(), list = $('admList');
+  const rows = (ADM.rows || []).filter(r => !q || (r.name + ' ' + r.email).toLowerCase().includes(q));
+  list.textContent = '';
+  if (!rows.length) { list.innerHTML = '<li class="adm-empty" style="display:block">' + (ADM.rows && ADM.rows.length ? 'ไม่พบสมาชิกที่ค้นหา' : 'ยังไม่มีสมาชิก รอคนแรกเข้าสู่ระบบอยู่ครับ') + '</li>'; return; }
+  rows.slice(0, 200).forEach((r, i) => {
+    const li = document.createElement('li'); li.style.animationDelay = Math.min(i, 12) * 30 + 'ms';
+    const img = document.createElement('img'); img.alt = ''; img.referrerPolicy = 'no-referrer'; img.loading = 'lazy'; img.src = r.photo || AV.idle; img.onerror = () => { img.src = AV.idle; };
+    const who = document.createElement('div'); who.className = 'adm-who';
+    const b = document.createElement('b'); b.textContent = r.name || 'ไม่ระบุชื่อ';
+    const em = document.createElement('span'); em.textContent = r.email + (r.created ? ' · สมัคร ' + new Date(r.created).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' }) : '');
+    who.append(b, em);
+    const when = document.createElement('div'); when.className = 'adm-when';
+    const a = document.createElement('span'); a.textContent = ago(r.last); if (Date.now() - r.last < 5 * 6e4) a.className = 'on';
+    const v = document.createElement('span'); v.textContent = 'เข้า ' + (r.visits || 1) + ' ครั้ง';
+    when.append(a, v);
+    li.append(img, who, when); list.appendChild(li);
+  });
+}
+async function admLoad() {
+  const db = fsdb(); if (!db) return;
+  $('admRefresh').classList.add('spin'); $('admBody').classList.add('loading'); admSay('');
+  try {
+    const snap = await db.collection('users').orderBy('last', 'desc').get();
+    ADM.rows = snap.docs.map(d => { const x = d.data(); return { name: x.name || '', email: x.email || '', photo: x.photo || '', created: tsMs(x.created), last: tsMs(x.last), visits: x.visits || 0 }; });
+    admRender();
+  } catch (e) {
+    admSay(e.code === 'permission-denied' ? 'บัญชีนี้ไม่มีสิทธิ์ดูรายชื่อผู้ใช้' : 'โหลดข้อมูลไม่สำเร็จ: ' + (e.message || e.code));
+  } finally { $('admRefresh').classList.remove('spin'); $('admBody').classList.remove('loading'); }
+}
+function admOpen() { const A = $('adm'); A.hidden = false; A.classList.remove('closing'); if (ADM.rows) admRender(); admLoad(); setTimeout(() => $('admClose').focus({ preventScroll: true }), 60); }
+function admClose() { const A = $('adm'); if (A.hidden) return; A.classList.add('closing'); setTimeout(() => { A.hidden = true; A.classList.remove('closing'); $('statsBtn').focus({ preventScroll: true }); }, reducedMotion ? 0 : 300); }
+$('statsBtn').onclick = admOpen;
+$('admClose').onclick = admClose; $('admBackdrop').onclick = admClose; $('admRefresh').onclick = admLoad;
+$('admSearch').oninput = e => { ADM.q = e.target.value; admList(); };
+$('adm').addEventListener('keydown', e => { if (e.key === 'Escape') admClose(); e.stopPropagation(); });
+$('adm').addEventListener('keyup', e => e.stopPropagation());
 initAuth();
 
 /* ================= telemetry ================= */
