@@ -2999,7 +2999,14 @@ $('tourAgain').onclick = () => { $('setPanel').hidden = true; $('setBtn').setAtt
    Inside claude.ai the viewer is already signed in to Claude: that identity unlocks the members' panels.
    On the public website (GitHub Pages) it is Google sign-in through Firebase Authentication.
    Paste the web-app config from the Firebase console below to switch Google sign-in on. */
-const FIREBASE_CONFIG = null;   // { apiKey: "...", authDomain: "...", projectId: "...", appId: "..." }
+const FIREBASE_CONFIG = {        // public web config (not a secret); access is limited by Firebase "Authorized domains"
+  apiKey: "AIzaSyBwIJJVDYooxVryS2kONw2y3ad-FFsenJA",
+  authDomain: "array-simulator.firebaseapp.com",
+  projectId: "array-simulator",
+  storageBucket: "array-simulator.firebasestorage.app",
+  messagingSenderId: "182791515055",
+  appId: "1:182791515055:web:94cf99d6ac1e9fd60e1d5a"
+};
 var AUTH = { user: null, env: 'web', ready: false };   // var: the code panel reads it before this block runs
 function setAuth(u, via) {
   AUTH.user = u; AUTH.via = via || '';
