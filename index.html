@@ -851,8 +851,8 @@ esp-web-install-button { display: inline-block; }
   </section>
 
   <section class="panel" aria-labelledby="flash-h">
-    <h2 id="flash-h">อัปโหลดลงหุ่นยนต์ผ่าน USB <span class="member ult">ULTIMATE</span></h2>
-    <div class="lock" data-need="ultimate" data-title="ส่งค่าจากหน้านี้ลงหุ่นจริงผ่านสาย USB" aria-hidden="false"></div>
+    <h2 id="flash-h">อัปโหลดลงหุ่นยนต์ผ่าน USB <span class="member">PRO</span></h2>
+    <div class="lock" data-need="pro" data-title="ส่งค่าจากหน้านี้ลงหุ่นจริงผ่านสาย USB" aria-hidden="false"></div>
     <p class="hint">ไม่ต้องเขียนโค้ดหรือเปิด Arduino IDE · ใช้ Chrome หรือ Edge บนคอมพิวเตอร์ · หุ่นใช้บอร์ด ESP32 + บอร์ดขับเซอร์โว PCA9685 + IMU MPU6050 · <b>ทดสอบตอนแขวนหุ่นให้เท้าลอยก่อนเสมอ</b></p>
     <p class="fl-warn" id="flNoSerial" hidden>เบราว์เซอร์นี้ต่อ USB ไม่ได้ ใช้ Chrome หรือ Edge บนคอมพิวเตอร์ (Windows / Mac / Linux) แล้วเปิดหน้านี้จากเว็บ array_simulator</p>
     <ol class="fl-steps">
@@ -1530,8 +1530,9 @@ void loop() {
           <li>ปรับขนาดและน้ำหนักหุ่น</li>
           <li>AI วิเคราะห์หุ่น ไม่ต้องใช้ key</li>
           <li>ปรับพารามิเตอร์การเดินเพิ่ม</li>
+          <li>อัปโหลดลงหุ่นผ่านสาย USB</li>
           <li class="no">ฟิสิกส์ขั้นสูง</li>
-          <li class="no">โค้ดสำหรับหุ่นยนต์จริง</li>
+          <li class="no">ไฟล์โค้ด C++ ทั้งหมด</li>
         </ul>
         <button type="button" class="pl-btn" data-buy="pro">สมัคร Pro</button>
       </article>
@@ -1544,8 +1545,7 @@ void loop() {
           <li>ทุกอย่างใน Pro</li>
           <li>ฟิสิกส์ขั้นสูง: แรงโน้มถ่วง พื้นลื่น มอเตอร์ เซ็นเซอร์</li>
           <li>AI วิเคราะห์หุ่น ไม่ต้องใช้ key</li>
-          <li>โค้ด C++ ทั้งหมด เอาไปใช้กับหุ่นจริง</li>
-          <li>อัปโหลดลงหุ่นผ่านสาย USB</li>
+          <li>ไฟล์โค้ด C++ ทั้งหมด แก้และต่อยอดเองได้</li>
         </ul>
         <button type="button" class="pl-btn" data-buy="ultimate">สมัคร Ultimate</button>
       </article>
@@ -3608,7 +3608,7 @@ Object.keys(NUM_UNITS).forEach(id => {
    Paste the Worker's URL below once it is deployed; until then every signed-in visitor is on Free. */
 var WORKER_URL = null;   // e.g. 'https://array-sim.<your-name>.workers.dev'
 var RANK = { guest: 0, free: 1, pro: 2, ultimate: 3 };
-var NEED = { body: 'pro', adv: 'pro', ai: 'pro', phys: 'ultimate', code: 'ultimate', flash: 'ultimate' };
+var NEED = { body: 'pro', adv: 'pro', ai: 'pro', phys: 'ultimate', code: 'ultimate', flash: 'pro' };
 var PLAN_NAME = { guest: 'ผู้เยี่ยมชม', free: 'Free', pro: 'Pro', ultimate: 'Ultimate' };
 var PLAN = { tier: 'guest', until: 0, sub: false, aiLeft: null, owner: false };
 function can(f) { return RANK[PLAN.tier] >= RANK[NEED[f] || f]; }
