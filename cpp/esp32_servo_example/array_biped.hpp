@@ -26,7 +26,7 @@
 namespace arraysim {
 
 static const float kPi = 3.14159265358979f;
-static const float kG = 9.81f;
+static const float kG = 9.81f;   // default; RobotConfig::gravity is what the controller uses
 
 inline float clampf(float v, float a, float b) { return v < a ? a : (v > b ? b : v); }
 inline float lerpf(float a, float b, float t) { return a + (b - a) * t; }
@@ -95,6 +95,7 @@ struct RobotConfig {
   float kpBalance = 1600.f;   // N/m   (CoM over the feet while standing)
   float kdBalance = 545.f;    // N·s/m
   float maxTorque = 150.f;    // N·m, per joint
+  float gravity = 9.81f;      // m/s²
   float fallTilt = 0.70f;     // rad (~40°) body tilt that counts as a fall
   float estimatorGain = 6.f;  // 1/s, how fast the model follows the measured CoM
 
@@ -221,7 +222,7 @@ class BipedController {
  private:
   struct Foot { float x, y, yaw, lift, pitch, sx, sy, syaw, spitch, tx, ty, slift; };
 
-  float omega() const { return sqrtf(kG / c_.comHeight()); }
+  float omega() const { return sqrtf(c_.gravity / c_.comHeight()); }
 
   // Correct the model CoM with the CoM measured from the stance leg kinematics + IMU tilt.
   void estimate(const Sensors& s, float dt) {

@@ -1,0 +1,8 @@
+{
+  "name": "array_simulator robot firmware",
+  "version": "1.0.0",
+  "new_install_prompt_erase": true,
+  "builds": [
+    { "chipFamily": "ESP32", "parts": [{ "path": "bin/array_sim_fw.bin", "offset": 0 }] }
+  ]
+}
